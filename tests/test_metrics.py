@@ -80,10 +80,25 @@ def test_compute_vif_requires_explicit_variant():
         compute_vif(img, img)  # type: ignore[call-arg]
 
 
-def test_wavelet_vif_refuses_rather_than_approximating():
-    img = _phantom(64)
-    with pytest.raises(NotImplementedError, match="NOT SPECIFIED BY OHASHI"):
-        compute_vif(img, img, variant="vif_wavelet")
+def test_wavelet_vif_dispatch_matches_direct_call():
+    """compute_vif('vif_wavelet') must not silently fall back to VIFp.
+
+    Full wavelet VIF needs a larger image than the other VIF tests in this
+    file use (see ct_iqa.vif.wavelet's size guard); the wavelet
+    implementation's own behaviour is covered in detail by
+    tests/test_vif_wavelet.py. This test only confirms the dispatcher wires
+    to the real function, not a placeholder or an alias for vifp.
+    """
+    from ct_iqa.vif.wavelet import vif_wavelet
+
+    img = _phantom(256)
+    dispatched = compute_vif(img, img, variant="vif_wavelet")
+    direct = vif_wavelet(img, img)
+    assert dispatched == pytest.approx(direct)
+    # Not asserting dispatched != vif_p(img, img) here: both are ~1.0 for
+    # identical images. The two variants only provably diverge once a real
+    # distortion is introduced -- see
+    # tests/test_vif_wavelet.py::test_wavelet_vif_diverges_from_vifp.
 
 
 def test_unknown_variant_rejected():

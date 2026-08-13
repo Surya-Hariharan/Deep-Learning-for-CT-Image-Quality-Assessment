@@ -34,3 +34,12 @@ pytest>=7.4
 # It depends only on numpy/scipy above -- no separate VIF package is installed.
 # See docs/deviations_from_ohashi.md (DEV-03) for the numerical-validation
 # status of this implementation.
+#
+# Decision A-15 (docs/research_decisions.md): Ohashi's citation actually
+# points to Sheikh & Bovik's FULL wavelet-domain/GSM VIF, not VIFp. That
+# formulation is implemented in src/ct_iqa/vif/wavelet.py (vif_wavelet()),
+# built on the steerable-pyramid decomposition below. VIFp is kept, unchanged,
+# as a separate variant -- see ct_iqa.vif.labeling.compute_vif.
+pyrtools==1.0.10   # steerable-pyramid decomposition; installed and verified in
+                   # this environment (Anaconda Python 3.13.9, Windows) on 2026-08-13.
+                   # See docs/vif_implementation.md for API usage and version pin rationale.

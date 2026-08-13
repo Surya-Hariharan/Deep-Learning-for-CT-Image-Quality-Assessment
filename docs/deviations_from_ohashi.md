@@ -35,20 +35,55 @@ comparison.
 genuinely pristine reference dataset (e.g., the original DeepLesion/CQ500),
 which is not currently available in this repository.
 
-## DEV-03 — VIF implementation is a from-scratch Python port
+## DEV-03 — VIF implementation is the wrong formulation family (confirmed mismatch)
 
-**What differs:** Ohashi's paper used MATLAB R2024a for VIF (Section 12 of the
-brief). `src/ct_iqa/vif/metric.py` is a from-scratch Python implementation of the
-pixel-domain VIFp variant (Sheikh & Bovik's `vifp_mscale` reference), not a
-call into the MATLAB toolchain.
+**What differs:** the paper's citation for VIF — Sheikh & Bovik (2006),
+"Image information and visual quality," IEEE Trans Image Process
+15(2):430-444 [ref 27] — is the original **wavelet-domain VIF** (GSM model
+over wavelet subbands). `src/ct_iqa/vif/metric.py` implements **VIFp**
+(`vifp_mscale`, decision A-13), a different, simplified **pixel-domain**
+formulation from an earlier (2005) Sheikh/Bovik paper. This was previously
+recorded as an unresolved MATLAB-vs-Python porting question ("read the
+paper"); having now read the paper, it is a formulation-family mismatch, not
+a floating-point/toolchain nuance.
 
-**Consequence:** small numerical differences versus a MATLAB run are possible
-even with an identical formula, from floating-point and filter-boundary
-implementation details. **Not yet cross-validated** against a MATLAB reference
-run or a known-good Python package (e.g. `sewar`, `piqa`) on a shared test
-image — this is an open validation task, not a resolved one.
+**Consequence:** VIFp and wavelet-domain VIF are known to diverge
+numerically, particularly on blur sensitivity and noise handling (wavelet
+VIF estimates noise variance per subband; VIFp does not). Since VIF is the
+sole synthetic-stage training target, every one of the 169,000 labels this
+project would generate depends on which formulation is used. This is graded
+above ordinary floating-point drift — it is a different metric, not a
+different implementation of the same metric. Full writeup, including what
+remains unverified about Ohashi's exact MATLAB call, is in
+`docs/research_decisions.md` → "VIF Implementation Status."
 
-**Status:** open. See `docs/research_decisions.md`, item U-V01.
+**Status (updated 2026-08-13, after parameter-equivalence validation):**
+partially addressed. `src/ct_iqa/vif/metric.py` (VIFp) remains unmodified
+and unrenamed. A full wavelet-domain VIF implementation, `vif_wavelet()`
+(`src/ct_iqa/vif/wavelet.py`, decision A-15), now exists alongside it as a
+distinct, explicitly-named variant
+(`ct_iqa.vif.labeling.compute_vif(..., variant="vif_wavelet")`) — see
+`docs/vif_implementation.md` for its full specification and
+`docs/research_decisions.md` (decision A-15, "VIF STATUS" block) for its
+validation status.
+
+The initial cross-check against an independent implementation showed only
+moderate numerical agreement (Pearson 0.62). A follow-up
+parameter-equivalence validation (`scripts/validate_vif_parameter_equivalence.py`)
+showed that once every identified parameter difference is matched, the two
+implementations agree to within floating-point precision (Pearson
+0.99999999999989) — strong evidence the moderate disagreement was caused
+by documented, defensible parameter choices, not an implementation bug.
+
+**Still blocking for actual LDCT-IQAC label generation**: this validates
+that the *code* is structurally correct, not that the *canonical parameter
+set* (drawn from `vifvec.m`, since Ohashi names no specific MATLAB
+function) matches whatever Ohashi's own MATLAB R2024a run actually
+computed — no MATLAB ground truth exists anywhere in this project's reach,
+and none is expected to. No LDCT-IQAC labels have been computed with
+either variant. See `docs/research_decisions.md`, items S-02 (formulation
+family, OHASHI-SPECIFIED) and A-15/U-V01 (implementation, PROJECT-ADAPTATION,
+structurally validated, not bit-exact-verified against MATLAB).
 
 ## DEV-04 — Real-image evaluation set differs from Ohashi's
 
