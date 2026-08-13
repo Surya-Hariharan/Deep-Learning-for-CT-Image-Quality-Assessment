@@ -1,0 +1,18 @@
+{
+  "dataset_name": "lidc_idri",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-08-13T14:36:59+00:00",
+  "generator": "scripts/build_manifest.py",
+  "config_used": "configs/datasets/lidc_idri.yaml",
+  "seed": 20260813,
+  "n_records": 0,
+  "source_root": "data/raw/lidc_idri",
+  "notes": [
+    "NOT DOWNLOADED as of this run: data/raw/lidc_idri contains no data files.",
+    "Intended role: nodule_detection_segmentation_auxiliary.",
+    "Re-run this script after acquiring the dataset."
+  ],
+  "unknown_fields": [
+    "everything - dataset absent"
+  ]
+}

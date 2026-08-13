@@ -1,0 +1,39 @@
+# Shared CT preprocessing defaults for raw -> interim conversions.
+#
+# These are PROJECT DECISIONS for our own pipelines. They are NOT claimed to
+# match any paper. Any module replicating a published method must override
+# these with values read from that paper, or declare them UNKNOWN.
+
+name: ct_common_v1
+seed_from: "configs/paths.yaml:random_seed"
+
+hu:
+  # Raw DICOM -> Hounsfield Units via RescaleSlope / RescaleIntercept.
+  apply_rescale: true
+  air_padding_value: -1024        # value written where the reconstruction circle has no data
+
+windows:
+  # Named display windows (width / level). Selection per dataset is explicit;
+  # nothing is windowed implicitly.
+  lung:        {width: 1500, level: -600}
+  mediastinum: {width: 350,  level: 40}
+  abdomen:     {width: 350,  level: 40}
+  brain:       {width: 80,   level: 40}
+
+resample:
+  enabled: false                  # off by default; each pipeline opts in explicitly
+  target_spacing: null            # [UNKNOWN per pipeline]
+  interpolator: linear
+
+integrity:
+  # Values outside these ranges are flagged by the validator, never silently fixed.
+  expected_slice_sizes: [[512, 512]]
+  min_pixel_spacing_mm: 0.2
+  max_pixel_spacing_mm: 2.0
+  min_slice_thickness_mm: 0.4
+  max_slice_thickness_mm: 5.0
+
+logging:
+  # Every raw -> interim -> processed step appends a record here.
+  operation_log: "reports/preprocessing_log.jsonl"
+  record_fields: [timestamp, script, config_hash, input_path, output_path, n_items, seed]

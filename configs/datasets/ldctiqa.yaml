@@ -1,0 +1,86 @@
+# LDCT-IQAC 2023 Grand Challenge (HuggingFace mirror: MikaJesse/LDCTiqa_png)
+# STATUS: PRESENT ON DISK AND VERIFIED.
+#
+# ROLE (revised): this dataset is now the ACTIVE reference-image source for the
+# Ohashi-method replication in this project, replacing Ohashi's original
+# DeepLesion (90) + CQ500 (15) = 105-image reference set with the full
+# LDCT-IQAC dataset (1,000 images). This is a PROJECT ADAPTATION, not part of
+# Ohashi's methodology -- see docs/dataset_adaptation.md for the full
+# rationale and docs/deviations_from_ohashi.md for what numerically changes
+# as a result (dataset totals, split sizes).
+
+name: ldctiqa
+long_name: "Low-dose CT Perceptual Image Quality Assessment Challenge 2023"
+role: "ohashi_reference_images"            # PROJECT ADAPTATION: replaces DeepLesion+CQ500
+secondary_role: "subjective_evaluation_source"  # its expert_score field, kept separate from vif_score
+role_note: >
+  PROJECT ADAPTATION: used as the reference-image pool for the synthetic
+  Gaussian noise/blur degradation pipeline (see configs/quality/ohashi_ldctiqac.yaml),
+  in place of Ohashi's original DeepLesion/CQ500 references. Each image's
+  radiologist mean-opinion score (expert_score) is carried through unchanged
+  for the later subjective-evaluation stage and is NEVER used as the synthetic
+  training target -- that target remains VIF, computed against each image's
+  own clean version, per Ohashi.
+
+  CAVEAT (documented, not resolved): LDCT-IQAC images already contain
+  sparse-view streak artifacts + noise from their own acquisition/reconstruction
+  protocol -- they are not pristine references the way Ohashi's DeepLesion/CQ500
+  slices were assumed to be. Every image is treated as "clean" relative to the
+  *additional* synthetic degradation applied on top of it. This is a real
+  methodological difference from Ohashi and is logged in
+  docs/deviations_from_ohashi.md, not silently absorbed.
+
+raw_root: "data/raw/ldctiqa"
+images_dir: "data/raw/ldctiqa/LDCTiqa_png"
+labels_file: "data/raw/ldctiqa/ground_truth_score.json"
+source_readme: "data/raw/ldctiqa/SOURCE_README.md"
+
+format:
+  container: png
+  extracted: true
+  color_mode: RGB                 # verified: all 3 channels identical (grayscale replicated)
+  dtype: uint8
+  width: 512
+  height: 512
+  n_images: 1000
+
+labels:
+  kind: subjective_mos
+  scale: [0.0, 4.0]
+  step: 0.2                       # verified: 21 distinct values on a 0.2 grid
+  n_raters: 5
+  aggregation: mean
+  window: {width: 350, level: 40} # abdominal soft tissue, per source README
+
+identifiers:
+  patient_id: null                # UNKNOWN / REQUIRES VERIFICATION - not distributed
+  study_id: null                  # UNKNOWN / REQUIRES VERIFICATION
+  series_id: null                 # UNKNOWN / REQUIRES VERIFICATION
+  image_id: "filename stem (0000..0999)"
+
+geometry:
+  pixel_spacing: null             # UNKNOWN / REQUIRES VERIFICATION - stripped by PNG conversion
+  slice_thickness: null           # UNKNOWN / REQUIRES VERIFICATION
+  scanner: null                   # UNKNOWN / REQUIRES VERIFICATION
+
+splits:
+  # Two distinct split concepts apply to this dataset; do not conflate them.
+  patient_level:
+    # No patient IDs are distributed, so patient-level splitting (the kind
+    # needed if this dataset were ever used to train a patient-level model)
+    # remains IMPOSSIBLE. Unrelated to the reference-level split below.
+    strategy: "BLOCKED - no patient identifiers"
+  reference_level:
+    # OHASHI-SPECIFIED (Section 8): split reference images 60/20/20 BEFORE
+    # generating degradations, then every degraded variant of a reference
+    # inherits that reference's partition. The split unit is image_id itself
+    # -- no patient_id is needed for this, since Ohashi's own split unit was
+    # the reference image, not the patient. See configs/quality/ohashi_ldctiqac.yaml
+    # for the resulting counts (600/200/200 references).
+    strategy: "reference_level"
+    unit: image_id
+    ratios: {train: 0.6, val: 0.2, test: 0.2}
+    seed_from: "configs/paths.yaml:random_seed"
+
+citation: "Lee et al., Medical Image Analysis 99:103343 (2025)"
+license: "UNKNOWN / REQUIRES VERIFICATION - see ldctiqac2023.grand-challenge.org"

@@ -1,0 +1,85 @@
+# Ohashi-method replication - quality regression model (ResNet50 only for now),
+# trained on the LDCT-IQAC-based synthetic dataset (configs/quality/ohashi_ldctiqac.yaml).
+# DO NOT TRAIN until scripts/dataset/validate_datasets.py passes AND
+# src/ct_iqa/models/resnet50.py:unresolved_prerequisites() is empty.
+#
+# Provenance taxonomy (never mixed):
+#   OHASHI-SPECIFIED       PROJECT ADAPTATION
+#   NOT SPECIFIED BY OHASHI   EXPERIMENTAL EXTENSION
+
+name: ohashi_resnet50_vif_ldctiqac
+
+model:
+  backbone: resnet50              # OHASHI-SPECIFIED - only backbone in scope for now
+  pretrained_weights: radimagenet # OHASHI-SPECIFIED
+  weights_path: null              # NOT SPECIFIED BY OHASHI - RadImageNet ResNet50 checkpoint not yet obtained
+  input_shape: [224, 224, 3]      # OHASHI-SPECIFIED
+  crop_strategy: central_crop     # OHASHI-SPECIFIED (Section 9/10) - see src/ct_iqa/preprocessing/cropping.py + channels.py
+  head:
+    - dropout                     # OHASHI-SPECIFIED that a dropout layer exists before the FC layer
+    - fully_connected_1           # OHASHI-SPECIFIED - single regression output
+    - sigmoid                     # OHASHI-SPECIFIED
+  dropout_rate: null              # NOT SPECIFIED BY OHASHI -> must become a documented PROJECT
+                                  # ADAPTATION before training, recorded in docs/research_decisions.md
+  freeze_backbone: null           # NOT SPECIFIED BY OHASHI whether the RadImageNet backbone is
+                                  # frozen or fine-tuned end to end
+
+preprocessing:
+  grayscale_to_rgb: true                    # PROJECT ADAPTATION (CT is single channel; ResNet50 expects 3)
+  grayscale_to_rgb_method: channel_replication  # PROJECT ADAPTATION - see src/ct_iqa/preprocessing/cropping.py + channels.py
+  crop_to: [224, 224]                       # OHASHI-SPECIFIED via input_shape + central_crop
+  resize_before_crop: false                 # PROJECT ADAPTATION - LDCT-IQAC is 512x512, central
+                                            # crop to 224x224 needs no resize (verified in reports/dataset_inventory.md)
+  intensity_normalization: null             # NOT SPECIFIED BY OHASHI (RadImageNet preprocessing differs from ImageNet)
+  augmentation: none                        # OHASHI-SPECIFIED (Section 10): no random crop/flip/rotation/color aug
+
+training:
+  loss: mse                       # OHASHI-SPECIFIED
+  optimizer: adam                 # OHASHI-SPECIFIED
+  batch_size: 64                  # OHASHI-SPECIFIED
+  epochs: 30                      # OHASHI-SPECIFIED
+  learning_rate_grid: [1.0e-2, 1.0e-3, 1.0e-4, 1.0e-5]   # OHASHI-SPECIFIED
+  learning_rate_selection: validation_mse                 # OHASHI-SPECIFIED (Section 11) -
+                                                           # must run the search, not assume the result
+  learning_rate_reported_best_resnet50: 1.0e-3             # OHASHI-SPECIFIED, as reported in the paper
+  adam_betas: null                # NOT SPECIFIED BY OHASHI - assume framework defaults, record when chosen
+  lr_schedule: null               # NOT SPECIFIED BY OHASHI
+  early_stopping: null            # NOT SPECIFIED BY OHASHI
+  checkpoint_selection: null      # NOT SPECIFIED BY OHASHI (best-val vs last epoch)
+  seed_from: "configs/paths.yaml:random_seed"
+
+target:
+  synthetic:
+    name: vif                     # OHASHI-SPECIFIED - the only synthetic-stage training target
+    range: [0.0, 1.0]             # DERIVED, consistent with the sigmoid output head
+  subjective:
+    name: expert_score            # PROJECT ADAPTATION - LDCT-IQAC MOS, used for evaluation only
+    range: [0.0, 4.0]
+    note: "NEVER used as a training target; see src/ct_iqa/data/manifest.py:DegradedRecord"
+
+calibration:
+  # Ohashi five-parameter logistic (OHASHI-SPECIFIED, Section 14):
+  #   Y_L = b1 * (0.5 - 1/(1 + exp(b2 * (Y - b3)))) + b4*Y + b5
+  enabled: true                   # OHASHI-SPECIFIED
+  method: nonlinear_least_squares # OHASHI-SPECIFIED
+  initial_guess: null             # NOT SPECIFIED BY OHASHI - see src/evaluation/calibration.py
+  bounds: null                    # NOT SPECIFIED BY OHASHI
+  fit_separately_per_stage: true  # PROJECT ADAPTATION - one fit vs VIF (synthetic), a separate
+                                  # fit vs expert_score (subjective); never shared
+
+evaluation:
+  # OHASHI-SPECIFIED three-stage structure (Section 13).
+  stage_1_synthetic:
+    compares: "predicted_score vs vif_score"
+    metrics: [mse, plcc, srocc]
+    split: test
+  stage_2_subjective:
+    compares: "predicted_score vs expert_score"
+    metrics: [plcc, srocc]
+    note: "Uses LDCT-IQAC expert_score. PROJECT ADAPTATION: Ohashi's subjective stage used a
+           separate human-rated dataset; here the same LDCT-IQAC references serve both roles.
+           See docs/deviations_from_ohashi.md."
+  stage_3_real_image:
+    compares: "predicted_score vs expert_score, on unmodified LDCT-IQAC images"
+    note: "PROJECT ADAPTATION: differs from Ohashi's original DeepLesion/CQ500 real-clinical
+           evaluation set; documented explicitly, not presented as equivalent."

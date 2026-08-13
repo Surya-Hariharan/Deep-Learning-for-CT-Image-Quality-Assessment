@@ -1,0 +1,92 @@
+# Ohashi et al. (2025) no-reference CT IQA - ORIGINAL degradation specification.
+#
+# STATUS: NOT USED IN THIS PROJECT. Retained only as documentation of Ohashi's
+# exact original reference-image configuration (DeepLesion + CQ500, 105 refs),
+# for comparison against the adaptation actually used here.
+#
+# THE ACTIVE CONFIG IS configs/quality/ohashi_ldctiqac.yaml, which replaces
+# these 105 references with the 1,000-image LDCT-IQAC dataset already present
+# in this repository (see docs/dataset_adaptation.md). Every degradation
+# parameter below (sigma grids, condition families) is identical between the
+# two configs -- only the reference-image source and resulting counts differ.
+#
+# Provenance of every field is tagged inline:
+#   [VERIFIED]  stated in the project brief / paper
+#   [DERIVED]   arithmetically forced by verified numbers; still needs a read of the paper
+#   [DECISION]  our choice, because the source does not specify it
+#   [UNKNOWN]   not specified and not yet decided - MUST NOT be silently guessed
+
+name: ohashi_degradation_v1
+seed_from: "configs/paths.yaml:random_seed"
+
+references:
+  n_total: 105                    # [VERIFIED]
+  sources:
+    deeplesion: 90                # [VERIFIED]
+    cq500: 15                     # [VERIFIED]
+  selection_rule: null            # [UNKNOWN] how the 105 slices were chosen
+  preprocessing: null             # [UNKNOWN] windowing / HU clipping / resize applied before degradation
+  id_scheme: "DL_### for DeepLesion, CQ_### for CQ500"   # [DECISION]
+
+# Sigma grids. Units are NOT specified by the source for either grid.
+noise:
+  kind: gaussian
+  sigma: [1, 1.5, 2, 3, 4.5, 6, 7.5, 9, 14, 21, 30, 50]   # [VERIFIED] 12 levels
+  sigma_units: null               # [UNKNOWN] HU vs 8-bit grey levels - changes the result materially
+  additive: true                  # [DECISION] zero-mean additive white Gaussian noise
+  clip_after: null                # [UNKNOWN] whether values are clipped to the display range
+
+blur:
+  kind: gaussian
+  sigma: [0.1, 0.15, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1.4, 2.1, 3.0, 5.0]  # [VERIFIED] 12 levels
+  sigma_units: pixels             # [DECISION] standard convention for Gaussian blur sigma
+  truncate: 4.0                   # [DECISION] scipy default kernel radius in sigmas
+  boundary_mode: null             # [UNKNOWN] padding mode at image borders
+
+# Order of operations for the combined condition.
+combination:
+  enabled: true
+  order: null                     # [UNKNOWN] blur-then-noise (physically correct) vs noise-then-blur
+  n_combinations: 144             # [DERIVED] 12 x 12 full factorial
+
+# Dataset size accounting - this reconciles exactly with the reported total.
+counts:
+  per_reference:
+    clean: 1                      # [DERIVED] see note below
+    noise_only: 12
+    blur_only: 12
+    noise_blur: 144
+    total: 169
+  dataset_total: 17745            # [VERIFIED] 105 x 169 == 17745 exactly
+  derivation_note: >
+    [DERIVED] 105 x (12 + 12 + 144) = 17640, which is 105 short of the reported
+    17745. The deficit is exactly one image per reference, so the clean
+    reference itself is almost certainly included in the dataset as a sample
+    with maximal quality (VIF = 1.0). This is arithmetically forced but has NOT
+    been confirmed against the paper text. If a future reading contradicts it,
+    every count in this file must be revisited.
+
+labels:
+  target: vif                     # [VERIFIED] VIF against the matching clean reference
+  vif_variant: null               # [UNKNOWN] pixel-domain VIFp vs wavelet-domain VIF
+  vif_implementation: null        # [UNKNOWN] which reference implementation the authors used
+  clean_reference_label: 1.0      # [DERIVED] follows from the derivation_note above
+
+splits:
+  # ANTI-LEAKAGE: partition REFERENCE IDENTITIES, then assign all 169 variants
+  # of a reference to that reference's partition. Never split degraded images.
+  unit: reference_id              # [VERIFIED, requirement]
+  ratios: {train: 0.6, val: 0.2, test: 0.2}                # [VERIFIED]
+  reference_counts: {train: 63, val: 21, test: 21}          # [DERIVED] 63/21/21 x 169 == 10647/3549/3549
+  image_counts: {train: 10647, val: 3549, test: 3549}       # [VERIFIED]
+  stratify_by: null               # [UNKNOWN] whether the authors stratified by source dataset
+  seed_from: "configs/paths.yaml:random_seed"
+
+output:
+  root: "data/processed/quality_iqa"
+  references_dir: "references"
+  degraded_dirs: {noise: "degraded/noise", blur: "degraded/blur", noise_blur: "degraded/noise_blur"}
+  labels_dir: "labels"
+  splits_dir: "splits"
+  image_format: png               # [DECISION] lossless; JPEG would inject extra distortion
+  bit_depth: null                 # [UNKNOWN] 8-bit vs 16-bit; depends on reference preprocessing

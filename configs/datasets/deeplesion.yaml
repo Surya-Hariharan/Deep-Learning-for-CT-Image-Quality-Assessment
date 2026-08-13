@@ -1,0 +1,33 @@
+# DeepLesion (NIH Clinical Center)
+# STATUS: NOT DOWNLOADED. Directory data/raw/deeplesion is an empty placeholder.
+
+name: deeplesion
+long_name: "NIH DeepLesion"
+role: "quality_reference_images"
+role_note: >
+  Ohashi et al. (2025) draw 90 clean reference images from DeepLesion.
+  Which 90, and by what selection rule, is UNKNOWN / REQUIRES VERIFICATION.
+
+raw_root: "data/raw/deeplesion"
+present: false
+
+format:
+  container: null                 # expected: PNG (16-bit, HU+32768) + DL_info.csv
+  extracted: null
+  n_images: null
+
+identifiers:
+  # DeepLesion filenames encode {PatientID}_{StudyID}_{SeriesID}_{SliceIdx}.png
+  patient_id: "field 1 of filename"
+  study_id: "field 2 of filename"
+  series_id: "field 3 of filename"
+  slice_index: "field 4 of filename"
+
+annotations:
+  metadata_csv: "DL_info.csv"     # expected; carries spacing, window, lesion boxes
+
+ohashi_reference_selection:
+  n_reference_images: 90          # VERIFIED FROM PAPER
+  selection_rule: null            # UNKNOWN / REQUIRES VERIFICATION
+  body_region_filter: null        # UNKNOWN / REQUIRES VERIFICATION
+  windowing: null                 # UNKNOWN / REQUIRES VERIFICATION

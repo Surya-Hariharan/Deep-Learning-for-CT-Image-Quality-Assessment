@@ -1,0 +1,43 @@
+# PNG longitudinal pulmonary nodule dataset (NGP-Net growth prediction backbone)
+# STATUS: NOT DOWNLOADED. Directory data/raw/png is an empty placeholder.
+#
+# WARNING: the dataset acronym "PNG" collides with the PNG image format. Inside
+# this project the dataset is always referred to as `png_growth` in processed
+# paths and `png` only as the raw-dataset key.
+
+name: png
+long_name: "PNG longitudinal pulmonary nodule growth dataset"
+role: "longitudinal_growth_prediction"
+
+raw_root: "data/raw/png"
+present: false
+
+expected_scale:                   # as stated in the project brief; re-verify on download
+  patients: 103
+  ct_examinations: 378
+  nodules: 226
+  min_timepoints_per_patient: 3
+  follow_up_interval_months: [2, 64]
+  interval_regularity: "irregular"
+
+format:
+  container: null                 # UNKNOWN / REQUIRES VERIFICATION
+  extracted: null
+
+identifiers:
+  patient_id: null                # UNKNOWN / REQUIRES VERIFICATION
+  study_id: null                  # UNKNOWN / REQUIRES VERIFICATION
+  nodule_id: null                 # UNKNOWN / REQUIRES VERIFICATION
+  timepoint_index: null           # UNKNOWN / REQUIRES VERIFICATION
+
+annotations:
+  level: "nodule-level longitudinal"
+  file: null                      # UNKNOWN / REQUIRES VERIFICATION
+  growth_label_definition: null   # UNKNOWN / REQUIRES VERIFICATION
+
+splits:
+  # HARD REQUIREMENT: split by patient, never by scan. All timepoints of one
+  # patient stay in one partition. Enforced by scripts/dataset/validate_datasets.py.
+  strategy: "patient_level"
+  ratios: null                    # UNKNOWN / REQUIRES VERIFICATION (NGP-Net paper split)
+  seed_from: "configs/paths.yaml:random_seed"

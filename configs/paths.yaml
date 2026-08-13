@@ -1,0 +1,19 @@
+# Canonical project paths. All paths are RELATIVE to the project root.
+# Never put machine-specific absolute paths in this file.
+# Resolve with ct_iqa.config.loader / ct_iqa.utils.paths.
+
+project_root: "."
+
+data:
+  raw: "data/raw"
+  interim: "data/interim"
+  processed: "data/processed"
+  manifests: "data/manifests"
+
+reports: "reports"
+experiments: "experiments"
+configs: "configs"
+
+# Global determinism. Every script that samples, shuffles or splits must consume
+# this seed (or an explicit override recorded in the run config).
+random_seed: 20260813

@@ -1,0 +1,86 @@
+# Ohashi-method synthetic degradation dataset - ACTIVE configuration for this
+# project, using LDCT-IQAC as a PROJECT ADAPTATION replacement for Ohashi's
+# original DeepLesion + CQ500 reference set.
+#
+# Provenance tags follow the taxonomy fixed for this component (never mixed):
+#   OHASHI-SPECIFIED      - stated in the project brief's summary of the paper
+#   PROJECT ADAPTATION    - our deliberate choice to swap datasets, and its consequences
+#   NOT SPECIFIED BY OHASHI - the source is silent; must not be guessed
+#   EXPERIMENTAL EXTENSION - not part of this baseline
+#
+# See docs/dataset_adaptation.md and docs/deviations_from_ohashi.md for the
+# full comparison against configs/quality/ohashi_degradation.yaml (original).
+
+name: ohashi_ldctiqac_v1
+seed_from: "configs/paths.yaml:random_seed"
+
+references:
+  source: ldctiqa                 # PROJECT ADAPTATION (was: deeplesion + cq500)
+  n_total: 1000                   # PROJECT ADAPTATION (was: 105)
+  manifest: "data/manifests/ldctiqa_manifest.csv"
+  identity: image_id              # real ids (0000..0999), not synthetic placeholders
+  selection_rule: "all 1000 LDCT-IQAC images used"   # PROJECT ADAPTATION - no subsampling
+  preprocessing_before_degradation: null   # NOT SPECIFIED BY OHASHI (see U-02 equivalent)
+  caveat: >
+    LDCT-IQAC images already contain sparse-view + noise artifacts from their
+    own acquisition. They are treated as "clean" only relative to the
+    additional synthetic degradation applied here. See
+    configs/datasets/ldctiqa.yaml:role_note and docs/deviations_from_ohashi.md.
+
+# Sigma grids - OHASHI-SPECIFIED, identical to the original config.
+noise:
+  kind: gaussian
+  sigma: [1, 1.5, 2, 3, 4.5, 6, 7.5, 9, 14, 21, 30, 50]   # OHASHI-SPECIFIED, 12 levels
+  sigma_units: null               # NOT SPECIFIED BY OHASHI (HU vs 8-bit grey levels)
+  additive: true                  # PROJECT ADAPTATION: zero-mean additive white Gaussian noise
+  clip_after: null                # NOT SPECIFIED BY OHASHI
+
+blur:
+  kind: gaussian
+  sigma: [0.1, 0.15, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1.4, 2.1, 3.0, 5.0]  # OHASHI-SPECIFIED, 12 levels
+  sigma_units: pixels             # PROJECT ADAPTATION: standard convention for Gaussian blur sigma
+  truncate: 4.0                   # PROJECT ADAPTATION: scipy default kernel radius in sigmas
+  boundary_mode: null             # NOT SPECIFIED BY OHASHI
+
+combination:
+  enabled: true                   # OHASHI-SPECIFIED
+  order: null                     # NOT SPECIFIED BY OHASHI (blur-then-noise vs noise-then-blur)
+  n_combinations: 144             # DERIVED: 12 x 12 full factorial
+
+# Per-reference condition count - identical structure to the original config,
+# only the reference count differs, so the dataset TOTAL is different.
+counts:
+  per_reference:
+    clean: 1                      # DERIVED, see docs/deviations_from_ohashi.md
+    noise_only: 12
+    blur_only: 12
+    noise_blur: 144
+    total: 169
+  dataset_total: 169000           # DERIVED: 1000 x 169 (was 17,745 = 105 x 169 in the original)
+
+labels:
+  synthetic_target: vif           # OHASHI-SPECIFIED - the ONLY synthetic-stage training target
+  vif_variant: null                # NOT SPECIFIED BY OHASHI (pixel-domain VIFp vs wavelet-domain VIF)
+  clean_reference_label: 1.0       # DERIVED (VIF of a reference against itself)
+  expert_score_field: expert_score # PROJECT ADAPTATION - LDCT-IQAC MOS of the reference,
+                                    # carried through for subjective evaluation ONLY;
+                                    # never substituted for vif_score in synthetic training
+
+splits:
+  # OHASHI-SPECIFIED (Section 8): split REFERENCE IDENTITIES first, generate
+  # degradations within each partition. Never split degraded images directly.
+  unit: reference_id               # = image_id for this dataset
+  ratios: {train: 0.6, val: 0.2, test: 0.2}          # OHASHI-SPECIFIED
+  reference_counts: {train: 600, val: 200, test: 200} # DERIVED: 1000 x ratio, exact
+  image_counts: {train: 101400, val: 33800, test: 33800}  # DERIVED: refs x 169, exact
+  stratify_by: null                # NOT SPECIFIED BY OHASHI
+  seed_from: "configs/paths.yaml:random_seed"
+
+output:
+  root: "data/processed/quality_iqa"
+  references_dir: "references"
+  degraded_dirs: {noise: "degraded/noise", blur: "degraded/blur", noise_blur: "degraded/noise_blur"}
+  labels_dir: "labels"
+  splits_dir: "splits"
+  image_format: png                # PROJECT ADAPTATION: lossless
+  bit_depth: 8                     # PROJECT ADAPTATION: matches LDCT-IQAC source (uint8 PNG)

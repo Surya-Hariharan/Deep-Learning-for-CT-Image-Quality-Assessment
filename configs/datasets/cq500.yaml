@@ -1,0 +1,31 @@
+# CQ500 (qure.ai head CT)
+# STATUS: NOT DOWNLOADED. Directory data/raw/cq500 is an empty placeholder.
+
+name: cq500
+long_name: "CQ500 head CT dataset"
+role: "quality_reference_images"
+role_note: >
+  Ohashi et al. (2025) draw 15 clean reference images from CQ500.
+  Which 15, and by what selection rule, is UNKNOWN / REQUIRES VERIFICATION.
+
+raw_root: "data/raw/cq500"
+present: false
+
+format:
+  container: null                 # expected: DICOM series inside per-case archives
+  extracted: null
+  n_images: null
+
+identifiers:
+  patient_id: "CQ500-CT-<n> folder name"
+  study_id: "DICOM StudyInstanceUID"
+  series_id: "DICOM SeriesInstanceUID"
+  slice_index: "DICOM InstanceNumber"
+
+annotations:
+  reads_csv: "reads.csv"          # expected; radiologist labels (not used by this project)
+
+ohashi_reference_selection:
+  n_reference_images: 15          # VERIFIED FROM PAPER
+  selection_rule: null            # UNKNOWN / REQUIRES VERIFICATION
+  windowing: null                 # UNKNOWN / REQUIRES VERIFICATION

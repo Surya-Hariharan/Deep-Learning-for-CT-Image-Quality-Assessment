@@ -1,0 +1,18 @@
+{
+  "dataset_name": "cq500",
+  "schema_version": "1.0.0",
+  "generated_at": "2026-08-13T14:36:59+00:00",
+  "generator": "scripts/build_manifest.py",
+  "config_used": "configs/datasets/cq500.yaml",
+  "seed": 20260813,
+  "n_records": 0,
+  "source_root": "data/raw/cq500",
+  "notes": [
+    "NOT DOWNLOADED as of this run: data/raw/cq500 contains no data files.",
+    "Intended role: quality_reference_images.",
+    "Re-run this script after acquiring the dataset."
+  ],
+  "unknown_fields": [
+    "everything - dataset absent"
+  ]
+}
