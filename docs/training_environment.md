@@ -41,11 +41,16 @@ a confirmed correction of the original paper.
 **This was not silently resolved.** The discrepancy was surfaced to the
 user explicitly before installing anything; `tensorflow==2.10.1` (the
 closest real release in the same minor line) was selected on the user's
-explicit direction, not assumed. `docs/research_decisions.md` should be
-updated with this finding as a formal decision the next time methodology
-docs are revisited (not done as part of this provisioning task, which is
-scoped to environment/checkpoint work only) — flagged here so it is not
-lost.
+explicit direction, not assumed.
+
+**Update (2026-08-14, follow-up task):** `requirements.txt`,
+`docs/radimagenet_environment_audit.md`, and `docs/project_status.md` have
+now all been updated to state the verified `2.10.1` install alongside —
+not instead of — the historical "2.10.10" claim they each inherited from
+the project brief (that claim is preserved as a record of what was
+originally stated, not deleted). This document (`docs/training_environment.md`)
+remains the single authoritative source for the actual, verified
+environment.
 
 `keras==2.10.0` was installed as TensorFlow 2.10.1's paired Keras
 dependency (TF/Keras were still coupled at this release; standalone Keras
@@ -313,21 +318,145 @@ matches (224,224,3): True
   (`grayscale_to_rgb_method="channel_replication"`) — PROJECT-ADAPTATION,
   unchanged by this task, since LDCT-IQAC's own PNGs already store 3
   identical channels natively.
-- **Normalization**: still genuinely **UNKNOWN / NOT SPECIFIED BY OHASHI**
-  (`intensity_normalization: null`,
-  `configs/quality/resnet50_vif.yaml:preprocessing`). Not invented by this
-  task. One additional, non-authoritative data point surfaced while
-  reading the RadImageNet reference training script
-  (`thyroid/thyroid_train.py`, quoted in
-  `docs/radimagenet_environment_audit.md`): it uses
-  `ImageDataGenerator(rescale=1./255, preprocessing_function=preprocess_input)`
-  — i.e. a rescale to `[0,1]` combined with `tensorflow.keras.applications.resnet50.preprocess_input`
-  (which itself does ImageNet-style BGR reordering and per-channel mean
-  subtraction). This is offered as a documented observation about *one*
-  downstream RadImageNet application's own code, not evidence about what
-  Ohashi did, and is **not** adopted here.
+- **Normalization**: at the time this section was first written, still
+  genuinely UNKNOWN / NOT SPECIFIED BY OHASHI. **Resolved 2026-08-14**
+  (decision A-23, `docs/research_decisions.md`) — see the next section for
+  the full evidence trace and the resulting specification. `configs/quality/resnet50_vif.yaml:preprocessing.intensity_normalization`
+  has been updated from `null` accordingly.
 
-## 10. Confirmation: main environment untouched
+## 9a. Normalization evidence trace and decision (U-M05, decision A-23)
+
+Investigated systematically, per the six-source checklist this task was
+given, before adopting anything:
+
+| Source | Finding |
+| --- | --- |
+| **A. Ohashi's paper** | Never obtained (as with every OHASHI-SPECIFIED item in this project) — no statement available. |
+| **B. Ohashi supplementary material / source code** | Searched (2026-08-14); none found publicly. |
+| **C. RadImageNet's paper** (Mei et al. 2022) | States only "All images were resized to 224×224 pixels and used as the inputs" (own pretraining) and "downscaled to 256×256" (downstream experiments). **No pixel-scaling, mean-subtraction, or normalization scheme stated anywhere.** |
+| **D. Official RadImageNet repository** (`BMEII-AI/RadImageNet`) | No base-pretraining script is published — only downstream fine-tuning examples per medical application (`acl/`, `thyroid/`, etc.). |
+| **E. RadImageNet downstream training scripts** | `thyroid/thyroid_train.py` and `acl/acl_train.py` (both checked directly) each use `tensorflow.keras.applications.imagenet_utils.preprocess_input` (default `mode="caffe"`) as a Keras `ImageDataGenerator.preprocessing_function`, **combined with an additional `rescale=1./255`.** This combination is internally inconsistent: `preprocess_input(mode="caffe")`'s mean constants (103.939, 116.779, 123.68) are calibrated for `[0,255]`-scale input; applying them after an independent `/255` rescale does not correspond to any standard, principled normalization scheme — most plausibly a copy-paste artifact in the official repo's own example code, present identically in both files checked. |
+| **F./G. The checkpoint file itself** | Inspected directly via `h5py` (not inferred from weight values, per instruction) — `RadImageNet-ResNet50_notop.h5`'s embedded `model_config` shows the saved architecture is `InputLayer -> ZeroPadding2D -> Conv2D -> ...` (175 layers total), with **no** `Rescaling`/`Normalization`/`Lambda` preprocessing layer anywhere. The checkpoint provides zero structural evidence resolving this question either way. |
+
+**Decision (A-23): `tensorflow.keras.applications.resnet50.preprocess_input`
+applied to raw `[0,255]`-scale pixel values, with NO additional `/255`
+rescale** — i.e. adopting the *corrected* form of the one repeated (if
+flawed) signal available from (E), rather than either copying its
+inconsistency verbatim or discarding the signal entirely.
+**Classification: UNKNOWN → PROJECT-ADAPTATION baseline** — explicitly not
+OHASHI-SPECIFIED, and not a confirmed statement of RadImageNet's own base
+training either (per this task's item 3: RadImageNet's example code using
+a preprocessing operation does not prove Ohashi used it, and this decision
+does not conflate the two). Not chosen by any hyperparameter search or
+validation comparison, matching decision A-22's own scope constraint.
+
+**Implementation**: `src/ct_iqa/preprocessing/normalization.py::resnet50_preprocess_input`
+— a pure-numpy replica (no TensorFlow dependency, so it runs in the main
+Python 3.13 environment). **Cross-checked bit-exact against the real
+`tensorflow.keras.applications.resnet50.preprocess_input`** in the
+isolated environment on a full 224×224×3 random array: `max abs diff =
+0.0`, `np.array_equal == True`.
+
+## 9b. Preprocessing specification (authoritative)
+
+The complete, single-source baseline preprocessing pipeline —
+`src/ct_iqa/preprocessing/pipeline.py::preprocess_for_model` — composing
+three independently-provenanced steps:
+
+| Step | Operation | Provenance |
+| --- | --- | --- |
+| 1. Input image format | 2-D grayscale or 3-D `(H, W, 3)` RGB array, raw `[0,255]`-scale pixel values (uint8 or float), minimum 224×224 (LDCT-IQAC's 512×512 comfortably satisfies this) | source data property, not a choice |
+| 2. Central crop | `central_crop(image, size=224)` — crops the exact center 224×224 window; **raises rather than resizing** if the source is smaller than 224×224 (never triggered for LDCT-IQAC) | OHASHI-SPECIFIED (Section 9/10: "cropped to the central region according to the input size," no resize step mentioned) |
+| 3. Crop dimensions | 224 × 224 | OHASHI-SPECIFIED |
+| 4. Grayscale/RGB conversion | `grayscale_to_rgb` — channel replication (a no-op for LDCT-IQAC, whose PNGs already store 3 identical channels) | PROJECT-ADAPTATION (unchanged by this task) |
+| 5. Channel construction | 3 channels, RGB order until step 6 | matches step 4 |
+| 6. Pixel value range | Raw `[0,255]` scale is preserved through steps 2–5; only step 7 transforms it (no separate `/255` rescale — decision A-23) | PROJECT-ADAPTATION (A-23) |
+| 7. Normalization | `resnet50_preprocess_input` — RGB→BGR channel reorder, then subtract ImageNet per-channel means `[103.939, 116.779, 123.68]` (BGR order) | PROJECT-ADAPTATION (A-23), resolves U-M05 |
+| 8. Output tensor shape | `(224, 224, 3)` | derived from steps 2–3 |
+| 9. Output dtype | `float32` | matches the checkpoint's own saved `InputLayer` `dtype: "float32"` (confirmed via the `model_config` inspection in §9a) |
+
+No resizing is performed anywhere in this pipeline — central crop is the
+Ohashi-specified operation, and it is never combined with, or substituted
+by, a resize step.
+
+## 10. GPU feasibility investigation (RTX 4060 + TensorFlow 2.10.1/CUDA 11.2) — investigation only, nothing installed
+
+Follow-up to §4/§8, specifically asked: can the RTX 4060 realistically be
+used with the legacy TF 2.10/CUDA 11.2 stack at all, even after installing
+the missing CUDA Toolkit/cuDNN? **No CUDA/cuDNN was installed to answer
+this — the question is answered from hardware/software compatibility
+evidence, not from a live test.**
+
+**The situation, restated precisely:**
+
+- RTX 4060 Laptop GPU: **Ada Lovelace architecture, compute capability
+  8.9** (confirmed via `nvidia-smi --query-gpu=compute_cap`, §4). Ada
+  Lovelace launched October 2022.
+- TensorFlow 2.10 (and the CUDA 11.2/cuDNN 8.1 combination it targets)
+  released September 2022 — essentially simultaneously with Ada Lovelace,
+  meaning Google's TF 2.10 build pipeline had no realistic window to add
+  `sm_89`/`compute_89` to its official wheel's target compute-capability
+  list. TensorFlow's official prebuilt PyPI wheels are compiled once
+  against a **fixed list of target compute capabilities** baked in at
+  build time (not detected dynamically) — a GPU whose compute capability
+  isn't in that list is not necessarily unusable (CUDA's PTX forward-
+  compatibility mechanism can sometimes JIT-compile for a newer
+  architecture from an older virtual-architecture PTX target), but this is
+  markedly less reliable than a wheel built with native support.
+- Community-sourced, practically-oriented evidence (checked 2026-08-14):
+  guides covering Ada Lovelace (RTX 40-series) + TensorFlow consistently
+  recommend **TensorFlow ≥2.13 with CUDA 11.8**, not TensorFlow
+  2.10/CUDA 11.2 — one representative guide explicitly states deep
+  learning libraries on this hardware should use "CUDA Toolkit up to
+  11.8," treating 11.8 as closer to a practical *minimum* than an
+  arbitrary upper bound, and separately warns that CUDA 11.8 itself needs
+  driver 525+ (this machine's driver, 610.74, comfortably exceeds that —
+  driver version is not the limiting factor here, see §4).
+- **This project deliberately uses TensorFlow 2.10.1, not 2.13+, to stay
+  close to Ohashi's reported environment** (§2) — the same reasoning that
+  motivated the isolated Python 3.10 environment in the first place. This
+  creates a direct tension: the TensorFlow release that best matches
+  Ohashi's reported environment is not the release the wider community has
+  found reliable on this specific (newer-than-the-software) GPU
+  generation.
+
+**Conclusion: native-Windows GPU use of this specific TF 2.10.1/CUDA
+11.2/cuDNN 8.1 stack on an RTX 4060 carries real, non-trivial risk of
+failing at runtime even after the CUDA Toolkit/cuDNN are correctly
+installed** (the classic symptom would be a "no kernel image available for
+this device" / "CUDA error: no binary for GPU architecture" failure at the
+first GPU op, not an import-time failure) — this is a evidenced concern
+raised by this investigation, not a confirmed failure, since the
+toolkit/driver combination was never actually installed and tested (out of
+scope for this task).
+
+**Is WSL2 a better option?** Investigated as instructed, with an important
+caveat: **WSL2 does not resolve this specific problem.** WSL2's usual
+value proposition is restoring GPU support for **TensorFlow 2.11+**, which
+dropped *native Windows* GPU builds entirely (§8) — but this project is
+deliberately staying on 2.10.1, which still has native Windows GPU support
+in principle. Running the *same* TensorFlow 2.10.1 wheel inside WSL2
+would not change its baked-in compute-capability list; the Ada Lovelace
+compatibility question is a property of the TensorFlow **wheel build**,
+not of Windows vs. Linux as a host OS. WSL2 would only plausibly help if
+combined with a **newer** TensorFlow release (2.13+, whose wheels do
+target Ada-era compute capabilities) — which reopens the same
+Ohashi-environment-fidelity trade-off this section already identifies, not
+a clean solution.
+
+**Most defensible training environment, given this investigation:**
+CPU-only, using the already-provisioned and already-verified
+`tensorflow==2.10.1` in the isolated Python 3.10.20 environment (§9). This
+is the only combination confirmed working end-to-end today, with zero
+additional installation risk, and it does not compromise fidelity to
+Ohashi's reported TensorFlow version. GPU training remains a documented,
+open possibility — not pursued further by this task, per instruction, and
+not without first either (a) accepting the Ada Lovelace compatibility risk
+and testing a real CUDA 11.2/cuDNN 8.1 install, or (b) revisiting the
+TensorFlow-version-fidelity trade-off explicitly, as its own future
+decision.
+
+## 11. Confirmation: main environment untouched
 
 ```
 $ py -3.13 -c "import tensorflow"
@@ -343,9 +472,11 @@ environment has nothing installed into it by this provisioning.
 | Item | Status |
 | --- | --- |
 | RadImageNet checkpoint | Obtained (official source), verified (HDF5-valid, loads into `ResNet50` with zero shape errors, SHA-256 recorded), Git-ignored |
-| Isolated training environment | Created (Python 3.10.20, TensorFlow 2.10.1 — not 2.10.10, which does not exist), fully separate from the main Python 3.13 environment |
-| GPU | Physically present (RTX 4060, 8GB), driver-visible, **not usable by this TensorFlow install without a separate CUDA 11.2/cuDNN 8.1 install (§8, not performed)** |
+| Isolated training environment | Created (Python 3.10.20, TensorFlow 2.10.1 — verified working; project brief's historical "2.10.10" claim does not exist as a release, corrected 2026-08-14), fully separate from the main Python 3.13 environment |
+| GPU | Physically present (RTX 4060, 8GB), driver-visible, **not usable by this TensorFlow install without a separate CUDA 11.2/cuDNN 8.1 install (§8/§10, not performed); §10 additionally finds real Ada Lovelace/TF-2.10-wheel compatibility risk even after installing it** |
 | Checkpoint load / architecture cross-check | PASS (§9) |
+| Input normalization (U-M05) | **RESOLVED 2026-08-14** as PROJECT-ADAPTATION baseline (decision A-23): `resnet50_preprocess_input`, cross-checked bit-exact against real TensorFlow (§9a) |
+| Preprocessing specification | Complete and authoritative (§9b): `src/ct_iqa/preprocessing/pipeline.py::preprocess_for_model`, tested in `tests/test_preprocessing_pipeline.py` |
 | Model training | **NOT STARTED** |
 | Production dataset generation | **NOT PERFORMED** |
 | Committed model architecture / dropout / VIF / degradation parameters | **UNCHANGED** |

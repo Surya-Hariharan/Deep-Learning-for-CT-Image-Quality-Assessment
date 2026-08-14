@@ -37,7 +37,13 @@ preprocessing:
   crop_to: [224, 224]                       # OHASHI-SPECIFIED via input_shape + central_crop
   resize_before_crop: false                 # PROJECT ADAPTATION - LDCT-IQAC is 512x512, central
                                             # crop to 224x224 needs no resize (verified in reports/dataset_inventory.md)
-  intensity_normalization: null             # NOT SPECIFIED BY OHASHI (RadImageNet preprocessing differs from ImageNet)
+  intensity_normalization: resnet50_preprocess_input  # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision
+                                            # A-23 (UNKNOWN -> PROJECT-ADAPTATION baseline): Keras's own
+                                            # tf.keras.applications.resnet50.preprocess_input (RGB->BGR +
+                                            # ImageNet per-channel mean subtraction on raw [0,255] input,
+                                            # no extra rescale). NOT claimed to be Ohashi-specified. See
+                                            # src/ct_iqa/preprocessing/normalization.py and
+                                            # docs/research_decisions.md.
   augmentation: none                        # OHASHI-SPECIFIED (Section 10): no random crop/flip/rotation/color aug
 
 training:

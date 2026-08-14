@@ -4,10 +4,12 @@ Last updated: 2026-08-14, after (1) a full repository audit that created
 this document, (2) a RadImageNet checkpoint/environment feasibility audit
 (`docs/radimagenet_environment_audit.md`), (3) resolution of the two
 remaining baseline-model-specification items it surfaced (backbone
-fine-tuning code/decision consistency, dropout-probability baseline), and
-(4) provisioning the actual RadImageNet checkpoint and an isolated
-TensorFlow training environment (`docs/training_environment.md`) — see
-§12. Where this
+fine-tuning code/decision consistency, dropout-probability baseline), (4)
+provisioning the actual RadImageNet checkpoint and an isolated TensorFlow
+training environment (`docs/training_environment.md`), and (5) resolving
+the input-normalization question (U-M05, decision A-23), correcting the
+"TensorFlow 2.10.10" version discrepancy across docs, and investigating
+GPU/CUDA feasibility further — see §12. Where this
 document and any other doc disagree, treat divergence as a signal to fix the
 other doc, not to trust this one blindly — but as of the date above, both
 were reconciled.
@@ -133,12 +135,12 @@ execution.
 
 - Full 1,000-reference / 169,000-image production dataset generation
   (pipeline ready; execution not authorized — see §12).
-- RadImageNet ResNet50 checkpoint acquisition (U-M08).
-- Model training of any kind (no framework installed; TensorFlow pinned in
-  `requirements.txt` but commented out and not installed, per Ohashi's
-  reported environment, Python ≤3.10 + TensorFlow 2.10.10 — incompatible
-  with this repo's Python 3.13 development environment; a separate
-  environment will be needed when training is authorized).
+- Model training of any kind. The RadImageNet ResNet50 checkpoint (U-M08)
+  and an isolated Python 3.10.20 + TensorFlow 2.10.1 environment are now
+  both obtained/provisioned (`docs/training_environment.md`) — this
+  repository's main Python 3.13 environment still has no deep-learning
+  framework installed, by design (see `requirements.txt`). Training is not
+  started regardless of environment readiness — see §12.
 - Stage 1/2/3 evaluation against real predictions (no predictions exist).
 - EDA notebook execution (`notebooks/01`–`10` are skeletons; see §13).
 
@@ -315,16 +317,16 @@ READY (CPU-only)
   (`C:\Users\surya\.venvs\ct-iqa-tf210`), structurally incapable of being
   Git-tracked. The main project Python 3.13 environment is unmodified
   (re-verified: `tensorflow` still not importable there).
-- **`tensorflow==2.10.10` (as recorded in `requirements.txt` and elsewhere,
-  inherited from the project brief) does not exist on PyPI** — the 2.10.x
-  line only ever shipped 2.10.0 and 2.10.1. `tensorflow==2.10.1` was
-  installed instead, on the user's explicit direction after this was
-  surfaced, not silently substituted. This is now a **known open item**:
-  `requirements.txt`'s and other docs' "2.10.10" references should be
-  corrected to "2.10.1" (or otherwise reconciled) the next time
-  methodology documentation is revisited — not yet done, since this
-  provisioning pass was scoped to environment/checkpoint work, not doc
-  correction beyond what's recorded in `docs/training_environment.md`.
+- **`tensorflow==2.10.10` (historically recorded in `requirements.txt` and
+  elsewhere, inherited from the project brief) does not exist on PyPI** —
+  the 2.10.x line only ever shipped 2.10.0 and 2.10.1. `tensorflow==2.10.1`
+  was installed instead, on the user's explicit direction after this was
+  surfaced, not silently substituted. **Corrected 2026-08-14** in
+  `requirements.txt`, `docs/radimagenet_environment_audit.md`, and this
+  document: each now states the verified `2.10.1` install alongside the
+  preserved historical "2.10.10" claim, rather than silently overwriting
+  what the project brief originally said. `docs/training_environment.md`
+  remains the single authoritative source for the actual environment.
 - **GPU is present but not usable by this TensorFlow install**: RTX 4060
   (8GB), driver-visible via `nvidia-smi`, but
   `tf.config.list_physical_devices('GPU')` returns `[]` — TensorFlow 2.10.1
@@ -337,6 +339,48 @@ READY (CPU-only)
 - **CPU execution confirmed working**: a tensor-op smoke test
   (matrix multiply) produced the mathematically correct result on
   `/device:CPU:0`.
+- **GPU feasibility investigated further** (`docs/training_environment.md`
+  §10, no CUDA/cuDNN installed): even after installing the missing CUDA
+  11.2/cuDNN 8.1, real risk remains that TensorFlow 2.10.1's official
+  wheel — built essentially simultaneously with the RTX 4060's Ada
+  Lovelace architecture (compute capability 8.9) — was not compiled
+  targeting that compute capability at all; community evidence
+  consistently recommends TensorFlow ≥2.13/CUDA 11.8 for Ada Lovelace
+  GPUs, not 2.10/CUDA 11.2. **WSL2 does not resolve this** — the
+  compute-capability mismatch is a property of the TensorFlow wheel build,
+  not of Windows vs. Linux as host OS; WSL2 would only help if paired with
+  a newer TensorFlow release, reopening the Ohashi-fidelity trade-off this
+  project has deliberately avoided. CPU-only remains the most defensible
+  training environment given this investigation.
+
+### Preprocessing (resolved 2026-08-14, decision A-23)
+
+- **Input normalization (U-M05) resolved**: UNKNOWN → PROJECT-ADAPTATION
+  baseline. `src/ct_iqa/preprocessing/normalization.py::resnet50_preprocess_input`
+  replicates `tensorflow.keras.applications.resnet50.preprocess_input`'s
+  default "caffe" behaviour (RGB→BGR, ImageNet per-channel mean
+  subtraction on raw `[0,255]` input) in pure numpy — cross-checked
+  bit-exact against real TensorFlow (`max abs diff = 0.0` on a full
+  224×224×3 random array). Investigated systematically against six
+  sources (Ohashi's paper — unavailable; Ohashi supplementary
+  material/code — none found; RadImageNet's paper — silent; the official
+  RadImageNet repository — no base-pretraining script published; its
+  downstream example scripts — found using an internally-inconsistent
+  `rescale=1/255` + `preprocess_input` combination, corrected rather than
+  copied; the checkpoint file itself — inspected via `h5py`, no
+  preprocessing layer embedded, no evidence either way). Full trace:
+  `docs/research_decisions.md` decision A-23,
+  `docs/training_environment.md` §9a. Documented as DEV-06,
+  `docs/deviations_from_ohashi.md`, as a genuine, acknowledged point of
+  potential divergence from Ohashi's own (unknown) choice.
+- **Complete preprocessing specification** (`docs/training_environment.md`
+  §9b): central crop (no resize, OHASHI-SPECIFIED) → channel replication
+  (PROJECT-ADAPTATION) → `resnet50_preprocess_input` (PROJECT-ADAPTATION,
+  A-23) → `(224, 224, 3)` `float32` output. Implemented as
+  `src/ct_iqa/preprocessing/pipeline.py::preprocess_for_model`, tested in
+  `tests/test_preprocessing_pipeline.py` (16 tests: shape, dtype, value
+  range, determinism, grayscale/RGB handling, central-crop-not-resize
+  behavior, normalization behavior — no model-accuracy testing).
 
 Still blocking actual training:
 

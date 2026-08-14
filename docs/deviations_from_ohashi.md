@@ -138,6 +138,36 @@ is a separate, later experiment). See
 `docs/research_decisions.md` decision A-22 for the full rationale and
 alternatives considered.
 
+## DEV-06 — Input normalization is a project baseline, not a confirmed Ohashi or RadImageNet value
+
+**What differs:** neither Ohashi's paper nor the RadImageNet paper (Mei et
+al. 2022 — the paper the pretrained checkpoint itself comes from) states
+an input pixel-value normalization scheme. `src/ct_iqa/preprocessing/normalization.py::resnet50_preprocess_input`
+implements `tensorflow.keras.applications.resnet50.preprocess_input`'s
+default "caffe" behaviour (RGB→BGR reorder, ImageNet per-channel mean
+subtraction, raw `[0,255]` scale) as decision A-23
+(`docs/research_decisions.md`), resolving U-M05.
+
+**Consequence:** if Ohashi's own (unpublished, unknown) normalization
+differs — or if RadImageNet's own base-model pretraining used a different
+scheme than its downstream example code implies — this project's model
+input distribution differs from theirs by that transform, which can affect
+training dynamics, convergence, and final PLCC/SROCC. This is a second,
+independently-acknowledged point of potential divergence (alongside
+DEV-05's dropout rate), not a cosmetic labelling choice: the evidence base
+here is weaker than for dropout, since even the RadImageNet-side signal
+(§A-23) came from official example code found to be internally
+inconsistent and had to be corrected rather than copied verbatim.
+
+**Status:** documented, deliberate, single baseline value — investigated
+systematically against six sources (Ohashi paper, Ohashi supplementary
+material/code, the RadImageNet paper, the official RadImageNet repository,
+its downstream training scripts, and the checkpoint file's own embedded
+architecture metadata), all either silent or, in the one case with
+evidence, internally inconsistent. Not chosen by any hyperparameter search
+or validation comparison. See `docs/research_decisions.md` decision A-23
+for the full evidence trace and alternatives considered.
+
 ## Non-deviations (recorded here to prevent accidental "fixing")
 
 - Sigma grids, condition families, split protocol structure, model

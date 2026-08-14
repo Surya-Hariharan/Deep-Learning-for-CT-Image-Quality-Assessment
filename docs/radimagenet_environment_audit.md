@@ -374,3 +374,25 @@ items (checkpoint, framework) instead of 4 — verified by
 `build_model()` still raises unconditionally. See
 `docs/project_status.md` §12 for the current, consolidated readiness
 statement.
+
+---
+
+## Version-string correction note (2026-08-14, second follow-up task)
+
+Every "TensorFlow 2.10.10" reference above (§1, §6, §7's report, and this
+addendum's own "What did NOT change" line) documents what this project
+historically inherited as Ohashi's reported version — that description of
+the *claim* is left as originally written, not rewritten, per this
+project's convention of not editing historical records after the fact.
+
+**What has since been established as fact, not claim:** TensorFlow
+`2.10.10` does not exist as a PyPI release — the `2.10.x` line only ever
+shipped `2.10.0` and `2.10.1` (confirmed directly against PyPI's release
+metadata, `docs/training_environment.md` §2). Every conclusion drawn above
+using "2.10.10" as a stand-in for "the Ohashi-matching TensorFlow release"
+still holds using `2.10.1` instead — the Python-version incompatibility
+(§6), the native-Windows-GPU-support argument, and the checkpoint/framework
+analysis are all substantively unaffected, since none of them depended on
+the exact trailing digit. The actual verified, installed, isolated-environment
+combination is **Python 3.10.20 + TensorFlow 2.10.1** — see
+`docs/training_environment.md` for the authoritative, current record.
