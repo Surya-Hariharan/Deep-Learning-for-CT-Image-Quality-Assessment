@@ -102,6 +102,7 @@ dist/
 .venv/
 venv/
 env/
+.benchmarks/
 
 # --- OS / editor ---
 .DS_Store
