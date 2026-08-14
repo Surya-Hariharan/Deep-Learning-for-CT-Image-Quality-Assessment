@@ -16,13 +16,20 @@ model:
   input_shape: [224, 224, 3]      # OHASHI-SPECIFIED
   crop_strategy: central_crop     # OHASHI-SPECIFIED (Section 9/10) - see src/ct_iqa/preprocessing/cropping.py + channels.py
   head:
+    - global_average_pooling      # OHASHI-SPECIFIED (implicit in Ohashi's own head description;
+                                  # explicit in RadImageNet's own recipe this backbone is pretrained from)
     - dropout                     # OHASHI-SPECIFIED that a dropout layer exists before the FC layer
     - fully_connected_1           # OHASHI-SPECIFIED - single regression output
     - sigmoid                     # OHASHI-SPECIFIED
-  dropout_rate: null              # NOT SPECIFIED BY OHASHI -> must become a documented PROJECT
-                                  # ADAPTATION before training, recorded in docs/research_decisions.md
-  freeze_backbone: null           # NOT SPECIFIED BY OHASHI whether the RadImageNet backbone is
-                                  # frozen or fine-tuned end to end
+  dropout_rate: 0.5               # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision A-22,
+                                  # docs/research_decisions.md. NOT read from Ohashi's paper (silent on
+                                  # the rate); sourced from RadImageNet's own base-model training recipe
+                                  # ("a dropout layer at a rate of 0.5", Mei et al. 2022), the paper this
+                                  # backbone's own checkpoint comes from. A documented baseline, not a
+                                  # tuned/searched value -- no hyperparameter search has been run.
+  freeze_backbone: false          # RESOLVED, OHASHI-SPECIFIED -- decision S-01: confirmed fine-tuned,
+                                  # not frozen ("By fine-tuning these pre-trained models with our IQA
+                                  # dataset...", paper text, not inferred)
 
 preprocessing:
   grayscale_to_rgb: true                    # PROJECT ADAPTATION (CT is single channel; ResNet50 expects 3)

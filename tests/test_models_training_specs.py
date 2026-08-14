@@ -33,33 +33,60 @@ def test_build_model_refuses_unconditionally():
         build_model()
 
 
-def test_build_model_lists_every_blocker():
+def test_build_model_lists_every_remaining_blocker():
+    """Only the checkpoint and the framework install remain unresolved for
+    the DEFAULT_SPEC -- dropout_probability and freeze_backbone are now
+    resolved (decisions A-22 and S-01) and must NOT appear as blockers for
+    the default spec."""
     with pytest.raises(ModelNotBuildable) as exc_info:
         build_model()
     message = str(exc_info.value)
     assert "RadImageNet" in message
-    assert "dropout_probability" in message
-    assert "freeze_backbone" in message
+    assert "framework" in message
+    assert "dropout_probability" not in message
+    assert "freeze_backbone" not in message
 
 
 def test_default_spec_matches_ohashi_architecture():
     assert DEFAULT_SPEC.backbone == "resnet50"
     assert DEFAULT_SPEC.pretrained_weights == "radimagenet"
     assert DEFAULT_SPEC.input_size == 224
-    assert DEFAULT_SPEC.head == ("dropout", "fully_connected_1", "sigmoid")
+    assert DEFAULT_SPEC.head == (
+        "global_average_pooling", "dropout", "fully_connected_1", "sigmoid",
+    )
 
 
-def test_default_spec_leaves_unspecified_items_none():
-    assert DEFAULT_SPEC.dropout_probability is None
-    assert DEFAULT_SPEC.freeze_backbone is None
+def test_default_spec_backbone_is_fine_tuned_not_frozen():
+    """Regression guard for decision S-01: the Ohashi paper confirms the
+    RadImageNet backbone is fine-tuned, not frozen ("By fine-tuning these
+    pre-trained models with our IQA dataset..."). DEFAULT_SPEC must never
+    silently drift back to `None` (unspecified) or `True` (frozen)."""
+    assert DEFAULT_SPEC.freeze_backbone is False
 
 
-def test_resolving_unspecified_items_shrinks_blocker_list():
-    resolved = ModelSpec(dropout_probability=0.3, freeze_backbone=False)
+def test_default_spec_dropout_probability_is_resolved_baseline():
+    """Regression guard for decision A-22: dropout_probability is a
+    PROJECT-ADAPTATION baseline (0.5, sourced from RadImageNet's own
+    transfer-learning recipe), not left as an unresolved `None`. This is
+    NOT a claim that Ohashi's paper specifies this value."""
+    assert DEFAULT_SPEC.dropout_probability == 0.5
+
+
+def test_resolved_default_spec_no_longer_blocks_on_dropout_or_freeze():
     default_blockers = unresolved_prerequisites(DEFAULT_SPEC)
-    resolved_blockers = unresolved_prerequisites(resolved)
-    assert len(resolved_blockers) < len(default_blockers)
-    assert not any("dropout_probability" in b for b in resolved_blockers)
+    assert not any("dropout_probability" in b for b in default_blockers)
+    assert not any("freeze_backbone" in b for b in default_blockers)
+    assert len(default_blockers) == 2  # checkpoint + framework only
+
+
+def test_explicitly_unresolved_spec_still_blocks():
+    """The defensive `is None` checks in unresolved_prerequisites() must
+    still function for a caller who explicitly constructs an unresolved
+    spec, even though DEFAULT_SPEC itself is now fully resolved."""
+    unresolved = ModelSpec(dropout_probability=None, freeze_backbone=None)  # type: ignore[arg-type]
+    blockers = unresolved_prerequisites(unresolved)
+    assert any("dropout_probability" in b for b in blockers)
+    assert any("freeze_backbone" in b for b in blockers)
 
 
 def test_lr_search_grid_matches_ohashi_spec():

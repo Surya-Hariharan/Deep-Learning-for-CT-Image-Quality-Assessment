@@ -1,7 +1,11 @@
 # Project Status — Single Source of Truth
 
-Last updated: 2026-08-14, after a full repository audit (this document was
-created by that audit, not carried over from an earlier draft). Where this
+Last updated: 2026-08-14, after (1) a full repository audit that created
+this document, (2) a RadImageNet checkpoint/environment feasibility audit
+(`docs/radimagenet_environment_audit.md`), and (3) resolution of the two
+remaining baseline-model-specification items it surfaced (backbone
+fine-tuning code/decision consistency, dropout-probability baseline — see
+§12). Where this
 document and any other doc disagree, treat divergence as a signal to fix the
 other doc, not to trust this one blindly — but as of the date above, both
 were reconciled.
@@ -111,7 +115,8 @@ inspection — not assumed from prior reports):
   (`src/ct_iqa/models/resnet50.py`), LR-search plan
   (`src/ct_iqa/training/trainer.py`) — deliberately spec-only;
   `build_model()`/`Trainer.fit()` raise unconditionally by design
-  (decision A-14).
+  (decision A-14). As of 2026-08-14, every field of `ModelSpec` is fully
+  resolved (backbone fine-tuning: S-01; dropout baseline: A-22) — see §12.
 - Git/dataset safety: `scripts/verify_git_safety.py`,
   `.gitignore` rules, `tests/test_git_safety.py`.
 
@@ -140,8 +145,8 @@ execution.
 | Item | Blocked on |
 | --- | --- |
 | RadImageNet ResNet50 checkpoint (U-M08) | obtaining the actual checkpoint file; nothing in this repo can produce it |
-| Dropout probability (U-M01) | not specified by Ohashi; must become a recorded PROJECT-ADAPTATION before training, not before dataset generation |
-| Model training (any) | RadImageNet checkpoint, a compatible TensorFlow environment, and explicit authorization — all three, not just one |
+| ~~Dropout probability (U-M01)~~ | **RESOLVED 2026-08-14** as PROJECT-ADAPTATION baseline `0.5` (decision A-22) — no longer blocking. See §12. |
+| Model training (any) | RadImageNet checkpoint, a compatible TensorFlow environment, and explicit authorization — all three, not just one (model *specification* itself is now fully resolved, §12) |
 | Bit-exact MATLAB VIF equivalence | no MATLAB installation reachable from this project, and Ohashi's paper names no specific function/toolbox to target — this is not resolvable from within this repository at all, not merely "not yet done" |
 | Full production dataset generation | `scripts/preflight_generation.py` passing (currently does — see §11) **and** a separate, explicit human go-ahead, which this audit task explicitly withholds |
 
@@ -262,19 +267,51 @@ Re-run this pass, not assumed from the prior session:
 
 ## 12. Model-training readiness
 
-**NOT READY**, and not attempted this pass:
+**Model architecture specification: RESOLVED, except external
+checkpoint/environment provisioning. Training itself: NOT READY, not
+attempted this pass.**
 
-- No RadImageNet ResNet50 checkpoint obtained (U-M08).
-- No deep-learning framework installed in this environment (TensorFlow
-  pinned but commented out in `requirements.txt`, per decision to match
-  Ohashi's reported Python ≤3.10 environment, which this repo's Python 3.13
-  development environment cannot satisfy directly).
-- Dropout probability (U-M01) and backbone-freeze status are: freeze status
-  is now resolved (S-01: fine-tuned, confirmed from paper text); dropout
-  probability remains unresolved and must become a recorded
-  PROJECT-ADAPTATION before training starts, not before dataset generation.
+Resolved 2026-08-14 (`docs/radimagenet_environment_audit.md`,
+`docs/research_decisions.md` "Baseline Model Specification Decision"):
+
+- **Backbone fine-tuning** — `ModelSpec.freeze_backbone` now defaults to
+  `False`, matching decision S-01 exactly (previously inconsistently left
+  `None` in code despite S-01 already being resolved at the decision-record
+  level — that inconsistency is now fixed, not merely documented around).
+  Regression-guarded by `tests/test_models_training_specs.py::test_default_spec_backbone_is_fine_tuned_not_frozen`.
+- **Dropout probability** — resolved to a documented PROJECT-ADAPTATION
+  baseline, `0.5` (decision A-22), sourced from RadImageNet's own
+  base-model training recipe (Mei et al. 2022 — the paper the pretrained
+  checkpoint itself comes from), **not** from Ohashi's paper, which remains
+  silent on the rate. Not chosen by any hyperparameter search — see DEV-05,
+  `docs/deviations_from_ohashi.md`, for why this remains a genuine,
+  acknowledged point of potential divergence from whatever Ohashi's own
+  (unknown) rate actually was.
+- The full baseline model specification (224×224 input, fine-tuned
+  RadImageNet ResNet50, GAP → Dropout(0.5) → FC(1) → Sigmoid, VIF target,
+  MSE/Adam/batch 64/30 epochs/LR sweep {1e-2..1e-5} selected by validation
+  MSE) is now completely and explicitly stated in `ModelSpec`
+  (`src/ct_iqa/models/resnet50.py`) and `configs/quality/resnet50_vif.yaml`
+  — no remaining `null`/unresolved fields in either.
+
+Still blocking actual training, none of which this pass touches:
+
+- No RadImageNet ResNet50 checkpoint obtained (U-M08) — see
+  `docs/radimagenet_environment_audit.md` §1–§3 for the exact source and
+  what obtaining it would require.
+- No deep-learning framework installed in this environment, and TensorFlow
+  2.10.10 (Ohashi's reported version) cannot be installed into this
+  repository's current Python 3.13 environment at all — a separate,
+  isolated Python ≤3.10 environment would be required
+  (`docs/radimagenet_environment_audit.md` §5–§6). Not provisioned by this
+  pass, per explicit instruction.
 - No training data exists yet (§11) — training cannot start before dataset
   generation regardless of the above.
+- `build_model()` still raises unconditionally (decision A-14) — resolving
+  the specification does not authorize construction; the two blockers above
+  are the only ones it now lists (verified this pass:
+  `unresolved_prerequisites(DEFAULT_SPEC)` returns exactly 2 items, down
+  from 4).
 
 ## 13. Recommended next phase
 

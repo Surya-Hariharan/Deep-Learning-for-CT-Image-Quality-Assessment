@@ -104,11 +104,15 @@ def test_model_architecture_matches_ohashi_spec():
     assert model["crop_strategy"] == "central_crop"
 
 
-def test_unspecified_training_params_are_explicitly_null():
-    """Dropout rate and frozen/fine-tuned status must stay null, not guessed."""
+def test_dropout_and_freeze_backbone_are_now_resolved():
+    """Resolved 2026-08-14 (docs/research_decisions.md decisions S-01, A-22):
+    freeze_backbone is OHASHI-SPECIFIED (fine-tuned, confirmed from paper
+    text); dropout_rate is a documented PROJECT-ADAPTATION baseline (0.5,
+    sourced from RadImageNet's own transfer-learning recipe), not a guess
+    and not claimed to be Ohashi-specified."""
     cfg = resnet50_config()
-    assert cfg["model"]["dropout_rate"] is None
-    assert cfg["model"]["freeze_backbone"] is None
+    assert cfg["model"]["freeze_backbone"] is False
+    assert cfg["model"]["dropout_rate"] == 0.5
 
 
 def test_three_stage_evaluation_structure_is_present():

@@ -111,6 +111,33 @@ Stage 3 can demonstrate about generalisation beyond the training distribution.
 **Status:** documented limitation, not corrected. See
 `configs/quality/resnet50_vif.yaml:evaluation.stage_3_real_image`.
 
+## DEV-05 — Dropout probability is a project baseline, not Ohashi's own value
+
+**What differs:** Ohashi's paper states only "a Dropout layer was added ...
+to prevent overfitting" — no rate is given anywhere in the text available
+to this project. `src/ct_iqa/models/resnet50.py::DEFAULT_DROPOUT_PROBABILITY`
+and `configs/quality/resnet50_vif.yaml:model.dropout_rate` are both set to
+`0.5`, resolved 2026-08-14 as decision A-22
+(`docs/research_decisions.md`) — sourced from RadImageNet's own base-model
+training recipe (Mei et al. 2022, the paper the pretrained checkpoint
+itself comes from), not from Ohashi.
+
+**Consequence:** if Ohashi's own (unpublished, unknown) dropout rate
+differs from 0.5, this project's regularisation strength differs from
+theirs by exactly that amount, which can affect the trained model's
+generalisation and therefore the final PLCC/SROCC numbers. This is a
+genuine, acknowledged point of potential divergence, not a cosmetic
+labelling difference — restated here so it is not mistaken for an
+Ohashi-confirmed value merely because it now appears as a concrete number
+in configs/code.
+
+**Status:** documented, deliberate, single baseline value — not chosen by
+any hyperparameter search or validation-metric comparison (out of scope
+until the baseline architecture is established; a future dropout ablation
+is a separate, later experiment). See
+`docs/research_decisions.md` decision A-22 for the full rationale and
+alternatives considered.
+
 ## Non-deviations (recorded here to prevent accidental "fixing")
 
 - Sigma grids, condition families, split protocol structure, model
