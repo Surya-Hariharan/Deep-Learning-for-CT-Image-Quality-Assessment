@@ -2,10 +2,12 @@
 
 Last updated: 2026-08-14, after (1) a full repository audit that created
 this document, (2) a RadImageNet checkpoint/environment feasibility audit
-(`docs/radimagenet_environment_audit.md`), and (3) resolution of the two
+(`docs/radimagenet_environment_audit.md`), (3) resolution of the two
 remaining baseline-model-specification items it surfaced (backbone
-fine-tuning code/decision consistency, dropout-probability baseline — see
-§12). Where this
+fine-tuning code/decision consistency, dropout-probability baseline), and
+(4) provisioning the actual RadImageNet checkpoint and an isolated
+TensorFlow training environment (`docs/training_environment.md`) — see
+§12. Where this
 document and any other doc disagree, treat divergence as a signal to fix the
 other doc, not to trust this one blindly — but as of the date above, both
 were reconciled.
@@ -294,24 +296,65 @@ Resolved 2026-08-14 (`docs/radimagenet_environment_audit.md`,
   (`src/ct_iqa/models/resnet50.py`) and `configs/quality/resnet50_vif.yaml`
   — no remaining `null`/unresolved fields in either.
 
-Still blocking actual training, none of which this pass touches:
+### Checkpoint and environment (resolved 2026-08-14, `docs/training_environment.md`)
 
-- No RadImageNet ResNet50 checkpoint obtained (U-M08) — see
-  `docs/radimagenet_environment_audit.md` §1–§3 for the exact source and
-  what obtaining it would require.
-- No deep-learning framework installed in this environment, and TensorFlow
-  2.10.10 (Ohashi's reported version) cannot be installed into this
-  repository's current Python 3.13 environment at all — a separate,
-  isolated Python ≤3.10 environment would be required
-  (`docs/radimagenet_environment_audit.md` §5–§6). Not provisioned by this
-  pass, per explicit instruction.
-- No training data exists yet (§11) — training cannot start before dataset
-  generation regardless of the above.
-- `build_model()` still raises unconditionally (decision A-14) — resolving
-  the specification does not authorize construction; the two blockers above
-  are the only ones it now lists (verified this pass:
-  `unresolved_prerequisites(DEFAULT_SPEC)` returns exactly 2 items, down
-  from 4).
+```
+TRAINING ENVIRONMENT:
+READY (CPU-only)
+```
+
+- **RadImageNet checkpoint obtained** (U-M08 resolved): the official
+  `RadImageNet-ResNet50_notop.h5` (94,852,768 bytes), from the official
+  `BMEII-AI/RadImageNet` GitHub repo's own linked Google Drive release.
+  SHA-256 recorded (no official checksum exists to verify against —
+  locally computed only). Loads into `tf.keras.applications.ResNet50`
+  with zero shape-mismatch errors; known backbone layer names confirmed
+  present. Stored at `data/external/radimagenet/`, confirmed Git-ignored.
+- **Isolated training environment provisioned**: Python 3.10.20 +
+  `tensorflow==2.10.1` in a venv entirely outside this repository
+  (`C:\Users\surya\.venvs\ct-iqa-tf210`), structurally incapable of being
+  Git-tracked. The main project Python 3.13 environment is unmodified
+  (re-verified: `tensorflow` still not importable there).
+- **`tensorflow==2.10.10` (as recorded in `requirements.txt` and elsewhere,
+  inherited from the project brief) does not exist on PyPI** — the 2.10.x
+  line only ever shipped 2.10.0 and 2.10.1. `tensorflow==2.10.1` was
+  installed instead, on the user's explicit direction after this was
+  surfaced, not silently substituted. This is now a **known open item**:
+  `requirements.txt`'s and other docs' "2.10.10" references should be
+  corrected to "2.10.1" (or otherwise reconciled) the next time
+  methodology documentation is revisited — not yet done, since this
+  provisioning pass was scoped to environment/checkpoint work, not doc
+  correction beyond what's recorded in `docs/training_environment.md`.
+- **GPU is present but not usable by this TensorFlow install**: RTX 4060
+  (8GB), driver-visible via `nvidia-smi`, but
+  `tf.config.list_physical_devices('GPU')` returns `[]` — TensorFlow 2.10.1
+  needs the CUDA 11.x Toolkit runtime + cuDNN 8.1 specifically, neither of
+  which is installed system-wide (only the driver is). Installing them was
+  explicitly out of scope for this pass (a system-level change beyond an
+  isolated venv) — documented as an open, deliberately-not-performed step
+  in `docs/training_environment.md` §8, with the exact missing DLLs and
+  candidate isolated fixes recorded, not just "GPU broken."
+- **CPU execution confirmed working**: a tensor-op smoke test
+  (matrix multiply) produced the mathematically correct result on
+  `/device:CPU:0`.
+
+Still blocking actual training:
+
+- Model construction itself: `build_model()` still raises unconditionally
+  (decision A-14) — obtaining the checkpoint and provisioning the
+  environment does not itself authorize construction; those remain
+  separate, deliberate gates. `unresolved_prerequisites(DEFAULT_SPEC)`
+  still returns 2 items (checkpoint-path wiring into `ModelSpec`, and
+  framework-availability wiring into the *main* Python 3.13 environment —
+  both intentionally not auto-satisfied by the isolated environment
+  existing elsewhere on disk).
+- No training data exists yet (§11) — training cannot start before
+  production dataset generation regardless of the above.
+- GPU training specifically additionally requires the CUDA/cuDNN
+  installation described above (CPU training does not).
+- Explicit human authorization to start training, separate from the
+  environment being ready — same gate structure as production dataset
+  generation (§13).
 
 ## 13. Recommended next phase
 
