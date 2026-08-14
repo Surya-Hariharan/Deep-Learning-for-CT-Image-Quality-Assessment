@@ -114,5 +114,13 @@ def test_preflight_blockers_are_all_methodology_not_data(cfg, references):
     assert all(b.startswith("NOT SPECIFIED BY OHASHI") for b in blockers)
 
 
-def test_execute_refuses_while_blockers_remain(cfg, references):
-    assert bod.preflight(cfg, references), "expected open methodology blockers at this phase"
+def test_methodology_blockers_are_now_resolved(cfg, references):
+    """As of the 2026-08-14 production decision (docs/research_decisions.md,
+    decisions A-16/A-17/A-18), sigma_units/combination-order/vif_variant are
+    resolved PROJECT ADAPTATION values, not open blockers -- this legacy
+    planning script's preflight() must reflect that. Real production
+    generation itself now lives in
+    scripts/quality/generate_production_dataset.py (with checkpointing),
+    not this skeleton's --execute path, which remains an unimplemented
+    placeholder -- see that module's docstring."""
+    assert bod.preflight(cfg, references) == []

@@ -2,21 +2,25 @@
 # TensorFlow 2.10.10. This project's TRAINING code (once implemented) should run
 # under that environment for fidelity to the original methodology.
 #
-# The CURRENT local development environment is Anaconda Python 3.13.9 -- fine for
-# everything below the "deep learning" section, which is all this repository
-# initialization phase needs. TensorFlow is NOT yet installed; do not install it
-# until training is explicitly authorized (see docs/research_decisions.md, U-M08:
-# the RadImageNet ResNet50 checkpoint itself is also not yet obtained).
+# The CURRENT local development/test environment is Python 3.13 (verified under
+# both Anaconda 3.13.9 and, as of the 2026-08-14 repository audit, the Microsoft
+# Store CPython 3.13.14 build) -- fine for everything below the "deep learning"
+# section, which is all this repository needs through the production-pipeline
+# phase. TensorFlow is NOT yet installed; do not install it until training is
+# explicitly authorized (see docs/research_decisions.md, U-M08: the RadImageNet
+# ResNet50 checkpoint itself is also not yet obtained).
+#
+# Audited 2026-08-14 against actual `import` statements across src/, scripts/,
+# tests/ -- every package below is imported somewhere in the codebase. Removed
+# (were unused anywhere in the repo): pandas, scikit-learn, scikit-image. Do not
+# re-add a dependency speculatively; add it in the same change that starts using it.
 
 # --- core (installed, verified working in this environment) ---
 numpy>=1.26
 scipy>=1.11
-pandas>=2.0
 pillow>=10.0
 PyYAML>=6.0
 pyarrow>=14.0
-scikit-learn>=1.3
-scikit-image>=0.22
 matplotlib>=3.8
 jupyter>=1.0
 pytest>=7.4

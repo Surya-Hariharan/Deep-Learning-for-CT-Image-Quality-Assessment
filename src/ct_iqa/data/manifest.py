@@ -91,6 +91,38 @@ class DegradedRecord:
 
 
 @dataclass
+class ProductionManifestRecord:
+    """One record in the production ``quality_iqa`` manifest
+    (``scripts/quality/generate_production_dataset.py``).
+
+    Distinct from :class:`DegradedRecord` (the earlier planning-stage
+    schema) in carrying the VIF diagnostic fields that the production
+    pipeline's flag-and-retain policy requires (decision A-19,
+    ``docs/research_decisions.md``): ``diagnostic_status``,
+    ``max_channel_gain``, and ``covariance_condition_number`` are retained
+    verbatim for every record, never used to silently alter, clip, or
+    exclude ``vif_score``.
+
+    All identifiers are stable and project-relative -- never a
+    machine-specific absolute path (``source_filename`` is a bare filename;
+    combine with ``configs/degradation.yaml:output`` to locate the file).
+    """
+
+    reference_id: str
+    source_filename: str
+    expert_score: float | None
+    degraded_id: str
+    degradation_type: str                 # clean | noise | blur | noise_blur
+    noise_sigma: float | None
+    blur_sigma: float | None
+    vif_score: float | None
+    diagnostic_status: str
+    max_channel_gain: float | None
+    covariance_condition_number: float | None
+    split: str
+
+
+@dataclass
 class ManifestHeader:
     """Provenance for a manifest file."""
 

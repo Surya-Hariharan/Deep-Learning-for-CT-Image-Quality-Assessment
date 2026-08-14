@@ -52,6 +52,12 @@ NOT SPECIFIED, based on a secondhand brief that didn't include this detail):
 | A-12 | The dataset generator refuses `--execute` while any NOT SPECIFIED BY OHASHI blocker is open | a wrong 169,000-image dataset generated reproducibly is worse than none |
 | A-13 | VIFp implementation follows Sheikh & Bovik's reference `vifp_mscale` (4 scales, σ_nsq=2.0) | a documented standard rather than an ad-hoc reimplementation — variant choice is separate, see U-V01 below |
 | A-14 | `src/ct_iqa/models/`, `src/ct_iqa/training/` define specifications only; `build_model()` and `Trainer.fit()` raise unconditionally | training is not authorized at this phase; the spec must not be quietly runnable |
+| A-16 | Combined-degradation order = `blur_then_noise`. Resolves U-D02. | Ohashi's Methods/Fig. 3 caption never states the order; `blur_then_noise` was already the pilots' provisional choice (`scripts/quality/vif_pilot.py`, `scripts/quality/vif_full_grid_pilot.py`) and is retained rather than silently changed at production time. Rationale: it models a physical acquisition chain where optical/reconstruction blur precedes final sensor/quantization noise, which is a defensible (not verified) mental model, not a claim about Ohashi's own pipeline. `noise_then_blur` measurably differs (`tests/test_degradation.py::test_combination_order_actually_matters`), so this choice materially affects every one of the 14,400/reference combined labels. Recorded here as PROJECT ADAPTATION, not OHASHI-SPECIFIED. |
+| A-17 | Noise sigma is interpreted directly in 8-bit grey-level units (`sigma_scale=1.0`, `sigma_units="8bit_grey_levels"`). Resolves U-D01. | Ohashi's pipeline degrades already-saved 8-bit grayscale images; LDCT-IQAC is native 8-bit PNG, so treating the published sigma grid as already being in image units is the natural adaptation. This was already the pilots' provisional value, retained rather than changed at production time. Not a claim that Ohashi's own MATLAB run used the same units — genuinely unverifiable without their code. |
+| A-18 | VIF variant for production label generation = `vif_wavelet`, `profile="project"` (never `"reference_crosscheck"`, never `vifp`). | S-02 establishes the wavelet-domain VIF formulation family is OHASHI-SPECIFIED; A-15 documents the implementation is structurally validated (parameter-equivalence Pearson 0.99999999999989) and behaves sanely across 16,800 full-grid-pilot images (zero NaN/Inf/negative/out-of-range, `docs/vif_full_grid_pilot_report.md` §5). `vifp` remains available but is never substituted — see `ct_iqa.vif.labeling.compute_vif`, which still requires the variant to be named explicitly at every call site, including the production generator. |
+| A-19 | `UNSTABLE_CHANNEL_GAIN` (and every other VIF diagnostic flag) is FLAGGED, RETAINED, and NEVER used to silently alter, clip, replace, or exclude a record. Every production record retains `vif_score`, `diagnostic_status`, `max_channel_gain`, and `covariance_condition_number` verbatim. | `docs/vif_full_grid_pilot_report.md` §6/§16.1: the flag fires on 100% of noise-bearing conditions (95.2% of the full grid) — any exclusion rule would eliminate virtually the entire dataset, and the flag was mechanistically traced to a real, non-bug property of GSM channel-gain estimation on near-zero-variance regions, not a computation error. Silently altering flagged labels would hide this from downstream training/evaluation without fixing anything. |
+| A-20 | Combined noise+blur grid label noise (small, local, non-monotonic VIF steps) is documented as expected metric behavior, not corrected. | `docs/vif_full_grid_pilot_report.md` §10: 41.3% of the full 12x12 combined-grid sequences show at least one local step increase, concentrated at high blur (sigma>=1.4); every violation is small (max +0.0393, none exceeding 0.05) and net direction across the full severity range remains correct in 100% of blur sweeps and 83% of noise sweeps. `vif_wavelet()` is not smoothed, clipped, or post-processed to force monotonicity — doing so would fabricate label structure the metric itself does not produce. |
+| A-21 | Noise is not clipped to the display range during degradation (`clip_after: false`, `configs/degradation.yaml`); the 8-bit clip only happens at PNG-encode time. | NOT SPECIFIED BY OHASHI whether intermediate clipping occurs. VIF is computed on the full-precision degraded array before any 8-bit quantization, so clipping earlier would silently alter the label; clipping only at the point pixels are actually written as 8-bit PNG keeps the label and the saved image consistent without adding an extra, unrecorded transformation in between. |
 | A-15 | Full wavelet-domain VIF is implemented as `vif_wavelet()` (`src/ct_iqa/vif/wavelet.py`), built on `pyrtools` (v1.0.10) for the steerable-pyramid decomposition, structurally following Sheikh & Bovik's released reference algorithm (`vifvec.m` / `refparams_vecgsm.m` / `vifsub_est_M.m`). Existing `vif_p()` (VIFp) is unchanged and kept as a separate, never-aliased variant. This is a PROJECT ADAPTATION, not a claim of reproducing Ohashi's exact MATLAB run: Ohashi's paper does not name a specific MATLAB function/toolbox (see U-V01), so every implementation-level parameter (pyramid orientation count, GSM block size, `σ_nsq`, boundary handling, exact subband selection, numerical stabilizers) had to be sourced from Sheikh's *released* reference code rather than from the Ohashi paper itself — full parameter-by-parameter provenance is in `docs/vif_implementation.md`. **Not yet used for LDCT-IQAC label generation** — see status note below. | S-02 establishes the formulation *family* (wavelet-domain VIF) is OHASHI-SPECIFIED; everything about *how* to compute it in Python is this project's own choice, made because no MATLAB run is available to copy or verify against (`docs/vif_investigation.md`) |
 
 ## NOT SPECIFIED BY OHASHI
@@ -61,8 +67,8 @@ U-D01–U-D03 as blockers and refuses `--execute` while any remain.
 
 | ID | Unknown | Why it matters | How to resolve |
 | --- | --- | --- | --- |
-| U-D01 | Noise sigma units — HU or 8-bit grey levels | σ=50 is mild in HU, severe in 8-bit; changes every degraded image | paper's pipeline degrades already-saved 8-bit grayscale PNGs via ImageJ's native filters (which operate in 8-bit/pixel units) — a reasonable inference, not a confirmed statement; LDCT-IQAC is 8-bit, so `sigma_scale=1.0` remains the natural adaptation choice |
-| U-D02 | Combined-degradation order — blur-then-noise or noise-then-blur | noise-then-blur partially smooths the noise away; measurably different images (tested in `tests/test_degradation.py`) | not stated anywhere in the paper text (Methods or Fig. 3 caption); genuinely open |
+| U-D01 | ~~Noise sigma units — HU or 8-bit grey levels~~ — **RESOLVED, see A-17** | σ=50 is mild in HU, severe in 8-bit; changes every degraded image | Resolved 2026-08-14 as PROJECT ADAPTATION (A-17): `sigma_scale=1.0`, `sigma_units="8bit_grey_levels"`, recorded in `configs/degradation.yaml`. Still not a claim that this matches Ohashi's own MATLAB run. |
+| U-D02 | ~~Combined-degradation order — blur-then-noise or noise-then-blur~~ — **RESOLVED, see A-16** | noise-then-blur partially smooths the noise away; measurably different images (tested in `tests/test_degradation.py`) | Resolved 2026-08-14 as PROJECT ADAPTATION (A-16): `order="blur_then_noise"`, recorded in `configs/degradation.yaml`. Not stated anywhere in the paper text (Methods or Fig. 3 caption) — genuinely still open on Ohashi's side; this project adopts a value rather than leaving it implicit. |
 | U-V01 | Exact wavelet-domain VIF implementation matching Ohashi's MATLAB R2024a run: specific MATLAB function/toolbox, decomposition levels/subbands, σ_nsq, boundary handling | the *formulation family* is now resolved (wavelet-domain VIF, not VIFp — see S-02 above and "VIF Implementation Status" below), but these implementation-level parameters still are not, and VIF numerically depends on them | paper only says "MATLAB R2024a" — no function/toolbox named; would need Ohashi's code (not public per the paper's Data Availability statement) or a documented-standard wavelet VIF implementation adopted as a new PROJECT ADAPTATION entry |
 | U-M01 | Dropout probability | flagged explicitly in the brief; large effect on regularisation | not stated in the paper ("a Dropout layer was added... to prevent overfitting" — no rate given); choose and record as a new PROJECT ADAPTATION entry before training |
 | U-M03 | Exact grayscale-to-3-channel implementation | affects every input pixel | not stated in the paper (channel replication is used here as A-13-style documented adaptation until confirmed) |
@@ -246,8 +252,37 @@ Known failure mode:
     actual LDCT-IQAC images)
 
 Dataset label generation:
-    BLOCKED
+    READY WITH DOCUMENTED CONDITIONS (per docs/vif_full_grid_pilot_report.md
+    Section 17, "B"), production pipeline preparation authorized -- see
+    "Production Generation Decision" below. Full 1,000-reference /
+    169,000-image generation itself remains a SEPARATE, EXPLICIT
+    authorization gate (scripts/preflight_generation.py must pass and a
+    human must issue the go-ahead) -- it does not follow automatically from
+    this status.
 ```
+
+## Production Generation Decision (2026-08-14)
+
+Following the 100-reference full-grid pilot (`docs/vif_full_grid_pilot_report.md`),
+the pilot's recommendation **B — READY WITH SPECIFIC DOCUMENTED CONDITIONS** is
+accepted. The specific conditions from that report's §17 are addressed as follows:
+
+1. Flag-and-retain handling for `UNSTABLE_CHANNEL_GAIN` (and all diagnostic
+   flags) is adopted as decision A-19 above.
+2. Combined-grid label noise is documented as expected metric behavior, not a
+   defect — decision A-20 above.
+3. U-D01 and U-D02 are resolved as PROJECT ADAPTATION — decisions A-17 and
+   A-16 above — and recorded in `configs/degradation.yaml`.
+4. Checkpointing/resumability is added to the production generator
+   (`scripts/quality/generate_production_dataset.py`) — reference-level
+   checkpoints, streamed manifest writes, no full in-memory record list. See
+   that script's module docstring for the design.
+
+**This authorizes preparing the production pipeline (config, generator,
+checkpointing, preflight, dry-run) — it does NOT authorize starting the full
+1,000-reference / 169,000-image generation run.** That is a separate,
+explicit go-ahead, gated on `scripts/preflight_generation.py` passing and a
+human decision to proceed, per the instruction that produced this section.
 
 ## EXPERIMENTAL EXTENSION
 

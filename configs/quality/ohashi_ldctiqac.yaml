@@ -14,6 +14,14 @@
 name: ohashi_ldctiqac_v1
 seed_from: "configs/paths.yaml:random_seed"
 
+# Degradation/generation mechanics (sigma grids, order, VIF variant, checkpointing,
+# output layout) are the AUTHORITATIVE responsibility of configs/degradation.yaml,
+# which the production generator (scripts/quality/generate_production_dataset.py)
+# actually reads. The fields below are kept in sync with it for readability and
+# backward-compatible planning (scripts/quality/build_ohashi_dataset.py still
+# reads this file) but configs/degradation.yaml is the source of truth for a
+# production run.
+
 references:
   source: ldctiqa                 # PROJECT ADAPTATION (was: deeplesion + cq500)
   n_total: 1000                   # PROJECT ADAPTATION (was: 105)
@@ -31,20 +39,20 @@ references:
 noise:
   kind: gaussian
   sigma: [1, 1.5, 2, 3, 4.5, 6, 7.5, 9, 14, 21, 30, 50]   # OHASHI-SPECIFIED, 12 levels
-  sigma_units: null               # NOT SPECIFIED BY OHASHI (HU vs 8-bit grey levels)
+  sigma_units: "8bit_grey_levels" # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision A-17
   additive: true                  # PROJECT ADAPTATION: zero-mean additive white Gaussian noise
-  clip_after: null                # NOT SPECIFIED BY OHASHI
+  clip_after: false               # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision A-21
 
 blur:
   kind: gaussian
   sigma: [0.1, 0.15, 0.2, 0.3, 0.45, 0.6, 0.75, 0.9, 1.4, 2.1, 3.0, 5.0]  # OHASHI-SPECIFIED, 12 levels
   sigma_units: pixels             # PROJECT ADAPTATION: standard convention for Gaussian blur sigma
   truncate: 4.0                   # PROJECT ADAPTATION: scipy default kernel radius in sigmas
-  boundary_mode: null             # NOT SPECIFIED BY OHASHI
+  boundary_mode: nearest          # REFERENCE-IMPLEMENTATION-CONVENTION -- scipy default
 
 combination:
   enabled: true                   # OHASHI-SPECIFIED
-  order: null                     # NOT SPECIFIED BY OHASHI (blur-then-noise vs noise-then-blur)
+  order: blur_then_noise          # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision A-16
   n_combinations: 144             # DERIVED: 12 x 12 full factorial
 
 # Per-reference condition count - identical structure to the original config,
@@ -60,7 +68,9 @@ counts:
 
 labels:
   synthetic_target: vif           # OHASHI-SPECIFIED - the ONLY synthetic-stage training target
-  vif_variant: null                # NOT SPECIFIED BY OHASHI (pixel-domain VIFp vs wavelet-domain VIF)
+  vif_variant: vif_wavelet         # RESOLVED 2026-08-14, PROJECT ADAPTATION -- decision A-18
+                                    # (formulation family is OHASHI-SPECIFIED per S-02; this
+                                    # implementation choice is PROJECT ADAPTATION per A-15)
   clean_reference_label: 1.0       # DERIVED (VIF of a reference against itself)
   expert_score_field: expert_score # PROJECT ADAPTATION - LDCT-IQAC MOS of the reference,
                                     # carried through for subjective evaluation ONLY;

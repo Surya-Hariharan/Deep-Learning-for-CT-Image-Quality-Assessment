@@ -75,15 +75,26 @@ implementations agree to within floating-point precision (Pearson
 0.99999999999989) — strong evidence the moderate disagreement was caused
 by documented, defensible parameter choices, not an implementation bug.
 
-**Still blocking for actual LDCT-IQAC label generation**: this validates
+**Still not bit-exact-verified against Ohashi's own run**: this validates
 that the *code* is structurally correct, not that the *canonical parameter
 set* (drawn from `vifvec.m`, since Ohashi names no specific MATLAB
 function) matches whatever Ohashi's own MATLAB R2024a run actually
 computed — no MATLAB ground truth exists anywhere in this project's reach,
-and none is expected to. No LDCT-IQAC labels have been computed with
-either variant. See `docs/research_decisions.md`, items S-02 (formulation
-family, OHASHI-SPECIFIED) and A-15/U-V01 (implementation, PROJECT-ADAPTATION,
-structurally validated, not bit-exact-verified against MATLAB).
+and none is expected to. See `docs/research_decisions.md`, items S-02
+(formulation family, OHASHI-SPECIFIED) and A-15/U-V01 (implementation,
+PROJECT-ADAPTATION, structurally validated, not bit-exact-verified against
+MATLAB).
+
+**Status update (2026-08-14)**: the 100-reference full-grid pilot
+(`docs/vif_full_grid_pilot_report.md`) exercised `vif_wavelet(profile="project")`
+across the complete 168-condition grid with zero NaN/Inf/negative/out-of-range
+scores. Its recommendation (Status B, "READY WITH SPECIFIC DOCUMENTED
+CONDITIONS") is accepted as evidence for preparing (not yet executing) the
+full 1,000-reference / 169,000-image production run — see
+`docs/research_decisions.md`, decisions A-16 through A-20 and "Production
+Generation Decision." No LDCT-IQAC labels have been generated at production
+scale yet; that remains gated on `scripts/preflight_generation.py` and an
+explicit, separate human authorization.
 
 ## DEV-04 — Real-image evaluation set differs from Ohashi's
 
