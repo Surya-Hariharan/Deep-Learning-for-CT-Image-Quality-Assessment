@@ -53,6 +53,7 @@ rather than silently).
 pip install -e .              # runtime (inference) dependencies
 pip install -e ".[train]"     # + monai, for the warmup-cosine LR schedule
 pip install -e ".[dev]"       # + pytest
+pip install -e ".[notebook]"  # + matplotlib/jupyter, for notebooks/
 ```
 
 ## Quick start
@@ -64,6 +65,11 @@ python scripts/validate_dataset.py --data-root data/external/png
 python scripts/train.py --data-root data/external/png
 python scripts/evaluate.py --data-root data/external/png --trained-model best_model.pth
 ```
+
+To see it visually: `notebooks/01_ngpnet_walkthrough.ipynb` builds the
+model, loads a real PNG window, runs a forward pass, and plots the input
+slices, predicted image/mask, and deformation field -- see
+[`notebooks/README.md`](notebooks/README.md).
 
 ```python
 from quality_aware_lung_ct.ngpnet import NGPNet
@@ -94,12 +100,15 @@ src/quality_aware_lung_ct/
     quality/ uncertainty/ fusion/ reporting/   planned -- boundary packages only
     common/          seeding, run logging
 scripts/    train.py  evaluate.py  smoke_test.py  validate_dataset.py
+notebooks/  01_ngpnet_walkthrough.ipynb + its _build_*.py generator source
 tests/      docs/
 data/       external/png/ (gitignored)  processed/ (gitignored)
 checkpoints/  outputs/    (gitignored)
 ```
 
 ## Documentation
+
+Full index: [`docs/README.md`](docs/README.md).
 
 | | |
 |---|---|
@@ -108,6 +117,8 @@ checkpoints/  outputs/    (gitignored)
 | `docs/reproduction.md` | Environment, dataset setup, validation, training, evaluation |
 | `docs/research-status.md` | What's implemented vs. planned, and why |
 | `docs/upstream/` | The vendored authors' own README and figures, for attribution |
+| `notebooks/README.md` | The visual walkthrough notebook and how to regenerate it |
+| `data/README.md` | Dataset location, setup, and preprocessing policy |
 
 ## License
 

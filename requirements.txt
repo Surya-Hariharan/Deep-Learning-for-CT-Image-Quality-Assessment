@@ -1,13 +1,13 @@
 # Dependencies for the Quality-Aware Longitudinal Lung CT Follow-up Assistant.
 #
-# Three groups, kept separate on purpose. Group 1 is what the vendored
-# NGP-Net implementation needs to run; group 2 is our own research code
-# (currently empty -- nothing beyond group 1 is needed yet); group 3 is
-# training-only and not imported by anything under src/.
+# Groups kept separate on purpose. Group 1 is what the vendored NGP-Net
+# implementation needs to run; group 2 is our own research code (currently
+# empty -- nothing beyond group 1 is needed yet); groups 3-5 are optional
+# extras not imported by anything under src/.
 #
 # This file must stay consistent with pyproject.toml's [project.dependencies]
 # and [project.optional-dependencies]. Install with `pip install -e .` (or
-# `pip install -e ".[train,dev]"` for the extras).
+# `pip install -e ".[train,dev,notebook]"` for the extras).
 
 
 # =====================================================================
@@ -45,3 +45,14 @@ pandas>=2.0              # common/logging.py:LogWriter, data/png metadata
 # 4. Development -- install with:  pip install -e ".[dev]"
 # =====================================================================
 # pytest>=7.4
+
+
+# =====================================================================
+# 5. Notebook -- install with:  pip install -e ".[notebook]"
+#    Needed only to run/regenerate notebooks/ (see notebooks/README.md).
+# =====================================================================
+# matplotlib>=3.8
+# ipykernel>=6.29
+# nbformat>=5.10
+# nbclient>=0.10
+# nbconvert>=7.16

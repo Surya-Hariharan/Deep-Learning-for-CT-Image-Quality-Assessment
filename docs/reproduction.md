@@ -6,6 +6,7 @@
 pip install -e .              # runtime (inference) dependencies only
 pip install -e ".[train]"     # + monai, for scripts/train.py --lrschedule warmupcosine
 pip install -e ".[dev]"       # + pytest
+pip install -e ".[notebook]"  # + matplotlib/jupyter, for notebooks/
 ```
 
 Requires Python >=3.10. Verified in a CPU-only environment (torch 2.13,
@@ -47,6 +48,18 @@ pytest tests -q
 
 No test requires the PNG dataset; dataset-shaped tests use synthetic
 fixtures (`tests/test_dataset.py`).
+
+## Visual walkthrough
+
+```bash
+jupyter notebook notebooks/01_ngpnet_walkthrough.ipynb
+```
+
+Builds the model, loads a real PNG window (or a synthetic one if the
+dataset isn't present), runs a forward pass, and plots the input slices,
+predicted image/mask, and deformation field. Uses a randomly initialized
+model until a checkpoint exists -- see the notebook's own status note and
+`notebooks/README.md`.
 
 ## Training
 
