@@ -1,1 +1,0 @@
-dataset_name,image_id,filename,source_path,patient_id,study_id,series_id,modality,slice_index,image_width,image_height,mode,channels,spacing,slice_thickness,scanner,windowing,preprocessing_status,label,label_kind,split,sha256,notes

@@ -3,24 +3,35 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ct-iqa"
+name = "quality-aware-lung-ct"
 version = "0.1.0"
-description = "Ohashi-method CT No-Reference Image Quality Assessment replication, adapted to LDCT-IQAC"
+description = "Quality-aware longitudinal pulmonary nodule growth prediction, built on the NGP-Net baseline"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 
+# Runtime dependencies of our code, including the NGP-Net inference path.
+# See requirements.txt for per-package provenance and the training-only
+# extras deliberately excluded here.
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+    "SimpleITK>=2.2",
+    "scikit-image>=0.21",
+    "scipy>=1.11",
+    "pandas>=2.0",
+]
+
+[project.optional-dependencies]
+# Needed only to run scripts/train.py with --lrschedule warmupcosine
+# (WarmupCosineSchedule, in training/trainer.py:build_optimizer).
+train = ["monai>=1.3"]
+dev = ["pytest>=7.4"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["ct_iqa*"]
+include = ["quality_aware_lung_ct*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
-
-[tool.ruff]
-line-length = 110
-target-version = "py310"
-
-[tool.ruff.lint]
-select = ["E", "F", "I"]
+pythonpath = ["src"]

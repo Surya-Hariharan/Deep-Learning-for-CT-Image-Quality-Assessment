@@ -1,42 +1,34 @@
 # =============================================================================
 # DATASET SAFETY -- read this before touching this file.
 #
-# The actual dataset (currently: LDCT-IQAC, 1,000 PNG CT slices + labels,
-# under data/raw/ldctiqa/) must NEVER be committed. Raw data is large, is not
-# ours to redistribute, and is always reproducible from its source; the
-# manifests under data/manifests/ describe it instead and ARE committed.
-#
-# scripts/verify_git_safety.py checks this file's effectiveness against the
-# actual `git ls-files` output -- run it before every commit.
+# The PNG (Pulmonary Nodule Growth) dataset lives in data/external/png/. It
+# is ~1,536 NIfTI volumes of patient data collected under a hospital ethics
+# approval (see docs/datasets.md). It must NEVER be committed: it is not
+# ours to redistribute. The *.nii / *.nii.gz rules below are what actually
+# prevent this even if the folder location changes -- do not weaken them.
 # =============================================================================
 
-# --- project dataset directories (by directory, not by extension) ---
+# --- the PNG dataset: ignored in full ---
+# Not just the volumes -- patient-characteristics.csv carries per-patient
+# age/sex, characteristics.csv per-nodule measurements, and NGP3T.json the
+# manifest tying them together. All of it is patient data.
+data/external/
+
+# --- derived and working data ---
 data/raw/**
 data/interim/**
 data/processed/**
 !data/**/.gitkeep
+!data/README.md
 
-# Manifests and reports ARE committed: they are the machine-readable record of
-# what the data was, and they are small (CSV/Parquet/JSON metadata, not pixels)
-# -- EXCEPT the full quality_iqa manifest, which describes all 169,000 planned
-# synthetic-dataset records and is tens of MB. A small sample
-# (quality_iqa_manifest.sample.csv) is committed instead; the full manifest
-# regenerates locally via `python scripts/quality/build_ohashi_dataset.py --manifest-only`.
-!data/manifests/**
-data/manifests/quality_iqa_manifest.csv
-data/manifests/quality_iqa_manifest.parquet
-data/manifests/quality_iqa_manifest.header.json
-
-# Other conventional dataset/artifact locations, in case this project or a
-# fork of it grows one -- kept even though unused today, per the project's
-# dataset-safety requirement to not rely on one exact folder name.
+# Other conventional dataset locations, kept even though unused today, in
+# case this project or a fork of it grows one.
 datasets/**
-artifacts/**
+archive/**
 !datasets/**/.gitkeep
-!artifacts/**/.gitkeep
+!archive/**/.gitkeep
 
 # --- medical-image and archive formats, wherever they appear ---
-# (Not a blanket *.png/*.jpg rule -- see the explicit allow-list below for why.)
 *.dcm
 *.dicom
 *.nii
@@ -51,11 +43,6 @@ artifacts/**
 *.rar
 *.gz
 
-# --- generated datasets: degraded images, VIF labels, any bulk PNG/JPG output ---
-data/processed/quality_iqa/degraded/**
-data/processed/quality_iqa/references/**
-!data/processed/quality_iqa/**/.gitkeep
-
 # --- model checkpoints / weights / generated predictions ---
 *.ckpt
 *.pth
@@ -67,34 +54,27 @@ data/processed/quality_iqa/references/**
 *.safetensors
 *.npy
 *.npz
-checkpoints/
-experiments/**/runs/
-experiments/**/checkpoints/
+checkpoints/runs/
+outputs/
 
 # --- TensorBoard / training logs / caches ---
 logs/
 *.tfevents.*
 .cache/
 
-# --- generated reports that scripts rebuild ---
-reports/dataset_inventory_generated.md
-reports/validation_report.json
-reports/preprocessing_log.jsonl
-docs/dataset_audit.json
-
 # =============================================================================
 # EXPLICIT ALLOW-LIST -- small, intentionally-committed images stay committable.
-# This project does NOT blanket-ignore every PNG in the repo: documentation
-# diagrams and tiny synthetic test fixtures are legitimate and small.
 # =============================================================================
-!docs/**/*.png
 !docs/**/*.jpg
+!docs/**/*.png
 !tests/fixtures/**
 
 # --- Python ---
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .ipynb_checkpoints/
 *.egg-info/
 build/

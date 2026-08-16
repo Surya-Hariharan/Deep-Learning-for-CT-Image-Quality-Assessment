@@ -22,9 +22,26 @@ SOFTWARE.
 
 ---
 
-This license covers the code in this repository only. It does NOT cover the
-LDCT-IQAC dataset or any other dataset referenced by this project -- those
-retain their own original licenses/terms, are never committed to this
-repository, and users must obtain and comply with those terms independently.
-See docs/dataset_adaptation.md and configs/datasets/*.yaml for per-dataset
-provenance and licensing notes.
+## Scope of this license
+
+The MIT license above covers original code in this repository authored for
+the Quality-Aware Longitudinal Lung CT Follow-up Assistant project
+(`src/quality_aware_lung_ct/{data,preprocessing,training,evaluation,common}`,
+`scripts/`, `tests/`, `docs/`, and this packaging).
+
+**It does not cover, and does not attempt to license, the reimplemented
+NGP-Net architecture** (`src/quality_aware_lung_ct/ngpnet/`). That code is
+migrated from the official author implementation at
+<https://github.com/XinKai-Tang/NGP-Net> (Tang, Luo, Liu, Huang & Zou,
+IEEE TMI 2026). As of this writing that upstream repository publishes no
+LICENSE file (`license: null` via the GitHub API) and its README states no
+usage terms. **License status for the NGP-Net code requires clarification
+directly with the original authors before any redistribution** beyond the
+research/educational use this repository is built for. Do not assume MIT
+terms apply to `ngpnet/`; the MIT header above is not a substitute for
+that clarification.
+
+**It does not cover the PNG dataset**, which is never committed to this
+repository (see `data/README.md`) and is redistributed by its authors
+under the terms described at its Kaggle source
+(see `docs/upstream/NGP-Net-README.md`), not under this license.
