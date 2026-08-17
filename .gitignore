@@ -14,6 +14,18 @@
 # manifest tying them together. All of it is patient data.
 data/external/
 
+# --- LDCT-IQAC dataset: images ignored, JSON score labels kept ---
+# data/training/image/ and data/testing/images/ hold the LDCT-IQAC CT
+# images themselves (TIFF, patient-derived) -- never commit these. The
+# *.tif/*.tiff rules below already block the files; the path rules here
+# make the intent explicit even if the extension changes. train.json/
+# test.json contain only filename -> quality-score pairs (no pixel data)
+# and are small/useful for reproducibility, so they're explicitly kept.
+data/training/image/**
+data/testing/images/**
+!data/training/train.json
+!data/testing/test.json
+
 # --- derived and working data ---
 data/raw/**
 data/interim/**
@@ -21,6 +33,7 @@ data/processed/**
 data/testing/**
 !data/**/.gitkeep
 !data/README.md
+!data/testing/test.json
 
 # Other conventional dataset locations, kept even though unused today, in
 # case this project or a fork of it grows one.
@@ -57,7 +70,7 @@ archive/**
 *.safetensors
 *.npy
 *.npz
-checkpoints/runs/
+checkpoints/
 outputs/
 
 # --- TensorBoard / training logs / caches ---
