@@ -53,12 +53,28 @@ dataset loader (`ct_iqa.data.ldct_iqac`) was written around the actual
 on-disk format; see the dataset audit report for details."""
 )
 
-# 2. Imports
+# 2. Repo root resolution + sys.path setup (must run before any ct_iqa import).
+# Dataset paths in ExperimentConfig are relative to the repository root, and
+# the ct_iqa package lives under <repo_root>/src -- not necessarily importable
+# by default under every kernel (e.g. a separate GPU-enabled conda env used
+# for actual training runs), so this is made explicit rather than relying on
+# any particular kernel's site-packages configuration.
+code(
+    """import os
+import sys
+from pathlib import Path
+
+_cwd = Path.cwd()
+_repo_root = _cwd if (_cwd / "data").exists() else _cwd.parent
+os.chdir(_repo_root)
+sys.path.insert(0, str(_repo_root / "src"))
+print(f"repo root: {_repo_root}")"""
+)
+
+# 3. Imports
 code(
     """import json
 import logging
-import os
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -80,18 +96,11 @@ from ct_iqa.training.trainer import (
 from ct_iqa.utils.seed import set_seed
 
 logging.basicConfig(level=logging.INFO)
-%matplotlib inline"""
-)
+%matplotlib inline
 
-# 2b. Repo root resolution (dataset paths in ExperimentConfig are relative to repo root)
-code(
-    """# Dataset paths in ExperimentConfig are relative to the repository root.
-# Make this notebook runnable both from the repo root and from notebooks/
-# (its own directory) by chdir-ing to whichever ancestor contains data/.
-_cwd = Path.cwd()
-if not (_cwd / "data").exists() and (_cwd.parent / "data").exists():
-    os.chdir(_cwd.parent)
-print(f"working directory: {Path.cwd()}")"""
+print(f"torch: {torch.__version__}  cuda available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"device: {torch.cuda.get_device_name(0)}")"""
 )
 
 # 3. Configuration
@@ -109,10 +118,17 @@ below). The backbone will run with random initialization until real
 RadImageNet weights are obtained and pointed to here."""
 )
 code(
-    """config = ExperimentConfig(
+    """# RadImageNet weights: no official release is available to this project (the
+# real dataset/weights are obtainable only by request at radimagenet.com).
+# Rather than use unverified third-party "RadImageNet" checkpoints found on
+# the Hugging Face Hub and risk mislabeling the result, this run uses random
+# backbone initialization and is reported honestly as such -- NOT a full
+# replication of the paper's RadImageNet-pretrained result.
+config = ExperimentConfig(
     dropout_p=0.5,  # NOT specified by the paper -- explicit, documented choice.
-    radimagenet_weights_path=None,  # RadImageNet weights not present in this repo; see below.
-    checkpoint_dir="checkpoints/ohashi_resnet50_exp01",
+    radimagenet_weights_path=None,  # No verified RadImageNet weights available; see above.
+    checkpoint_dir="checkpoints/ohashi_resnet50_random_init_exp01",
+    device="cuda" if torch.cuda.is_available() else "cpu",
 )
 set_seed(config.seed)
 config"""
@@ -227,7 +243,7 @@ print(f"head                : Dropout(p={config.dropout_p}) -> Linear({model.fc.
 # 12. Verify input/output shapes
 md("## Verify input/output shapes")
 code(
-    """dummy_input = torch.randn(2, 1, INPUT_SIZE, INPUT_SIZE)
+    """dummy_input = torch.randn(2, 1, INPUT_SIZE, INPUT_SIZE).to(config.device)
 model.eval()
 with torch.no_grad():
     dummy_output = model(dummy_input)
@@ -282,13 +298,13 @@ Set `RUN_FULL_TRAINING = True` and re-run this cell to execute the full
 `config.epochs`-epoch Ohashi-configuration training run."""
 )
 code(
-    """RUN_FULL_TRAINING = False  # Set True explicitly to run the full 30-epoch training loop.
+    """RUN_FULL_TRAINING = True  # Explicitly enabled -- user-instructed full training run.
 
 if RUN_FULL_TRAINING:
     history = train(model, train_loader, val_loader, config)
 else:
     history = None
-    print("RUN_FULL_TRAINING is False -- skipping full training loop, per task instructions.")"""
+    print("RUN_FULL_TRAINING is False -- skipping full training loop.")"""
 )
 
 # 17. Plot training/validation loss

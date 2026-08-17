@@ -131,7 +131,16 @@ class OhashiResNet50(nn.Module):
         Weights are NEVER downloaded automatically. `weights_path` must
         point to a local state-dict file (`.pt`/`.pth`) whose keys are
         expected to align with `self.backbone`'s `state_dict()` keys
-        (optionally prefixed with `backbone.`).
+        (optionally prefixed with `backbone.`). Produce this file from the
+        official Keras RadImageNet-ResNet50 `.h5` release with
+        `scripts/convert_radimagenet_weights.py` -- see that script's
+        module docstring for the exact Keras-to-PyTorch mapping (kernel
+        transpose, conv-bias-into-BN-running_mean folding) and for why
+        `ct_iqa.models.resnet50.ResNet50Backbone` places its stride-2 convs
+        on the 1x1 reduce conv rather than the 3x3 conv (matching Keras'
+        ResNet50, not torchvision's "v1.5" convention) -- without that,
+        weight *shapes* would still match and loading would silently
+        succeed while producing a semantically wrong feature extractor.
 
         This method loads ONLY backbone weights -- it never touches
         `self.fc` (the regression head), which by construction cannot come
@@ -143,6 +152,12 @@ class OhashiResNet50(nn.Module):
         reports that the backbone remains randomly initialized. Silently
         substituting ImageNet weights for RadImageNet weights would
         invalidate the replication and is explicitly disallowed.
+
+        On a successful load, every `nn.BatchNorm2d` in the backbone has its
+        `eps` set to `1e-3` (Keras `BatchNormalization`'s default), matching
+        the epsilon the loaded running_mean/running_var were computed under
+        -- PyTorch's default (`1e-5`) would otherwise introduce a small,
+        avoidable numerical mismatch relative to the original Keras model.
         """
         if weights_path is None:
             note = (
@@ -175,11 +190,32 @@ class OhashiResNet50(nn.Module):
 
         self.backbone.load_state_dict(matched, strict=False)
 
+        if matched:
+            # Match Keras BatchNormalization's default epsilon, which the
+            # loaded running_mean/running_var were computed under.
+            for module in self.backbone.modules():
+                if isinstance(module, nn.BatchNorm2d):
+                    module.eps = 1e-3
+
+        # `num_batches_tracked` is a non-learned inference bookkeeping
+        # counter (not present in the converted checkpoint by design -- see
+        # scripts/convert_radimagenet_weights.py); left at its
+        # freshly-initialized value of 0, it does not indicate an
+        # incomplete weight load. Report it separately from genuinely
+        # missing learned parameters (weight/bias/running_mean/running_var).
+        missing_learned = [k for k in missing if not k.endswith("num_batches_tracked")]
+        missing_counters = [k for k in missing if k.endswith("num_batches_tracked")]
+
         note = ""
         if not matched:
             note = "0 keys matched -- weights file is almost certainly incompatible."
-        elif missing:
-            note = f"{len(missing)} backbone keys were left at random init."
+        elif missing_learned:
+            note = f"{len(missing_learned)} learned backbone keys were left at random init."
+        if missing_counters:
+            note = (note + " " if note else "") + (
+                f"{len(missing_counters)} num_batches_tracked counters left at 0 "
+                f"(expected -- not learned parameters)."
+            )
 
         report = WeightLoadReport(
             weights_path=weights_path,

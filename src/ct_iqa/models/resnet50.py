@@ -18,9 +18,15 @@ Architecture (standard ResNet50, bottleneck variant):
 Each bottleneck block is 1x1 conv (reduce) -> 3x3 conv -> 1x1 conv (expand,
 x4 channel multiplier), with a skip connection (identity, or a 1x1
 projection conv when the shape changes) added before the final ReLU. The
-stride for each stage (when > 1) is applied on the 3x3 conv of the first
-block in that stage, matching the standard "ResNet v1.5" convention used by
-most modern reference implementations (including torchvision).
+stride for each stage (when > 1) is applied on the FIRST 1x1 (reduce) conv
+of the first block in that stage -- the original "ResNet v1" placement used
+by `keras.applications.ResNet50` (and therefore by the RadImageNet-pretrained
+weights this project loads), NOT the "v1.5" placement (stride on the 3x3
+conv) used by torchvision. This was a deliberate correction (not the
+original choice) made specifically so RadImageNet's Keras-trained weights
+map onto this backbone without a stride/receptive-field mismatch -- see
+`ct_iqa.models.ohashi_resnet50.load_radimagenet_weights` and
+`scripts/convert_radimagenet_weights.py`.
 
 This module intentionally stops at the pooled 2048-d feature vector. The
 original 1000-way ImageNet classification head is NOT implemented here —
@@ -45,11 +51,13 @@ class Bottleneck(nn.Module):
         super().__init__()
         out_channels = mid_channels * self.expansion
 
-        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, bias=False)
+        # Stride lives on the 1x1 reduce conv (ResNet "v1" placement), not the
+        # 3x3 conv -- see module docstring.
+        self.conv1 = nn.Conv2d(in_channels, mid_channels, kernel_size=1, stride=stride, bias=False)
         self.bn1 = nn.BatchNorm2d(mid_channels)
 
         self.conv2 = nn.Conv2d(
-            mid_channels, mid_channels, kernel_size=3, stride=stride, padding=1, bias=False
+            mid_channels, mid_channels, kernel_size=3, padding=1, bias=False
         )
         self.bn2 = nn.BatchNorm2d(mid_channels)
 
