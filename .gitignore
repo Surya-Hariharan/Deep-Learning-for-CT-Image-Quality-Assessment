@@ -18,6 +18,7 @@ data/external/
 data/raw/**
 data/interim/**
 data/processed/**
+data/testing/**
 !data/**/.gitkeep
 !data/README.md
 
@@ -35,6 +36,8 @@ archive/**
 *.nii.gz
 *.mhd
 *.raw
+*.tif
+*.tiff
 *.zip
 *.tar
 *.tar.gz
