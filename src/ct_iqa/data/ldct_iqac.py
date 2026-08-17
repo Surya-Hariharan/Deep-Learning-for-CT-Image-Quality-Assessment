@@ -106,6 +106,24 @@ def _load_labels(json_path: Path) -> dict[str, float]:
     return labels
 
 
+def _center_crop(array: np.ndarray, crop_size: int, source_path: Path) -> np.ndarray:
+    """Crop the central `crop_size` x `crop_size` region out of a 2-D array.
+
+    Per Ohashi et al.: "each image was cropped to the central region
+    according to the input size required by the model" -- a crop, not a
+    resize, to preserve the original CT images' spatial resolution.
+    """
+    h, w = array.shape
+    if h < crop_size or w < crop_size:
+        raise LDCTIQACLabelError(
+            f"Image {source_path} has shape {(h, w)}, smaller than the "
+            f"requested center-crop size {crop_size}x{crop_size}"
+        )
+    top = (h - crop_size) // 2
+    left = (w - crop_size) // 2
+    return array[top : top + crop_size, left : left + crop_size]
+
+
 def _list_image_files(image_dir: Path) -> set[str]:
     if not image_dir.is_dir():
         raise FileNotFoundError(f"LDCT-IQAC image directory not found: {image_dir}")
@@ -128,12 +146,18 @@ class LDCTIQACDataset(Dataset):
 
     Each `__getitem__` returns `(image_tensor, raw_score)`:
         image_tensor: float32 tensor, shape (1, image_size, image_size),
-            resized from the source 512x512 image. Pixel values are passed
-            through unchanged (source TIFFs are already float32 in [0, 1];
-            see module docstring) -- no additional normalization is
-            applied, since no Ohashi-specific normalization statistics are
-            documented for this dataset. This is an explicit implementation
-            choice, not a paper detail.
+            a CENTER CROP (not resize) of the source 512x512 image -- per
+            Ohashi et al.: "To maintain the spatial resolution of the
+            original CT images, each image was cropped to the central
+            region according to the input size required by the model."
+            Pixel values are then mapped from the source [0, 1] float range
+            to [-1, 1] via `2 * x - 1`, matching RadImageNet's own
+            preprocessing convention (`(pixel - 127.5) * 2 / 255` for
+            [0, 255] input, algebraically identical to `2 * x - 1` once
+            `pixel` is already scaled to [0, 1]) -- confirmed from
+            RadImageNet's official reference code
+            (`BMEII-AI/RadImageNet/pytorch_example.ipynb`), since the
+            Ohashi paper itself does not state a normalization formula.
         raw_score: float32 tensor (scalar), the score AS STORED IN THE
             JSON, in [SCORE_MIN, SCORE_MAX]. Callers that need the [0, 1]
             Sigmoid-compatible target must call `normalize_score`
@@ -178,10 +202,12 @@ class LDCTIQACDataset(Dataset):
                     f"Unsupported image mode {im.mode!r} for {sample.path} "
                     f"(expected 'F' / 32-bit float grayscale, per dataset audit)"
                 )
-            im = im.resize((self.image_size, self.image_size), Image.BILINEAR)
             array = np.array(im, dtype=np.float32)
 
-        image_tensor = torch.from_numpy(array).unsqueeze(0)  # (1, H, W)
+        array = _center_crop(array, self.image_size, source_path=sample.path)
+        array = 2.0 * array - 1.0  # RadImageNet [-1, 1] normalization.
+
+        image_tensor = torch.from_numpy(array.copy()).unsqueeze(0)  # (1, H, W)
         score_tensor = torch.tensor(sample.raw_score, dtype=torch.float32)
         return image_tensor, score_tensor
 
