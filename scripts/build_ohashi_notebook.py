@@ -434,7 +434,7 @@ nb["metadata"] = {
     "language_info": {"name": "python", "version": "3.14"},
 }
 
-out_path = Path("notebooks/01_ohashi_resnet50_ldct_iqac.ipynb")
+out_path = Path("notebooks/02_ohashi_resnet50_ldct_iqac.ipynb")
 out_path.parent.mkdir(parents=True, exist_ok=True)
 with out_path.open("w", encoding="utf-8") as f:
     nbf.write(nb, f)
