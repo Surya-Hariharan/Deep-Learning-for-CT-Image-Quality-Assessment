@@ -22,10 +22,21 @@ in_channels: 1
 dropout_p: 0.5
 
 # Path to a converted PyTorch state-dict (see
-# src/ct_iqa/models/radimagenet_weights.py). Left null until real,
-# officially-sourced RadImageNet weights have been obtained and converted --
-# see weights/pretrained/radimagenet/resnet50/README.md for current status.
-# A null value here means the backbone runs with random initialization,
-# which is reported honestly as such, never silently substituted with
-# ImageNet weights.
-radimagenet_weights_path: null
+# src/ct_iqa/models/radimagenet_weights.py).
+#
+# UPDATED 2026-09-13, after the scientific pipeline audit
+# (docs/repository_architecture_audit.md's successor audit): the converted
+# checkpoint now exists locally and has been verified to load cleanly --
+# 265/318 backbone keys matched, 0 unexpected keys, the remaining 53
+# "missing" keys are all non-learned `num_batches_tracked` counters (see
+# weights/pretrained/radimagenet/resnet50/README.md, "Provenance and
+# verification status"). This path now points at that verified file.
+#
+# `weights/pretrained/` is gitignored (large binary, not this project's to
+# redistribute) -- on a fresh clone without the file, this path will not
+# resolve. `OhashiResNet50.load_radimagenet_weights` does NOT catch that:
+# `torch.load` raises `FileNotFoundError` loudly, and there is no silent
+# fallback to ImageNet weights or to a different local path. If you don't
+# have this file, either obtain + convert it (see the README above) or set
+# this back to `null` to explicitly run with a random-init backbone.
+radimagenet_weights_path: weights/pretrained/radimagenet/resnet50/radimagenet_resnet50_backbone.pt

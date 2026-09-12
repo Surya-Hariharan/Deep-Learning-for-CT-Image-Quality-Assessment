@@ -50,15 +50,37 @@ Then point `configs/model.yaml`'s `radimagenet_weights_path` (or
 
 ## Provenance and verification status
 
-**As of this migration, RadImageNet weights have not been confirmed present
-and loaded in any real training run in this repository.** The baseline
-notebook and `ExperimentConfig` default `radimagenet_weights_path` to
-`null`/`None`, meaning the ResNet50 backbone runs with random initialization
-until a real, converted `.pt` file is obtained and explicitly pointed to.
-Do not treat any existing result in this repository as evidence of a
-successful RadImageNet initialization unless the corresponding experiment's
-`config.json`/`config.yaml` records a non-null `radimagenet_weights_path`
-AND `OhashiResNet50.load_radimagenet_weights`'s returned `WeightLoadReport`
-for that run reports `loaded=True` with a non-zero matched-key count. See
-`docs/replication/deviations.md` for how this status is reported in
-experiment write-ups.
+**UPDATED 2026-09-13, by the scientific pipeline audit.** Both files listed
+above are now present locally and have been verified as follows:
+
+- `OhashiResNet50.load_radimagenet_weights(...)` against
+  `radimagenet_resnet50_backbone.pt` reports `loaded=True`, **265 matched
+  keys**, **0 unexpected keys**, and 53 "missing" keys -- all 53 of which
+  are `num_batches_tracked` counters (non-learned inference bookkeeping,
+  never present in a converted checkpoint by design, not a sign of an
+  incomplete load). 265 + 53 = 318 = the full key count of
+  `ResNet50Backbone.state_dict()`.
+- A real, preprocessed LDCT-IQAC batch (`[B, 1, 224, 224]`, internally
+  replicated to `[B, 3, 224, 224]`) passes through the RadImageNet-loaded
+  model and produces a finite, `[0, 1]`-bounded Sigmoid output.
+- `tests/integration/test_radimagenet_weights_integration.py` (conversion +
+  loading) and `tests/integration/test_ldct_iqac_pipeline_integration.py::test_configured_radimagenet_path_loads_and_matches_backbone`
+  exercise this end to end and pass on this machine.
+
+`configs/model.yaml`'s `radimagenet_weights_path` has accordingly been
+updated to point at `radimagenet_resnet50_backbone.pt` (previously `null`).
+Because `weights/pretrained/` is gitignored, this path will not resolve on
+a machine that hasn't obtained/converted the file -- `torch.load` then
+raises `FileNotFoundError` (never a silent fallback to ImageNet weights or
+to random initialization; see `docs/replication/deviations.md`).
+
+**What is still NOT verified:** this project has not independently
+re-verified the RadImageNet authors' own training procedure or the
+resulting features' quality (see "Source" above), and **no full training
+run using these weights has been executed and persisted in this repository
+as of this audit** -- weight *loading* is verified; a trained *result*
+using them is not. Do not treat any number currently reachable from this
+repository's code as a finished RadImageNet-initialized replication result
+until an experiment's `config.json` records this weights path AND a
+completed training run's checkpoint/metrics exist under
+`experiments/<NNN_name>/`.

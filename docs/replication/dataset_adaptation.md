@@ -22,6 +22,25 @@ exactly one label and vice versa in both splits (verified;
 `LDCTIQACDataset` fails loudly if this is ever not true), with no
 duplicate images and no non-image files found in either directory.
 
+**Empirically re-verified 2026-09-13** by the scientific pipeline audit
+(`notebooks/02_data_preparation/01_dataset_preparation.ipynb`,
+`tests/integration/test_ldct_iqac_pipeline_integration.py`) against the
+actual on-disk files:
+
+| | train | test |
+|---|---|---|
+| n | 1000 | 300 |
+| min / max | 0.0 / 4.0 | 0.0 / 4.0 |
+| mean / median | 2.073 / 2.0 | 2.131 / 2.167 |
+| std | 1.066 | 1.087 |
+| unique values | 21 (step 1/5, confirming 5 raters) | 25 (step 1/6, confirming 6 raters) |
+
+No NaN/Inf pixels, no unreadable files, no duplicate image content within
+or across splits, and **zero filename/content/label-key overlap between
+train and test** were found. `SCORE_MIN = 0.0` / `SCORE_MAX = 4.0` (used by
+`normalize_score`/`denormalize_score`) exactly bound the observed range in
+both splits -- this constant is empirically justified, not assumed.
+
 ## The paper's dataset
 
 The reference paper regresses against a **VIF (Visual Information

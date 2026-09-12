@@ -6,6 +6,73 @@ in `docs/paper/` and `docs/replication/` respectively). Newest first.
 
 ---
 
+## 2026-09-13 -- `configs/model.yaml`'s `radimagenet_weights_path` now points at the verified checkpoint
+
+**Decision:** Changed `radimagenet_weights_path` from `null` to
+`weights/pretrained/radimagenet/resnet50/radimagenet_resnet50_backbone.pt`.
+
+**Why:** The scientific pipeline audit (2026-09-13) actually exercised
+`OhashiResNet50.load_radimagenet_weights` against the real, locally-present
+converted checkpoint and confirmed it loads cleanly (265/318 keys matched,
+0 unexpected). Leaving the config `null` while a verified-working file sat
+unused on disk meant the "real" experiment (`experiments/001_resnet50_baseline`)
+would have silently trained with a random backbone despite RadImageNet
+weights being available and working -- a genuine configuration gap, not a
+scientific-methodology change. See
+`weights/pretrained/radimagenet/resnet50/README.md` for the verification
+record and `docs/replication/deviations.md` for the corresponding update.
+
+**How it applies:** `weights/pretrained/` is gitignored, so this path will
+not resolve on a machine without the file -- `torch.load` raises
+`FileNotFoundError` in that case (never a silent fallback to ImageNet
+weights or to random init). To deliberately run without RadImageNet
+weights, pass `radimagenet_weights_path=None` explicitly when constructing
+`ExperimentConfig`, rather than relying on the YAML default.
+
+---
+
+## 2026-09-13 -- Added a real-data smoke test inside the training notebook, not just synthetic unit tests
+
+**Decision:** `notebooks/03_training/01_resnet50_baseline.ipynb` now runs 2
+real batches through `train_one_step` (forward, backward, `optimizer.step()`,
+gradient-existence and parameter-change checks) immediately after model
+construction, THEN restores the model's pre-smoke-test weights, before the
+separately-gated `RUN_FULL_TRAINING` cell.
+
+**Why:** The prior smoke-test cell (`RUN_FULL_TRAINING = False`) skipped
+training entirely rather than verifying anything -- it never actually
+exercised backward()/optimizer.step() on real data before a contributor
+would commit to a real 30-epoch run. `tests/unit/test_training_step.py`
+only covers this with synthetic random tensors, not the real
+dataset+preprocessing+RadImageNet-weights path. The restoration step
+afterward is necessary so the smoke test's 2 optimizer steps don't
+contaminate the real run's starting point.
+
+**How it applies:** Any future training notebook (e.g. for experiments 002
+or 003) should follow the same pattern: a small, restored smoke test before
+the real, separately-gated run.
+
+---
+
+## 2026-09-13 -- `notebooks/02_data_preparation/01_dataset_preparation.ipynb` is a validation notebook, not a generation notebook
+
+**Decision:** This notebook validates the existing raw-data ->
+preprocessing -> model-input path; it does not precompute or generate any
+new data into `data/interim/`/`data/processed/`.
+
+**Why:** LDCT-IQAC needs no synthetic degradation or VIF-label generation
+(see `docs/replication/deviations.md`) -- there is nothing this project's
+"data preparation" stage needs to *produce*. What was actually missing was
+verification that the pipeline is correct and leakage-free, so that's what
+the notebook does. `data/interim/` and `data/processed/` remain empty
+(with `.gitkeep`) as a result -- this is expected, not an oversight.
+
+**How it applies:** Do not add a degradation/VIF step to this notebook (or
+anywhere in `src/ct_iqa/`) unless the project's dataset or scope actually
+changes to require reproducing the paper's own data-construction pipeline.
+
+---
+
 ## 2026-09-12 -- Experiment checkpoints live under `experiments/`, not `weights/`
 
 **Decision:** Experiment-generated checkpoints (`best.pt`, per-run config,

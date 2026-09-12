@@ -84,17 +84,24 @@ extractor.
 
 ## RadImageNet weight availability
 
-**EXPERIMENTAL STATUS**, not a design decision: **no officially-sourced,
-verified RadImageNet weight file is confirmed loaded in any result in this
-repository as of this migration.** `configs/model.yaml`'s
-`radimagenet_weights_path` defaults to `null`; the backbone runs randomly
-initialized until real weights are obtained (via
-https://github.com/BMEII-AI/RadImageNet, per their access process) and
-converted (`python -m ct_iqa.models.radimagenet_weights`). This project
-deliberately does **not** substitute unverified third-party "RadImageNet"
-checkpoints found elsewhere (e.g. community re-uploads) to avoid
-mislabeling a result as a RadImageNet replication when it isn't verified as
-one. See `weights/pretrained/radimagenet/resnet50/README.md`.
+**EXPERIMENTAL STATUS**, not a design decision. **UPDATED 2026-09-13** by
+the scientific pipeline audit: the officially-sourced RadImageNet `.h5` has
+been obtained and converted, and `OhashiResNet50.load_radimagenet_weights`
+has been verified against it (265/318 backbone keys matched, 0 unexpected,
+the remaining 53 are non-learned `num_batches_tracked` counters) -- see
+`weights/pretrained/radimagenet/resnet50/README.md` for the full
+verification record. `configs/model.yaml`'s `radimagenet_weights_path` now
+points at the converted checkpoint (previously `null`).
+
+**What is still not true:** no full training run using these weights has
+been executed and persisted under `experiments/` as of this audit --
+*loading* is verified, a *trained result* using the loaded weights is not.
+This project deliberately does **not** substitute unverified third-party
+"RadImageNet" checkpoints found elsewhere (e.g. community re-uploads) to
+avoid mislabeling a result as a RadImageNet replication when it isn't
+verified as one, and `load_radimagenet_weights`/`torch.load` never silently
+fall back to ImageNet weights or random initialization on a load failure --
+a missing/incompatible file raises loudly instead.
 
 ## Reporting both raw and 5PL-mapped metrics
 
