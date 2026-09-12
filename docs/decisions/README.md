@@ -6,6 +6,55 @@ in `docs/paper/` and `docs/replication/` respectively). Newest first.
 
 ---
 
+## 2026-09-13 -- `LICENSE` added: MIT, code only
+
+**Decision:** A `LICENSE` file (MIT License) was added at the repository
+root, superseding the 2026-09-12 "No `LICENSE` file added" decision below.
+`pyproject.toml`'s `[project]` table now declares `license = {text =
+"MIT"}`.
+
+**Why:** The open question in the superseded decision below was who could
+make this call -- it required an explicit choice from the project owner,
+which has now been made explicitly (MIT).
+
+**How it applies:** The MIT license covers this repository's own source
+code (`src/ct_iqa/`, `tools/`, `notebooks/`, `configs/`) only. It does
+**not** cover, and grants no rights over, the LDCT-IQAC dataset or
+RadImageNet pretrained weights -- neither is redistributed by this
+repository, and both remain subject to their own original usage terms
+(see `README.md`'s License section). Any future contribution should keep
+this scope distinction explicit rather than implying the MIT grant covers
+externally-sourced data/weights it does not.
+
+---
+
+## 2026-09-13 -- `results/` contents (figures, tables, predictions, metrics) are now tracked, not gitignored
+
+**Decision:** `.gitignore`'s blanket `results/**` / `!results/**/.gitkeep`
+rule (which kept only empty directories under version control) was
+replaced with an explicit allow-list so that generated figures, CSV
+tables, prediction files, and metrics JSON under `results/` are tracked
+and pushed.
+
+**Why:** The root `README.md` was rebuilt to embed several
+`results/figures/*.png` images and link several `results/tables/*.csv` /
+`results/metrics/*.json` files directly (see the professionalization/
+documentation pass). Those images and links render as broken on
+GitHub's public view if the underlying files are gitignored and were
+never pushed -- the previous rule was correct for keeping the repository
+free of regenerable clutter during development, but it now silently
+defeats the README's own results presentation.
+
+**How it applies:** `results/` contents contain no patient pixel data
+(only derived scores, aggregate statistics, and rendered plots) and are
+safe to publish. Anyone regenerating `results/` via the evaluation/
+analysis notebooks will overwrite these tracked files with the same
+values (both notebooks are deterministic given the same checkpoint) --
+this is expected, not a merge hazard, per each notebook's own "Notes"
+section.
+
+---
+
 ## 2026-09-13 -- `ct_iqa.training.checkpointing` now accepts an explicit `filename`
 
 **Decision:** `save_checkpoint`, `load_checkpoint`, `load_checkpoint_metadata`,
@@ -233,6 +282,10 @@ model -> training/evaluation -> results -> notes, generated from a
 ---
 
 ## 2026-09-12 -- No `LICENSE` file added
+
+**SUPERSEDED 2026-09-13** -- see the MIT `LICENSE` decision above. Kept
+here for history: it documents *why* no default was invented at the time,
+which is still the correct reasoning for not inventing one silently.
 
 **Decision:** No `LICENSE` file was created during this migration.
 

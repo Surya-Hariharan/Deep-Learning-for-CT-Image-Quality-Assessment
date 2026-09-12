@@ -8,7 +8,7 @@
 ![Backbone](https://img.shields.io/badge/Backbone-ResNet50-informational)
 ![Domain](https://img.shields.io/badge/Domain-Medical%20Imaging-0e8a16)
 ![Status](https://img.shields.io/badge/Pipeline-Complete-success)
-![License](https://img.shields.io/badge/License-Undetermined-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
 
 This repository implements and trains a deep-learning model that predicts a
 CT image's quality **without needing a clean reference image to compare
@@ -427,8 +427,20 @@ the dataset itself).
 
 ## License
 
-**Undetermined.** No `LICENSE` file exists in this repository. The
-correct license depends on a decision only the project owner can make
-(and interacts with the usage terms of both LDCT-IQAC and RadImageNet) --
-see [`docs/decisions/README.md`](docs/decisions/README.md). Until a
-`LICENSE` file is added, no license should be assumed.
+This repository's **code** (`src/ct_iqa/`, `tools/`, `notebooks/`,
+`configs/`) is licensed under the **MIT License** -- see
+[`LICENSE`](LICENSE).
+
+The MIT license covers this project's own source code only. It does
+**not** extend to, and does not grant any rights over:
+
+- the **LDCT-IQAC dataset** (not redistributed by this repository; only
+  the derived `data/labels/ldct_iqac/*.json` score files are tracked --
+  see [Installation](#installation)), or
+- **RadImageNet pretrained weights** (not redistributed by this
+  repository; obtained separately per
+  [`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md)),
+
+each of which remains subject to its own original usage terms. See
+[`docs/decisions/README.md`](docs/decisions/README.md) for the licensing
+decision record.
