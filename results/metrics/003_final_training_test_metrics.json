@@ -1,0 +1,49 @@
+{
+  "experiment_name": "003_final_training",
+  "checkpoint": "experiments\\003_final_training\\checkpoint\\final.pt",
+  "checkpoint_epoch": 29,
+  "checkpoint_type": "final_epoch",
+  "dataset": "LDCT-IQAC test split",
+  "n_test_samples": 300,
+  "model": "RadImageNet-pretrained ResNet50 -> GAP -> Dropout(0.5) -> Linear(2048,1) -> Sigmoid (Ohashi-style, adapted to LDCT-IQAC)",
+  "learning_rate": 0.001,
+  "epochs": 30,
+  "batch_size": 64,
+  "seed": 42,
+  "evaluation_scale": "raw LDCT-IQAC score scale [0,4] for PLCC/SROCC/KROCC/MSE/MAE/RMSE; normalized [0,1] MSE also reported",
+  "PLCC": 0.848953473548176,
+  "SROCC": 0.8525086497066807,
+  "KROCC": 0.6610718711174148,
+  "MSE": 0.44744924582823764,
+  "MAE": 0.5194720722610752,
+  "RMSE": 0.6689164714882103,
+  "MSE_normalized_0_1_scale": 0.027965577864264853,
+  "prediction_distribution": {
+    "ground_truth": {
+      "name": "ground_truth",
+      "min": 0.0,
+      "max": 4.0,
+      "mean": 2.13111110702157,
+      "median": 2.1666667461395264,
+      "std": 1.0871448583673549
+    },
+    "prediction": {
+      "name": "prediction",
+      "min": 0.023543942719697952,
+      "max": 3.689133882522583,
+      "mean": 1.7914707669739922,
+      "median": 1.7521226406097412,
+      "std": 0.87799653771481
+    }
+  },
+  "residuals": {
+    "mean": -0.33964034004757804,
+    "median": -0.2731928825378418,
+    "std": 0.5762757024555202,
+    "min": -2.207795023918152,
+    "max": 1.1197431087493896
+  },
+  "calibrated": null,
+  "calibration_note": "Calibrated final-test evaluation was not performed because no non-test calibration protocol has been established. ct_iqa.evaluation.calibration.five_parameter_logistic_fit fits its parameters directly on whatever (y_pred, y_true) pair it is given. Fitting it on the test set itself and reporting the resulting test metrics would be circular -- the calibration would be optimized against the exact data being evaluated. No validation-set-based (non-test) calibration protocol is implemented in this project, so raw (uncalibrated) results are reported as primary and final.",
+  "test_set_used_only_for_final_evaluation": true
+}
