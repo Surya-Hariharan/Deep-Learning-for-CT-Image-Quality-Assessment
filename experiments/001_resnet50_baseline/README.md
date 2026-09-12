@@ -1,6 +1,6 @@
 # Experiment 001: ResNet50 baseline
 
-**Status: training completed (2026-09-13). Test-set evaluation NOT yet performed.**
+**Status: training AND independent test-set evaluation both completed (2026-09-13).**
 
 ## Objective
 
@@ -66,7 +66,7 @@ RTX 4060 Laptop GPU, device=`cuda`. Deterministic cuDNN requested
 `docs/replication/reproducibility.md` for the resulting
 determinism/throughput tradeoff on this GPU run.
 
-## Actual measured results (training run)
+## Actual measured results -- VALIDATION (during training, not the test set)
 
 **These are real, measured numbers from this run -- not fabricated, not
 paper numbers, not test-set numbers.**
@@ -101,7 +101,7 @@ weights. **Independently reloaded in a fresh model instance/process** (not
 the in-memory training object) and verified to produce finite, `[0,1]`-bounded
 predictions on a real validation batch.
 
-## Unexpected events
+## Unexpected events (training)
 
 None. No NaN/Inf loss, no collapsed predictions, gradients present and
 parameters updating throughout (verified via the pre-training smoke test);
@@ -109,14 +109,79 @@ the noisy validation curve (above) is the only notable characteristic, and
 is a property of the small validation split size, not an implementation
 fault.
 
+---
+
+## Actual measured results -- TEST SET (independent evaluation, 2026-09-13)
+
+**These are the real, measured test-set numbers -- kept clearly separate
+from the validation numbers above, which come from a different split and a
+different (end-of-training, not best-checkpoint) model state.** Produced by
+`notebooks/04_evaluation/01_test_set_evaluation.ipynb`, which loaded
+`checkpoint/best.pt` into a fresh model instance independent of the
+training notebook. **TEST SET USED ONLY FOR FINAL EVALUATION** -- no test
+data, metric, or result was used to select the checkpoint, any
+hyperparameter, or any calibration parameter.
+
+- Test set integrity confirmed immediately before inference: **300 images,
+  300 labels**, no missing/orphan labels (enforced by `LDCTIQACDataset`
+  construction), no duplicate filenames, no duplicate image content.
+- Checkpoint cross-check: the checkpoint's own recorded `dropout_p=0.5`,
+  `in_channels=1`, `image_size=224` matched the current `configs/*.yaml`
+  exactly -- no unexpected architecture change between training and this
+  evaluation.
+
+**RAW test metrics (original `[0,4]` score scale, n=300, no calibration):**
+
+| PLCC | SROCC | KROCC | MSE | MAE | RMSE |
+|---|---|---|---|---|---|
+| 0.8804 | 0.8793 | 0.6952 | 0.3765 | 0.5024 | 0.6136 |
+
+(MSE in normalized `[0,1]` target space, for reference against the
+training-time loss curve above: 0.023530.)
+
+**Calibrated (5-parameter-logistic-mapped) test metrics: NOT computed.**
+`ct_iqa.evaluation.calibration.five_parameter_logistic_fit` fits its
+parameters directly against whatever `(y_pred, y_true)` pair it receives --
+fitting it on the test set itself and reporting the resulting test metrics
+would be circular (the calibration would be optimized against the exact
+data being evaluated), so it was deliberately not invoked with test data.
+No validation-set-based (non-test) calibration protocol exists in this
+project yet; calibrated evaluation is deferred until one is implemented.
+
+**Prediction distribution vs. ground truth (raw `[0,4]` scale):**
+
+| | min | max | mean | median | std |
+|---|---|---|---|---|---|
+| ground truth | 0.000 | 4.000 | 2.131 | 2.167 | 1.087 |
+| prediction | 0.038 | 3.999 | 2.436 | 2.503 | 1.090 |
+
+- **Systematic overprediction observed**: mean prediction exceeds mean
+  ground truth by **+0.305** (on a 0-4 scale). This is reported as an
+  observed characteristic of this baseline, not corrected or hidden.
+- No prediction collapse: prediction std (1.090) is essentially equal to
+  ground-truth std (1.087) -- the model is not just predicting the mean.
+- No hard saturation at the score boundaries: predictions ranged
+  `[0.038, 3.999]`, never reaching exactly 0 or 4, consistent with the
+  Sigmoid head's open-interval output; 21/300 predictions fell within 0.05
+  of the max and 1/300 within 0.05 of the min.
+- Full per-image predictions: `results/predictions/001_resnet50_baseline_test_predictions.csv`.
+  Full metrics record: `results/metrics/001_resnet50_baseline_test_metrics.json`.
+  Diagnostic figures: `results/figures/001_resnet50_baseline_test_{pred_vs_gt,residuals,score_distribution}.png`.
+
+## Unexpected events (test evaluation)
+
+None beyond the systematic overprediction bias noted above, which is a
+genuine experimental observation (poor/imperfect calibration of the raw
+model output), not an implementation bug -- no architecture, preprocessing,
+or normalization change was made in response to it, per this evaluation
+phase's explicit scope.
+
 ## What this experiment does NOT show
 
-**Test-set performance was not evaluated in this experiment and must not
-be inferred from the validation numbers above.** The next step is an
-independent evaluation of `checkpoint/best.pt` against the untouched
-300-image LDCT-IQAC test set, in
-`notebooks/04_evaluation/01_test_set_evaluation.ipynb`. This experiment
-also does not reproduce the original Ohashi paper's numerical results --
-different dataset, different label semantics (see
+This experiment does not reproduce the original Ohashi paper's numerical
+results -- different dataset, different label semantics (see
 `docs/replication/dataset_adaptation.md`) -- and no such claim is made
-here.
+here; the PLCC/SROCC/KROCC above are not compared against the paper's
+reported values. This is also not a calibrated result (see above) and not
+a learning-rate-tuned result -- see `docs/decisions/README.md` for
+experiment 002 (learning-rate search), the next planned step.

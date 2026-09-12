@@ -6,6 +6,73 @@ in `docs/paper/` and `docs/replication/` respectively). Newest first.
 
 ---
 
+## 2026-09-13 -- `ct_iqa.training.checkpointing` now accepts an explicit `filename`
+
+**Decision:** `save_checkpoint`, `load_checkpoint`, `load_checkpoint_metadata`,
+and `best_checkpoint_path` all gained an optional `filename` parameter
+(default `"best.pt"`, unchanged for every existing call site).
+
+**Why:** Experiment 003 (final training) has no validation split and
+therefore no "best" checkpoint to select against -- calling its output
+`best.pt` would misrepresent what it is. Rather than duplicate the
+checkpoint save/load/metadata logic in the final-training notebook (which
+would then need to be kept in sync with any future change to the
+checkpoint format), the existing functions were generalized minimally to
+support a differently-named file (`final.pt`) in the same directory.
+
+**How it applies:** Any future experiment with no validation-based
+selection should save its checkpoint with an explicit, honest `filename`
+(e.g. `filename="final.pt"`) rather than reusing the `best.pt` default.
+
+---
+
+## 2026-09-13 -- Evaluation notebook now fails loudly if no checkpoint exists, instead of evaluating an untrained model
+
+**Decision:** `notebooks/04_evaluation/01_test_set_evaluation.ipynb` now
+asserts `checkpoint_path.exists()` immediately and raises if
+`experiments/001_resnet50_baseline/checkpoint/best.pt` is missing, rather
+than falling back to evaluating a freshly-initialized (random) model as a
+"pipeline sanity check."
+
+**Why:** That fallback was appropriate before any real training run
+existed (see the 2026-09-12 migration decisions) -- it let the pipeline be
+exercised end-to-end before a checkpoint was available. Now that
+experiment 001 has a real, trained checkpoint, this notebook's job is to
+report a genuine test-set result. Silently falling back to an untrained
+model would risk a stale/incomplete run being mistaken for a real
+evaluation if the notebook were ever run before training, or after a
+checkpoint was accidentally removed.
+
+**How it applies:** Any future evaluation notebook (experiment 002, 003)
+should fail loudly the same way rather than silently substituting an
+untrained model.
+
+---
+
+## 2026-09-13 -- Calibrated (5PL) test metrics are deferred, not computed by fitting on the test set
+
+**Decision:** `notebooks/04_evaluation/01_test_set_evaluation.ipynb` reports
+only RAW (uncalibrated) PLCC/SROCC/KROCC/MSE/MAE/RMSE for experiment 001's
+test set. `ct_iqa.evaluation.calibration.five_parameter_logistic_fit` is
+never invoked with test data.
+
+**Why:** That function fits its 5 parameters directly against whatever
+`(y_pred, y_true)` pair it's given via `scipy.optimize.curve_fit`. There is
+no held-out (fit-on-validation, apply-fixed-mapping-to-test) calibration
+path implemented anywhere in `src/ct_iqa/`. Fitting it directly on the test
+set and reporting the resulting test PLCC/SROCC would be a biased,
+optimistic estimate -- the calibration would already "know" the exact data
+it's being scored against.
+
+**How it applies:** Before any calibrated test result can be reported, a
+validation-set-based calibration protocol must be implemented (fit on the
+100-image validation split from an experiment's training run, then apply
+that *fixed* mapping, unmodified, to test predictions). Until then, every
+evaluation notebook should report RAW metrics only and explicitly state
+that calibration is deferred, exactly as experiment 001's did.
+
+---
+
 ## 2026-09-13 -- `configs/model.yaml`'s `radimagenet_weights_path` now points at the verified checkpoint
 
 **Decision:** Changed `radimagenet_weights_path` from `null` to

@@ -78,12 +78,66 @@ is noticeably noisier than the training loss curve, which is expected given
 the validation split is only 100 images (2 batches) -- reported as an
 observed property of this run, not treated as a defect.
 
+## Independent test-set evaluation procedure (2026-09-13)
+
+`notebooks/04_evaluation/01_test_set_evaluation.ipynb` loads
+`checkpoint/best.pt` into a **fresh** `OhashiResNet50` instance (no
+dependency on the training notebook's process/memory), cross-checks the
+checkpoint's own recorded `dropout_p`/`in_channels`/`image_size` against
+the current `configs/*.yaml` before evaluating, then runs inference over
+the full 300-image test set exactly once (`model.eval()` /
+`torch.no_grad()`), using the identical preprocessing/target-normalization
+functions training used. See `experiments/001_resnet50_baseline/README.md`
+for the actual measured test metrics.
+
+**Calibration policy:** `ct_iqa.evaluation.calibration.five_parameter_logistic_fit`
+is deliberately never called with test-set data. It fits its parameters
+directly against whichever `(y_pred, y_true)` pair it receives, so fitting
+it on the test set and reporting the resulting test metrics would be
+circular -- the calibration would be optimized against the exact data
+being evaluated, not an unbiased estimate. No validation-set-based
+(fit-on-validation, apply-fixed-mapping-to-test) calibration protocol is
+implemented in this project yet; calibrated test metrics are deferred
+until one is built, rather than computed in a way that would silently
+leak test information into the reported result.
+
+**Test set contamination check:** the checkpoint was selected using
+validation loss only (§ above), before this evaluation notebook ran; no
+hyperparameter in `configs/*.yaml` was chosen using any number this
+notebook produced; this notebook constructs no training or validation
+`Dataset`/`DataLoader` at all. **Test set used only for final evaluation.**
+
+## Learning-rate search and final-training protocol (2026-09-13)
+
+**IMPLEMENTATION DECISION**, not prescribed verbatim by the paper (the
+paper does not describe a validation-driven LR-search-then-retrain-on-all-data
+procedure for its own experiment; it states final training hyperparameters
+directly). This project's protocol, in order:
+
+1. **Experiment 002 (LR search)**: the 900/100 train/validation split (same
+   split used by experiment 001) was used to search the Ohashi paper's own
+   set of four learning rates (1e-2, 1e-3, 1e-4, 1e-5), selecting **1e-3**
+   by lowest best-validation-loss. The test set was never touched.
+2. **Experiment 003 (final training)**: retrained from a **fresh**
+   RadImageNet initialization (not experiment 001's or 002's weights),
+   using the selected LR (1e-3), on **all 1000 labeled training images** --
+   no train/validation split. This is an implementation decision: once LR
+   selection is complete, there is no remaining reason to hold out
+   validation data from the final model, so all available labeled training
+   data is used. Consequently there is **no validation-based "best epoch"**
+   in experiment 003 -- the checkpoint is the epoch-30 (final) model,
+   named `checkpoint/final.pt` (not `best.pt`), and `ct_iqa.training.checkpointing`'s
+   `save_checkpoint`/`load_checkpoint`/`load_checkpoint_metadata` all accept
+   an explicit `filename` parameter (default `best.pt`, unchanged for
+   experiments 001/002) specifically to support this without duplicating
+   checkpoint I/O logic in the final-training notebook.
+3. The test set remains untouched until a separate, independent final
+   evaluation of `experiments/003_final_training/checkpoint/final.pt`.
+
 ## Known reproducibility gaps
 
-- **Test-set evaluation has not yet been performed** for this checkpoint --
-  the 300-image LDCT-IQAC test set remains untouched by training and by
-  checkpoint/model selection, per design. The next step is an independent
-  pass with `notebooks/04_evaluation/01_test_set_evaluation.ipynb`.
-- **No learning-rate search or further training run exists yet**
-  (`experiments/002_learning_rate_search/`,
-  `experiments/003_final_replication/` remain scaffolding-only).
+- **No validation-set-based calibration protocol exists yet** -- only raw
+  (uncalibrated) test metrics have been computed for experiment 001; the
+  same applies once experiment 003 is evaluated.
+- **Experiment 003's final checkpoint has not yet been evaluated on the
+  test set** -- that is the next, separate task.
