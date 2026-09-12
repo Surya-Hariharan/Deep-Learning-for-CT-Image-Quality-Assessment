@@ -113,7 +113,10 @@ def train(
 
     `config` is a `ct_iqa.config.ExperimentConfig`. Best-checkpoint saving
     uses `config.checkpoint_dir` (`<experiment_dir>/checkpoint/best.pt`),
-    via `ct_iqa.training.checkpointing.save_checkpoint`.
+    via `ct_iqa.training.checkpointing.save_checkpoint` -- each save
+    includes the optimizer state, epoch, val_loss, resolved config, and
+    seed alongside the model weights, so the checkpoint alone documents
+    what produced it.
     """
     device = config.device
     model.to(device)
@@ -142,6 +145,14 @@ def train(
         if val_loss < history.best_val_loss:
             history.best_val_loss = val_loss
             history.best_epoch = epoch
-            save_checkpoint(model, config.checkpoint_dir)
+            save_checkpoint(
+                model,
+                config.checkpoint_dir,
+                optimizer=optimizer,
+                epoch=epoch,
+                val_loss=val_loss,
+                config=config,
+                seed=config.seed,
+            )
 
     return history
