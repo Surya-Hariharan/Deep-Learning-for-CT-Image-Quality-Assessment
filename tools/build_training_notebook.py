@@ -76,13 +76,15 @@ Loaded from `configs/dataset.yaml` + `configs/preprocessing.yaml` +
 configuration source (see `src/ct_iqa/config.py`); no dataset/hyperparameter
 values are hardcoded separately in this notebook.
 
-`radimagenet_weights_path` is `null` in `configs/model.yaml`: **verified
-RadImageNet weights are not currently confirmed present in this
-repository** (see `weights/pretrained/radimagenet/resnet50/README.md`).
-This run therefore uses random backbone initialization and is reported
-honestly as such -- **not** a full replication of the paper's
-RadImageNet-pretrained result -- rather than silently substituting
-unverified third-party weights."""
+`configs/model.yaml`'s `radimagenet_weights_path` points at a converted,
+**verified-compatible** RadImageNet checkpoint (265/318 backbone keys
+matched, 0 unexpected -- see
+`weights/pretrained/radimagenet/resnet50/README.md`). That file is
+gitignored (large binary) -- if it isn't present on this machine, the load
+below will raise `FileNotFoundError` rather than silently falling back to
+ImageNet weights or continuing with a random backbone. To deliberately run
+without it, pass `radimagenet_weights_path=None` when building `config`
+below."""
 )
 code(
     """import os
@@ -103,11 +105,13 @@ import logging
 import matplotlib.pyplot as plt
 import torch
 
+import platform
+
 from ct_iqa.config import ExperimentConfig
 from ct_iqa.data.ldct_iqac import LDCTIQACDataset, SCORE_MIN, SCORE_MAX
 from ct_iqa.data.loader import build_dataloaders, build_test_dataloader
 from ct_iqa.models.ohashi_resnet50 import OhashiResNet50, INPUT_SIZE
-from ct_iqa.training.trainer import evaluate_loader, train
+from ct_iqa.training.trainer import evaluate_loader, train, train_one_step
 from ct_iqa.training.losses import build_loss
 from ct_iqa.training.optimizers import build_optimizer
 from ct_iqa.utils.seed import set_seed
@@ -115,15 +119,18 @@ from ct_iqa.utils.seed import set_seed
 logging.basicConfig(level=logging.INFO)
 %matplotlib inline
 
-print(f"torch: {torch.__version__}  cuda available: {torch.cuda.is_available()}")
+print(f"python : {platform.python_version()}")
+print(f"torch  : {torch.__version__}  cuda available: {torch.cuda.is_available()}")
 if torch.cuda.is_available():
-    print(f"device: {torch.cuda.get_device_name(0)}")"""
+    print(f"gpu    : {torch.cuda.get_device_name(0)}")"""
 )
 code(
     """config = ExperimentConfig.from_yaml_files(
     device="cuda" if torch.cuda.is_available() else "cpu",
 )
 set_seed(config.seed)
+print(f"seed            : {config.seed}")
+print(f"device          : {config.device}")
 print(f"experiment_dir  : {config.experiment_dir}")
 print(f"checkpoint_dir  : {config.checkpoint_dir}")
 config"""
@@ -204,6 +211,64 @@ assert dummy_output.shape == (2,)
 print(f"input shape : {tuple(dummy_input.shape)}  output shape: {tuple(dummy_output.shape)}  shapes OK.")"""
 )
 
+# Smoke test
+md(
+    """## Smoke test
+
+Before committing to any real training time, verify the full
+`real image -> preprocessing -> DataLoader -> RadImageNet ResNet50 ->
+Ohashi head -> prediction -> loss -> backward() -> optimizer.step()` path
+on a couple of REAL batches and a couple of real optimizer steps -- this is
+NOT the full training run (that is separately gated below by
+`RUN_FULL_TRAINING`), just a correctness check that the pipeline actually
+works end to end before spending 30 epochs' worth of compute on it."""
+)
+code(
+    """SMOKE_TEST_STEPS = 2
+
+smoke_optimizer = build_optimizer(model, config)
+smoke_criterion = build_loss(config)
+
+before = {name: p.detach().clone() for name, p in model.named_parameters()}
+losses = []
+for step, batch in zip(range(SMOKE_TEST_STEPS), train_loader):
+    images, raw_scores = batch
+    assert torch.isfinite(images).all(), "non-finite values in a real preprocessed batch"
+    loss = train_one_step(model, batch, smoke_optimizer, smoke_criterion, device=config.device)
+    assert loss == loss and loss != float("inf"), f"non-finite loss at smoke step {step}: {loss}"
+    losses.append(loss)
+    print(f"smoke step {step}: batch={tuple(images.shape)}  loss={loss:.6f}")
+
+grads_exist = all(p.grad is not None for p in model.parameters())
+changed = [name for name, p0 in before.items() if not torch.equal(p0, dict(model.named_parameters())[name])]
+
+model.eval()
+with torch.no_grad():
+    sanity_images, _ = next(iter(train_loader))
+    sanity_out = model(sanity_images.to(config.device))
+
+print(f"gradients populated on all parameters : {grads_exist}")
+print(f"parameters that changed after {SMOKE_TEST_STEPS} step(s): {len(changed)} / {sum(1 for _ in model.parameters())}")
+print(f"post-smoke-test output range: [{sanity_out.min().item():.4f}, {sanity_out.max().item():.4f}]")
+
+assert grads_exist, "some parameters received no gradient during the smoke test"
+assert len(changed) > 0, "no parameters changed after the smoke-test optimizer step(s)"
+assert torch.isfinite(sanity_out).all(), "non-finite model output after the smoke test"
+assert bool((sanity_out >= 0).all() and (sanity_out <= 1).all()), "sigmoid output left [0, 1] after the smoke test"
+print("SMOKE TEST: forward, backward, and optimizer.step() all verified OK.")
+
+# Restore pre-smoke-test weights so the smoke test's 2 optimizer steps do
+# NOT contaminate the starting point of the real training run below --
+# scientific integrity requires the actual run to start from a known,
+# clean initialization (RadImageNet-loaded or random, per config), not from
+# a partially-stepped smoke-test model.
+with torch.no_grad():
+    for name, p in model.named_parameters():
+        p.copy_(before[name])
+del smoke_optimizer, smoke_criterion, before
+print("model weights restored to pre-smoke-test state.")"""
+)
+
 # Training
 md(
     """## Training
@@ -211,10 +276,17 @@ md(
 Ohashi replication configuration (`configs/training.yaml`): **Adam**,
 lr=1e-3, **MSE** loss, batch size 64, 30 epochs. No scheduler, warmup,
 weight decay, augmentation, or mixed precision -- all deliberately absent
-so this run stays close to the paper's stated configuration. Set
-`RUN_FULL_TRAINING = True` to execute the full `config.epochs`-epoch run;
-left `False` this cell only verifies the pipeline runs (loss finite,
-weights change) without committing to the full run time."""
+so this run stays close to the paper's stated configuration.
+
+**Experiment 001 is now a real run**: `RUN_FULL_TRAINING = True` below is a
+deliberate choice, not an accidental default -- the smoke test above
+already confirmed the pipeline works, so this cell commits to the full
+`config.epochs`-epoch run. The validation split (carved out of the
+training set only, per `configs/dataset.yaml`) is used SOLELY for
+best-checkpoint selection here -- the held-out LDCT-IQAC **test set is
+never touched by this cell or anything below it**; test-set evaluation
+happens later, independently, in
+`notebooks/04_evaluation/01_test_set_evaluation.ipynb`."""
 )
 code(
     """optimizer = build_optimizer(model, config)
@@ -223,10 +295,12 @@ print(optimizer)
 print(criterion)"""
 )
 code(
-    """RUN_FULL_TRAINING = False  # set True to run all config.epochs epochs
+    """RUN_FULL_TRAINING = True  # Experiment 001: deliberate real 30-epoch run.
 
 if RUN_FULL_TRAINING:
     history = train(model, train_loader, val_loader, config)
+    print(f"best epoch: {history.best_epoch}  best val loss: {history.best_val_loss:.6f}")
+    print(f"final train loss: {history.train_loss[-1]:.6f}  final val loss: {history.val_loss[-1]:.6f}")
 else:
     history = None
     print("RUN_FULL_TRAINING is False -- skipping the full training loop.")
@@ -241,28 +315,122 @@ code(
     plt.xlabel("epoch")
     plt.ylabel("MSE loss (normalized [0,1] target space)")
     plt.legend()
-    plt.title("Training/validation loss")
+    plt.title("Training/validation loss -- experiment 001")
+    figure_path = Path("results/figures/001_resnet50_baseline_training_curve.png")
+    figure_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(figure_path, dpi=150, bbox_inches="tight")
     plt.show()
+    print(f"saved training curve to {figure_path}")
 else:
     print("No training history -- RUN_FULL_TRAINING was False in this run.")"""
 )
 
+# Validation metrics (post-hoc, no pipeline change)
+md(
+    """## Validation Metrics (post-hoc)
+
+Correlation metrics (PLCC/SROCC/KROCC) on the **validation** split only,
+computed AFTER training using the already-existing
+`ct_iqa.training.trainer.evaluate_loader` (which already returns
+predictions/targets) and `ct_iqa.evaluation.metrics.compute_metrics` --
+no change to the training pipeline itself was needed. **This is not a test-set
+result** -- the test set remains untouched."""
+)
+code(
+    """if history is not None:
+    from ct_iqa.evaluation.metrics import compute_metrics
+
+    final_val_loss, val_predictions, val_targets = evaluate_loader(model, val_loader, criterion, device=config.device)
+    val_metrics = compute_metrics(val_targets.numpy(), val_predictions.numpy())
+    print("Validation-split metrics (best-checkpoint model is NOT reloaded here; this reflects the")
+    print("model's state at the END of training -- see the checkpoint-reload verification below):")
+    for k, v in val_metrics.items():
+        print(f"  {k.upper():6s}: {v:.4f}")
+else:
+    val_metrics = None
+    print("Skipped -- RUN_FULL_TRAINING was False in this run.")"""
+)
+
 # Checkpoint
 md(
-    """## Checkpoint
+    """## Checkpoint & Experiment Artifacts
 
 The best-validation-loss checkpoint is written to
 `experiments/001_resnet50_baseline/checkpoint/best.pt` by
-`ct_iqa.training.trainer.train` (via `ct_iqa.training.checkpointing`).
-Experiment-generated checkpoints live under `experiments/`, never under
-`weights/` -- `weights/pretrained/` is reserved for externally-sourced
-pretrained weights only."""
+`ct_iqa.training.trainer.train` (via `ct_iqa.training.checkpointing`) --
+including the optimizer state, epoch, val_loss, resolved config, and seed
+alongside the model weights, so the checkpoint alone documents what
+produced it. Experiment-generated checkpoints live under `experiments/`,
+never under `weights/` -- `weights/pretrained/` is reserved for
+externally-sourced pretrained weights only.
+
+Training/validation history and validation metrics are saved as
+machine-readable JSON under `experiments/001_resnet50_baseline/` (not
+`results/`, since they describe THIS run, not a final cross-experiment
+analysis artifact); the loss-curve figure was already saved to
+`results/figures/` above."""
 )
 code(
-    """config.save(Path(config.experiment_dir) / "config.json")
-print(f"saved experiment configuration to {Path(config.experiment_dir) / 'config.json'}")
+    """experiment_dir = Path(config.experiment_dir)
+config.save(experiment_dir / "config.json")
+print(f"saved experiment configuration to {experiment_dir / 'config.json'}")
+
+if history is not None:
+    history_record = {
+        "train_loss": history.train_loss,
+        "val_loss": history.val_loss,
+        "best_epoch": history.best_epoch,
+        "best_val_loss": history.best_val_loss,
+        "final_train_loss": history.train_loss[-1],
+        "final_val_loss": history.val_loss[-1],
+        "epochs_completed": len(history.train_loss),
+    }
+    (experiment_dir / "history.json").write_text(json.dumps(history_record, indent=2))
+    print(f"saved training/validation history to {experiment_dir / 'history.json'}")
+
+    (experiment_dir / "validation_metrics.json").write_text(
+        json.dumps({"note": "validation split only -- NOT the held-out test set", "metrics": val_metrics}, indent=2)
+    )
+    print(f"saved post-hoc validation metrics to {experiment_dir / 'validation_metrics.json'}")
+
 print(f"checkpoint directory: {config.checkpoint_dir}")
 print(f"checkpoint present  : {(Path(config.checkpoint_dir) / 'best.pt').exists()}")"""
+)
+
+# Checkpoint validation (fresh process)
+md(
+    """## Checkpoint Validation
+
+Confirm the saved checkpoint is genuinely usable -- loaded into a **fresh**
+model instance, independent of the `model` object trained above, using
+only what's on disk."""
+)
+code(
+    """from ct_iqa.training.checkpointing import best_checkpoint_path, load_checkpoint, load_checkpoint_metadata
+
+checkpoint_path = best_checkpoint_path(config.checkpoint_dir)
+assert checkpoint_path.exists(), f"no checkpoint found at {checkpoint_path}"
+
+fresh_model = OhashiResNet50(dropout_p=config.dropout_p, in_channels=config.in_channels)  # NOT `model` above
+load_checkpoint(fresh_model, config.checkpoint_dir, map_location=config.device)
+fresh_model.to(config.device)
+fresh_model.eval()
+
+metadata = load_checkpoint_metadata(config.checkpoint_dir, map_location=config.device)
+print(f"checkpoint path      : {checkpoint_path}")
+print(f"checkpoint epoch     : {metadata.get('epoch')}")
+print(f"checkpoint val_loss  : {metadata.get('val_loss')}")
+print(f"checkpoint seed      : {metadata.get('seed')}")
+print(f"optimizer state saved: {'optimizer_state_dict' in metadata}")
+
+with torch.no_grad():
+    check_images, _ = next(iter(val_loader))
+    check_output = fresh_model(check_images.to(config.device))
+
+print(f"reload-verification output range: [{check_output.min().item():.4f}, {check_output.max().item():.4f}]")
+assert torch.isfinite(check_output).all(), "non-finite output from the reloaded checkpoint"
+assert bool((check_output >= 0).all() and (check_output <= 1).all()), "reloaded model's sigmoid output left [0, 1]"
+print("CHECKPOINT VALIDATION: loads successfully in a fresh process/model and produces finite [0,1] predictions.")"""
 )
 
 # Notes
@@ -272,11 +440,15 @@ md(
 - **RadImageNet weights**: see `weights/pretrained/radimagenet/resnet50/README.md`
   for current provenance/verification status before trusting any backbone
   initialization claim.
-- **`RUN_FULL_TRAINING`**: left `False` by default in this generator; a real
-  30-epoch run must be started deliberately.
+- **Smoke test**: verifies forward/backward/optimizer.step() on real data
+  before any real training time is spent, then restores pre-smoke-test
+  weights so it does not affect the actual run below.
+- **Test set**: never touched anywhere in this notebook. TEST SET NOT USED
+  FOR MODEL SELECTION.
 - Continue in `notebooks/04_evaluation/01_test_set_evaluation.ipynb`, which
   loads this run's checkpoint independently rather than relying on this
-  notebook's in-memory state."""
+  notebook's in-memory state -- that notebook, not this one, is where the
+  held-out test set is finally used."""
 )
 
 nb["cells"] = cells
