@@ -102,7 +102,38 @@ def test_load_checkpoint_metadata_empty_for_bare_state_dict_checkpoint(tmp_path)
 
     assert load_checkpoint_metadata(checkpoint_dir) == {}
 
-    other_model = OhashiResNet50(dropout_p=0.5, in_channels=1)
-    load_checkpoint(other_model, checkpoint_dir)
-    for p1, p2 in zip(model.parameters(), other_model.parameters()):
+
+def test_custom_filename_does_not_collide_with_default_best_pt(tmp_path):
+    """experiment 003 (no validation split) saves a `final.pt` alongside any
+    `best.pt` that might exist in the same directory -- the two must not
+    collide or overwrite each other."""
+    best_model = OhashiResNet50(dropout_p=0.5, in_channels=1)
+    final_model = OhashiResNet50(dropout_p=0.3, in_channels=1)  # deliberately different, to detect any mix-up
+    checkpoint_dir = tmp_path / "checkpoint"
+
+    save_checkpoint(best_model, checkpoint_dir, epoch=21, val_loss=0.01)  # default filename: best.pt
+    save_checkpoint(final_model, checkpoint_dir, filename="final.pt", epoch=29, checkpoint_type="final_epoch")
+
+    assert best_checkpoint_path(checkpoint_dir).name == "best.pt"
+    assert best_checkpoint_path(checkpoint_dir, filename="final.pt").name == "final.pt"
+    assert (checkpoint_dir / "best.pt").exists()
+    assert (checkpoint_dir / "final.pt").exists()
+
+    reloaded_best = OhashiResNet50(dropout_p=0.5, in_channels=1)
+    load_checkpoint(reloaded_best, checkpoint_dir)
+    reloaded_final = OhashiResNet50(dropout_p=0.3, in_channels=1)
+    load_checkpoint(reloaded_final, checkpoint_dir, filename="final.pt")
+
+    for p1, p2 in zip(best_model.parameters(), reloaded_best.parameters()):
         assert torch.equal(p1, p2)
+    for p1, p2 in zip(final_model.parameters(), reloaded_final.parameters()):
+        assert torch.equal(p1, p2)
+
+    final_metadata = load_checkpoint_metadata(checkpoint_dir, filename="final.pt")
+    assert final_metadata["epoch"] == 29
+    assert final_metadata["checkpoint_type"] == "final_epoch"
+    assert "val_loss" not in final_metadata  # no validation split -> never recorded
+
+    best_metadata = load_checkpoint_metadata(checkpoint_dir)
+    assert best_metadata["epoch"] == 21
+    assert best_metadata["val_loss"] == 0.01
