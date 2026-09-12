@@ -6,87 +6,33 @@ Adam optimizer, MSE loss, batch size 64, 30 epochs, learning rate 1e-3,
 augmentation, or mixed precision is added -- all are deliberately absent
 so the first experiment stays close to the paper's stated configuration.
 
-Validation split: created ONLY from the training set (Part 10). The
-official LDCT-IQAC test set (`data/testing/`) is never touched by
-`build_dataloaders` and must only be used for final held-out evaluation,
-never for model selection.
+DataLoader construction (`ct_iqa.data.loader`), the optimizer/loss builders
+(`ct_iqa.training.optimizers`/`ct_iqa.training.losses`), and checkpoint
+saving (`ct_iqa.training.checkpointing`) have been factored out into their
+own modules -- this file keeps only the training-loop orchestration itself
+(`train_one_step`, `evaluate_loader`, `train`, `TrainingHistory`).
+
+Validation split: created ONLY from the training set (Part 10), via
+`ct_iqa.data.loader.build_dataloaders`. The official LDCT-IQAC test set
+(`data/raw/ldct_iqac/test/`) is never touched by that function and must only
+be used for final held-out evaluation, never for model selection.
 """
 
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from pathlib import Path
 
 import torch
 from torch import nn
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
-from ct_iqa.config import ExperimentConfig
-from ct_iqa.data.ldct_iqac import LDCTIQACDataset, denormalize_score, normalize_score
+from ct_iqa.data.ldct_iqac import denormalize_score, normalize_score
+from ct_iqa.training.checkpointing import save_checkpoint
+from ct_iqa.training.losses import build_loss
+from ct_iqa.training.optimizers import build_optimizer
 
 logger = logging.getLogger(__name__)
-
-
-def build_dataloaders(config: ExperimentConfig) -> tuple[DataLoader, DataLoader]:
-    """Build (train_loader, val_loader) from the training split only.
-
-    The validation subset is carved out of `LDCTIQACDataset(train_image_dir,
-    train_json_path, ...)` using `torch.utils.data.random_split` with a
-    generator seeded from `config.seed`, so the split is exactly
-    reproducible given the same seed and `val_fraction`. The test set is
-    not referenced here at all.
-    """
-    full_train_dataset = LDCTIQACDataset(
-        image_dir=config.train_image_dir,
-        json_path=config.train_json_path,
-        image_size=config.image_size,
-    )
-
-    n_val = int(round(len(full_train_dataset) * config.val_fraction))
-    n_train = len(full_train_dataset) - n_val
-    generator = torch.Generator().manual_seed(config.seed)
-    train_subset, val_subset = random_split(
-        full_train_dataset, [n_train, n_val], generator=generator
-    )
-
-    train_loader = DataLoader(
-        train_subset, batch_size=config.batch_size, shuffle=True, drop_last=False
-    )
-    val_loader = DataLoader(
-        val_subset, batch_size=config.batch_size, shuffle=False, drop_last=False
-    )
-    return train_loader, val_loader
-
-
-def build_test_dataloader(config: ExperimentConfig) -> DataLoader:
-    """Build the held-out test DataLoader from the official LDCT-IQAC test split.
-
-    Use only for final evaluation, never during training or model selection.
-    """
-    test_dataset = LDCTIQACDataset(
-        image_dir=config.test_image_dir,
-        json_path=config.test_json_path,
-        image_size=config.image_size,
-    )
-    return DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
-
-
-def build_optimizer(model: nn.Module, config: ExperimentConfig) -> torch.optim.Optimizer:
-    if config.optimizer.lower() != "adam":
-        raise ValueError(
-            f"Unsupported optimizer {config.optimizer!r}. "
-            f"Ohashi replication uses Adam; use a separate config for anything else."
-        )
-    return torch.optim.Adam(model.parameters(), lr=config.learning_rate)
-
-
-def build_loss(config: ExperimentConfig) -> nn.Module:
-    if config.loss.lower() != "mse":
-        raise ValueError(
-            f"Unsupported loss {config.loss!r}. Ohashi replication uses MSE."
-        )
-    return nn.MSELoss()
 
 
 def train_one_step(
@@ -161,19 +107,20 @@ def train(
     model: nn.Module,
     train_loader: DataLoader,
     val_loader: DataLoader,
-    config: ExperimentConfig,
+    config,
 ) -> TrainingHistory:
-    """Full Ohashi-configuration training loop with best-checkpoint saving on val loss."""
+    """Full Ohashi-configuration training loop with best-checkpoint saving on val loss.
+
+    `config` is a `ct_iqa.config.ExperimentConfig`. Best-checkpoint saving
+    uses `config.checkpoint_dir` (`<experiment_dir>/checkpoint/best.pt`),
+    via `ct_iqa.training.checkpointing.save_checkpoint`.
+    """
     device = config.device
     model.to(device)
 
     optimizer = build_optimizer(model, config)
     criterion = build_loss(config)
     history = TrainingHistory()
-
-    checkpoint_dir = Path(config.checkpoint_dir)
-    checkpoint_dir.mkdir(parents=True, exist_ok=True)
-    best_checkpoint_path = checkpoint_dir / "best.pt"
 
     for epoch in range(config.epochs):
         epoch_loss, n_samples = 0.0, 0
@@ -188,11 +135,13 @@ def train(
 
         history.train_loss.append(train_loss)
         history.val_loss.append(val_loss)
-        logger.info(f"epoch {epoch + 1}/{config.epochs}  train_loss={train_loss:.6f}  val_loss={val_loss:.6f}")
+        logger.info(
+            f"epoch {epoch + 1}/{config.epochs}  train_loss={train_loss:.6f}  val_loss={val_loss:.6f}"
+        )
 
         if val_loss < history.best_val_loss:
             history.best_val_loss = val_loss
             history.best_epoch = epoch
-            torch.save(model.state_dict(), best_checkpoint_path)
+            save_checkpoint(model, config.checkpoint_dir)
 
     return history
