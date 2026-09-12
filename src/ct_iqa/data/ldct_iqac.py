@@ -1,12 +1,14 @@
 """LDCT-IQAC Dataset/DataLoader for the Ohashi-ResNet50 baseline.
 
-Audited on-disk structure (see repository dataset audit, PART 2 of the task):
+Audited on-disk structure (see repository dataset audit, PART 2 of the task;
+paths below reflect the post-migration layout -- see
+docs/repository_architecture_audit.md):
 
-    data/training/image/*.tif      (1000 files, PIL mode 'F', 512x512, float32 in [0, 1])
-    data/training/train.json       ({"0000.tif": 2.8, "0001.tif": 1.8, ...}, 1000 entries)
+    data/raw/ldct_iqac/train/image/*.tif    (1000 files, PIL mode 'F', 512x512, float32 in [0, 1])
+    data/labels/ldct_iqac/train.json        ({"0000.tif": 2.8, "0001.tif": 1.8, ...}, 1000 entries)
 
-    data/testing/images/*.tiff     (300 files, PIL mode 'F', 512x512, float32 in [0, 1])
-    data/testing/test.json         ({"test000.tiff": 2.6666..., ...}, 300 entries)
+    data/raw/ldct_iqac/test/images/*.tiff   (300 files, PIL mode 'F', 512x512, float32 in [0, 1])
+    data/labels/ldct_iqac/test.json         ({"test000.tiff": 2.6666..., ...}, 300 entries)
 
 Confirmed by audit:
     - Every image file has exactly one JSON entry and vice versa (no
@@ -38,6 +40,9 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset
+
+from ct_iqa.preprocessing.crop import CropSizeError
+from ct_iqa.preprocessing.transforms import preprocess_ct_image
 
 VALID_EXTENSIONS = (".tif", ".tiff")
 
@@ -104,24 +109,6 @@ def _load_labels(json_path: Path) -> dict[str, float]:
             )
 
     return labels
-
-
-def _center_crop(array: np.ndarray, crop_size: int, source_path: Path) -> np.ndarray:
-    """Crop the central `crop_size` x `crop_size` region out of a 2-D array.
-
-    Per Ohashi et al.: "each image was cropped to the central region
-    according to the input size required by the model" -- a crop, not a
-    resize, to preserve the original CT images' spatial resolution.
-    """
-    h, w = array.shape
-    if h < crop_size or w < crop_size:
-        raise LDCTIQACLabelError(
-            f"Image {source_path} has shape {(h, w)}, smaller than the "
-            f"requested center-crop size {crop_size}x{crop_size}"
-        )
-    top = (h - crop_size) // 2
-    left = (w - crop_size) // 2
-    return array[top : top + crop_size, left : left + crop_size]
 
 
 def _list_image_files(image_dir: Path) -> set[str]:
@@ -204,8 +191,10 @@ class LDCTIQACDataset(Dataset):
                 )
             array = np.array(im, dtype=np.float32)
 
-        array = _center_crop(array, self.image_size, source_path=sample.path)
-        array = 2.0 * array - 1.0  # RadImageNet [-1, 1] normalization.
+        try:
+            array = preprocess_ct_image(array, self.image_size, source_path=sample.path)
+        except CropSizeError as e:
+            raise LDCTIQACLabelError(str(e)) from e
 
         image_tensor = torch.from_numpy(array.copy()).unsqueeze(0)  # (1, H, W)
         score_tensor = torch.tensor(sample.raw_score, dtype=torch.float32)
