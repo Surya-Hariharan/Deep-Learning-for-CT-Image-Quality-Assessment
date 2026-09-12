@@ -26,7 +26,7 @@ conv) used by torchvision. This was a deliberate correction (not the
 original choice) made specifically so RadImageNet's Keras-trained weights
 map onto this backbone without a stride/receptive-field mismatch -- see
 `ct_iqa.models.ohashi_resnet50.load_radimagenet_weights` and
-`scripts/convert_radimagenet_weights.py`.
+`ct_iqa.models.radimagenet_weights`.
 
 This module intentionally stops at the pooled 2048-d feature vector. The
 original 1000-way ImageNet classification head is NOT implemented here —

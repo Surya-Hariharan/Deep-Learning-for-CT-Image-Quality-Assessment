@@ -133,8 +133,8 @@ class OhashiResNet50(nn.Module):
         expected to align with `self.backbone`'s `state_dict()` keys
         (optionally prefixed with `backbone.`). Produce this file from the
         official Keras RadImageNet-ResNet50 `.h5` release with
-        `scripts/convert_radimagenet_weights.py` -- see that script's
-        module docstring for the exact Keras-to-PyTorch mapping (kernel
+        `python -m ct_iqa.models.radimagenet_weights` -- see that module's
+        docstring for the exact Keras-to-PyTorch mapping (kernel
         transpose, conv-bias-into-BN-running_mean folding) and for why
         `ct_iqa.models.resnet50.ResNet50Backbone` places its stride-2 convs
         on the 1x1 reduce conv rather than the 3x3 conv (matching Keras'
@@ -199,7 +199,7 @@ class OhashiResNet50(nn.Module):
 
         # `num_batches_tracked` is a non-learned inference bookkeeping
         # counter (not present in the converted checkpoint by design -- see
-        # scripts/convert_radimagenet_weights.py); left at its
+        # ct_iqa.models.radimagenet_weights); left at its
         # freshly-initialized value of 0, it does not indicate an
         # incomplete weight load. Report it separately from genuinely
         # missing learned parameters (weight/bias/running_mean/running_var).
