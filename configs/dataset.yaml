@@ -1,0 +1,19 @@
+# Dataset configuration: LDCT-IQAC.
+#
+# This is OUR replication dataset, not the reference paper's own dataset --
+# see docs/replication/dataset_adaptation.md. It ships real, radiologist-scored
+# CT images spanning a range of quality levels; there is no synthetic
+# degradation step and no VIF label computation in this pipeline (see
+# docs/replication/deviations.md).
+
+name: ldct_iqac
+
+train_image_dir: data/raw/ldct_iqac/train/image
+train_json_path: data/labels/ldct_iqac/train.json
+test_image_dir: data/raw/ldct_iqac/test/images
+test_json_path: data/labels/ldct_iqac/test.json
+
+# Validation split is carved out of the training set only, by a seeded
+# random_split (see src/ct_iqa/data/splits.py). The test set above is never
+# used for model selection.
+val_fraction: 0.1

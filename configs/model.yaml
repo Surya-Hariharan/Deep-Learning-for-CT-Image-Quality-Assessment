@@ -1,0 +1,31 @@
+# Model configuration: RadImageNet-pretrained ResNet50 + Ohashi regression head.
+#
+# PAPER FACT: backbone ResNet50, RadImageNet pretraining, classification head
+# replaced by Dropout -> Dense(1) -> Sigmoid. See docs/paper/architecture.md.
+#
+# IMPLEMENTATION DECISION (not specified by the paper): the exact dropout
+# probability, and single-channel-to-3-channel replication for the
+# grayscale LDCT-IQAC images. See docs/replication/deviations.md.
+
+architecture: ohashi_resnet50
+backbone: resnet50
+
+# LDCT-IQAC images are single-channel float TIFFs; OhashiResNet50 internally
+# replicates them to 3 channels before the backbone.
+in_channels: 1
+
+# NOT specified by the paper. 0.5 is a common default elsewhere in the
+# literature; this is an explicit, documented implementation choice, not a
+# paper detail. ct_iqa.config.ExperimentConfig has no built-in default for
+# this value -- it must come from here (or be passed explicitly) so every
+# run records a deliberate choice.
+dropout_p: 0.5
+
+# Path to a converted PyTorch state-dict (see
+# src/ct_iqa/models/radimagenet_weights.py). Left null until real,
+# officially-sourced RadImageNet weights have been obtained and converted --
+# see weights/pretrained/radimagenet/resnet50/README.md for current status.
+# A null value here means the backbone runs with random initialization,
+# which is reported honestly as such, never silently substituted with
+# ImageNet weights.
+radimagenet_weights_path: null

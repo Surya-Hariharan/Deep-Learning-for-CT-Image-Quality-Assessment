@@ -1,0 +1,14 @@
+# Preprocessing configuration.
+#
+# Per Ohashi et al.: "each image was cropped to the central region according
+# to the input size required by the model" -- a CENTER CROP, never a resize,
+# to preserve the original CT images' spatial resolution. See
+# src/ct_iqa/preprocessing/crop.py.
+#
+# Pixel values are mapped from the source [0, 1] float range to [-1, 1],
+# matching RadImageNet's own preprocessing convention (confirmed from
+# RadImageNet's official reference code; the paper itself does not state a
+# normalization formula -- see docs/replication/deviations.md). See
+# src/ct_iqa/preprocessing/normalize.py.
+
+image_size: 224

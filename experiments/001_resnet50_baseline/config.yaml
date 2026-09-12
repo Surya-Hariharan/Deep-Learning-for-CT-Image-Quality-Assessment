@@ -1,0 +1,30 @@
+# Planned configuration for experiment 001 (ResNet50 baseline).
+#
+# This mirrors configs/{dataset,preprocessing,model,training}.yaml at the
+# time this experiment was scaffolded. It documents INTENT, not a completed
+# run -- once a run is actually executed, the training notebook saves the
+# exact resolved ExperimentConfig to config.json in this same directory;
+# that file (not this one) is the authoritative record of what a specific
+# checkpoint was actually produced with.
+
+dataset: ldct_iqac
+train_image_dir: data/raw/ldct_iqac/train/image
+train_json_path: data/labels/ldct_iqac/train.json
+test_image_dir: data/raw/ldct_iqac/test/images
+test_json_path: data/labels/ldct_iqac/test.json
+val_fraction: 0.1
+
+image_size: 224
+
+architecture: ohashi_resnet50
+backbone: resnet50
+in_channels: 1
+dropout_p: 0.5
+radimagenet_weights_path: null
+
+seed: 42
+batch_size: 64
+epochs: 30
+learning_rate: 0.001
+optimizer: adam
+loss: mse

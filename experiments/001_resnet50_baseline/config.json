@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "batch_size": 64,
+  "epochs": 30,
+  "learning_rate": 0.001,
+  "optimizer": "adam",
+  "loss": "mse",
+  "image_size": 224,
+  "dropout_p": 0.5,
+  "in_channels": 1,
+  "train_image_dir": "data/raw/ldct_iqac/train/image",
+  "train_json_path": "data/labels/ldct_iqac/train.json",
+  "test_image_dir": "data/raw/ldct_iqac/test/images",
+  "test_json_path": "data/labels/ldct_iqac/test.json",
+  "val_fraction": 0.1,
+  "radimagenet_weights_path": null,
+  "experiment_dir": "experiments/001_resnet50_baseline",
+  "device": "cuda"
+}
