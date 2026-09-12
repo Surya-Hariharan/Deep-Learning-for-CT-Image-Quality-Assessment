@@ -1,0 +1,9 @@
+{
+  "note": "validation split only -- NOT the held-out test set",
+  "metrics": {
+    "mse": 0.29924100492658495,
+    "plcc": 0.9476171720223349,
+    "srocc": 0.94868253621981,
+    "krocc": 0.8198658438913933
+  }
+}

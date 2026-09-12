@@ -13,7 +13,7 @@
   "test_image_dir": "data/raw/ldct_iqac/test/images",
   "test_json_path": "data/labels/ldct_iqac/test.json",
   "val_fraction": 0.1,
-  "radimagenet_weights_path": null,
+  "radimagenet_weights_path": "weights/pretrained/radimagenet/resnet50/radimagenet_resnet50_backbone.pt",
   "experiment_dir": "experiments/001_resnet50_baseline",
   "device": "cuda"
 }
