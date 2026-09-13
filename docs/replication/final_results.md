@@ -48,7 +48,7 @@ procedure):
    `notebooks/04_evaluation/02_prediction_analysis.ipynb`.
 
 See `docs/replication/reproducibility.md` for the full seeding/provenance
-detail behind each step, and `docs/decisions/README.md` for the
+detail behind each step, and `docs/internal/decisions/README.md` for the
 process/structural decisions made along the way (e.g. why `final.pt` is
 named differently from `best.pt`).
 

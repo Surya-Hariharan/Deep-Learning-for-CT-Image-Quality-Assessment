@@ -22,7 +22,7 @@ severities. This project does not implement any degradation pipeline
 supplies images with real, naturally-occurring quality variation. Building
 an unused degradation pipeline just to match the target directory structure
 would be inventing paper methodology this project doesn't actually use --
-see `docs/decisions/README.md`.
+see `docs/internal/decisions/README.md`.
 
 ## No VIF label computation
 

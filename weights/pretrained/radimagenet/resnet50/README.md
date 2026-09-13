@@ -7,7 +7,7 @@ best fetched/converted locally rather than duplicated in the repo.
 `weights/pretrained/` holds only externally-sourced pretrained weights --
 never experiment-generated checkpoints, which live under
 `experiments/<NNN_name>/checkpoint/` instead (see
-`docs/decisions/README.md`).
+`docs/internal/decisions/README.md`).
 
 ## Source
 
