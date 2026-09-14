@@ -2,7 +2,7 @@
 
 Audited on-disk structure (see repository dataset audit, PART 2 of the task;
 paths below reflect the post-migration layout -- see
-docs/repository_architecture_audit.md):
+docs/internal/repository_architecture_audit.md):
 
     data/raw/ldct_iqac/train/image/*.tif    (1000 files, PIL mode 'F', 512x512, float32 in [0, 1])
     data/labels/ldct_iqac/train.json        ({"0000.tif": 2.8, "0001.tif": 1.8, ...}, 1000 entries)
@@ -41,18 +41,24 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
+from ct_iqa.config import DEFAULT_IMAGE_SIZE
 from ct_iqa.preprocessing.crop import CropSizeError
 from ct_iqa.preprocessing.transforms import preprocess_ct_image
 
 VALID_EXTENSIONS = (".tif", ".tiff")
 
 # Score range as determined by the PART 2 dataset audit (both train and
-# test JSON files: min 0.0, max 4.0). This is a property of LDCT-IQAC's
-# radiologist quality score, not an assumption -- see module docstring.
+# test JSON files: min 0.0, max 4.0). This is a verified property of
+# LDCT-IQAC's radiologist quality score, not an assumption -- see module
+# docstring. Not config-driven on purpose: no configs/*.yaml file owns this
+# value, and it won't change unless the dataset itself does.
 SCORE_MIN = 0.0
 SCORE_MAX = 4.0
 
-INPUT_SIZE = 224  # Ohashi ResNet50 input size (see ct_iqa.models.ohashi_resnet50).
+# Sourced from configs/preprocessing.yaml via ct_iqa.config -- see
+# ct_iqa.models.ohashi_resnet50.INPUT_SIZE, which imports the same constant
+# instead of hardcoding its own copy.
+INPUT_SIZE = DEFAULT_IMAGE_SIZE
 
 
 def normalize_score(raw_score: float) -> float:

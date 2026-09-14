@@ -34,11 +34,15 @@ from dataclasses import dataclass, field
 import torch
 from torch import nn
 
+from ct_iqa.config import DEFAULT_IMAGE_SIZE
 from ct_iqa.models.resnet50 import ResNet50Backbone
 
 logger = logging.getLogger(__name__)
 
-INPUT_SIZE = 224  # Explicit in the paper.
+# Explicit in the paper (224x224); sourced from configs/preprocessing.yaml
+# via ct_iqa.config -- see ct_iqa.data.ldct_iqac.INPUT_SIZE, which imports
+# the same constant instead of hardcoding its own copy.
+INPUT_SIZE = DEFAULT_IMAGE_SIZE
 
 
 @dataclass
@@ -168,7 +172,18 @@ class OhashiResNet50(nn.Module):
             logger.warning(note)
             return WeightLoadReport(weights_path=None, loaded=False, note=note)
 
-        state_dict = torch.load(weights_path, map_location="cpu")
+        try:
+            state_dict = torch.load(weights_path, map_location="cpu")
+        except FileNotFoundError as exc:
+            raise FileNotFoundError(
+                f"RadImageNet weights not found at {weights_path!r}. This file is "
+                "gitignored and not distributed with the repository -- either obtain "
+                "and convert it yourself (see "
+                "weights/pretrained/radimagenet/resnet50/README.md and "
+                "`python -m ct_iqa.models.radimagenet_weights`), or set "
+                "radimagenet_weights_path to null in configs/model.yaml (or pass "
+                "weights_path=None) to explicitly run with a random-init backbone."
+            ) from exc
         if isinstance(state_dict, dict) and "state_dict" in state_dict:
             state_dict = state_dict["state_dict"]
 

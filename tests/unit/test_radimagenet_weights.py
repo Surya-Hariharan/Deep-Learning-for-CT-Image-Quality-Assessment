@@ -131,6 +131,14 @@ def test_genuinely_incompatible_checkpoint_reports_zero_matched(tmp_path):
     assert "incompatible" in report.note
 
 
+def test_missing_weights_file_raises_actionable_filenotfounderror(tmp_path):
+    model = OhashiResNet50(dropout_p=0.5, in_channels=1)
+    missing_path = str(tmp_path / "does_not_exist.pt")
+
+    with pytest.raises(FileNotFoundError, match="configs/model.yaml"):
+        model.load_radimagenet_weights(missing_path)
+
+
 def test_strict_mode_raises_on_missing_or_unexpected(tmp_path):
     fake_weights = _fake_pretrained_state_dict()
     path = tmp_path / "fake_radimagenet.pt"
