@@ -6,6 +6,48 @@ in `docs/paper/` and `docs/replication/` respectively). Newest first.
 
 ---
 
+## 2026-09-14 -- `trainer.train` selects the "best" checkpoint on PLCC, not validation loss
+
+**Decision:** `ct_iqa.training.trainer.train` now computes PLCC and SROCC
+(on raw `[0, 4]` validation predictions, via `ct_iqa.evaluation.correlation`)
+every epoch and selects the saved `best.pt` checkpoint using
+`config.selection_metric` (a new `ExperimentConfig`/`configs/training.yaml`
+field, default `"plcc"`). `"srocc"` and `"val_loss"` remain available.
+Checkpoints now record which metric selected them
+(`checkpoint_type="best_<metric>"`).
+
+**Why:** An external repository audit (`docs/internal/repository_architecture_audit.md`
+successor review) identified that the previous version selected the "best"
+checkpoint purely by minimum validation loss in normalized `[0, 1]` target
+space, while this project reports and compares experiments on raw-scale
+PLCC/SROCC (see `README.md`, `docs/replication/final_results.md`). Minimum
+MSE does not guarantee maximum PLCC/SROCC, so a model selected on loss alone
+could be, and was being presented as, something it wasn't actually selected
+for.
+
+**How it applies:** Experiment 001 (`experiments/001_resnet50_baseline/`,
+see `tools/build_training_notebook.py`) was retrained under this corrected
+selection rule; its `checkpoint/best.pt`, `history.json`, and
+`validation_metrics.json` reflect the new run. Experiment 002
+(`tools/build_lr_search_notebook.py`, the learning-rate search) also calls
+`trainer.train` per candidate LR, so its per-trial checkpoints are now
+saved with `checkpoint_type="best_plcc"` instead of `"best_val_loss"` --
+this does NOT change experiment 002's own result: its LR ranking reads
+`history.best_val_loss` directly (tracked every epoch regardless of
+`selection_metric`), not which checkpoint file happened to be written to
+disk, and none of its per-trial checkpoints are reused downstream
+(experiment 003 trains from a fresh RadImageNet init, not from 001's or
+002's weights -- see `docs/replication/final_results.md`, section A). It
+was not rerun. Experiment 003 (`build_final_training_notebook.py`) has its
+own hand-rolled training loop with no validation split and never calls
+`trainer.train`, so it is unaffected by this change and was not retrained.
+`docs/paper/training.md` and `README.md`'s Results section were updated to
+describe checkpoint selection accurately (it is a validation-based
+model-selection step, not something the paper's fixed-epoch configuration
+calls for).
+
+---
+
 ## 2026-09-13 -- `LICENSE` added: MIT, code only
 
 **Decision:** A `LICENSE` file (MIT License) was added at the repository
@@ -251,7 +293,7 @@ the primary way of changing it -- edit the corresponding `tools/build_*.py`
 generator and re-run it, or the generator and the notebook will drift apart
 (as happened once already with stale dataset paths, and once more subtly
 with a markdown-cell-generation bug -- see
-`docs/repository_architecture_audit.md`, section 5).
+`docs/internal/repository_architecture_audit.md`, section 5).
 
 ---
 

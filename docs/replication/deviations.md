@@ -103,6 +103,30 @@ verified as one, and `load_radimagenet_weights`/`torch.load` never silently
 fall back to ImageNet weights or random initialization on a load failure --
 a missing/incompatible file raises loudly instead.
 
+## Checkpoint-selection metric
+
+**IMPLEMENTATION DECISION**, not specified by the paper (the paper states
+a fixed 30-epoch training run with no described checkpoint-selection or
+early-stopping procedure -- see `docs/paper/training.md`). Since this
+project reports and compares experiments primarily on PLCC/SROCC (raw
+`[0,4]` scale -- see `docs/replication/final_results.md`), not on training
+loss, `ct_iqa.training.trainer.train` selects the saved `best.pt`
+checkpoint by the best validation-set PLCC seen during training
+(`config.selection_metric`, default `"plcc"` in `configs/training.yaml`),
+rather than by the lowest validation loss in normalized `[0,1]` target
+space. `"srocc"` and `"val_loss"` remain available as alternatives.
+
+**Updated 2026-09-14**, following an external repository audit's "Model
+Selection Mismatch in Training Loop" finding: minimum validation MSE does
+not guarantee maximum validation PLCC/SROCC, so a checkpoint selected on
+loss alone could be presented as "validation-selected" while not actually
+being selected for the metric it's compared on. Experiment 001 was
+retrained under the corrected criterion; see
+`docs/internal/decisions/README.md` (2026-09-14 entry) for the mechanism
+and `docs/replication/final_results.md` section F for what changing the
+criterion did and did not change about the measured result (both
+selection criteria still make experiment 001 outperform experiment 003).
+
 ## Reporting both raw and 5PL-mapped metrics
 
 **IMPLEMENTATION DECISION**, not a deviation from what's measured (see
