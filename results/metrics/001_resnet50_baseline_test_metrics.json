@@ -1,23 +1,25 @@
 {
   "experiment_name": "001_resnet50_baseline",
   "checkpoint": "experiments\\001_resnet50_baseline\\checkpoint\\best.pt",
-  "checkpoint_epoch": 21,
+  "checkpoint_epoch": 20,
+  "checkpoint_type": "best_plcc",
   "dataset": "LDCT-IQAC test split",
   "number_of_test_images": 300,
   "model_description": "RadImageNet-pretrained ResNet50 -> GAP -> Dropout(0.5) -> Linear(2048,1) -> Sigmoid (Ohashi-style, adapted to LDCT-IQAC)",
   "evaluation_scale": "raw LDCT-IQAC score scale [0,4] for PLCC/SROCC/KROCC/MSE/MAE/RMSE; normalized [0,1] MSE also reported",
   "seed": 42,
+  "selection_metric": "plcc",
   "raw": {
-    "PLCC": 0.8804124781830793,
-    "SROCC": 0.8793416789354301,
-    "KROCC": 0.6951799421362681,
-    "MSE": 0.3764842206263906,
-    "MAE": 0.5024113856752713,
-    "RMSE": 0.6135831000169338,
-    "MSE_normalized_0_1_scale": 0.02353026378914941
+    "PLCC": 0.8667474910592854,
+    "SROCC": 0.8699475933537336,
+    "KROCC": 0.6815914325592383,
+    "MSE": 0.32906798428124256,
+    "MAE": 0.48153387021273375,
+    "RMSE": 0.5736444755083435,
+    "MSE_normalized_0_1_scale": 0.02056674901757766
   },
   "calibrated": null,
-  "calibration_note": "Deferred: ct_iqa.evaluation.calibration.five_parameter_logistic_fit fits its parameters directly on whatever (y_pred, y_true) pair it is given. Fitting it on the test set itself and reporting the resulting test metrics would be circular -- the calibration would be optimized against the exact data being evaluated. No validation-set-based (non-test) calibration protocol is established in this project yet, so calibrated test metrics are not computed in this evaluation.",
+  "calibration_note": "Calibrated final-test evaluation was not performed because no non-test calibration protocol has been established. See docs/replication/final_results.md, section I.",
   "prediction_distribution": {
     "ground_truth": {
       "name": "ground_truth",
@@ -29,11 +31,18 @@
     },
     "prediction": {
       "name": "prediction",
-      "min": 0.03843637555837631,
-      "max": 3.998744487762451,
-      "mean": 2.435962155809005,
-      "median": 2.503114104270935,
-      "std": 1.0904597323521337
+      "min": 0.035715360194444656,
+      "max": 3.980715274810791,
+      "mean": 2.317285069214801,
+      "median": 2.2707690000534058,
+      "std": 0.9219074700243083
     }
+  },
+  "residuals": {
+    "mean": 0.1861739621932308,
+    "median": 0.24305739998817444,
+    "std": 0.542593070433558,
+    "min": -1.3677377700805664,
+    "max": 1.462206393480301
   }
 }
