@@ -3,21 +3,29 @@
 Run this script to (re)build the notebook from the cell definitions below.
 Not part of the `ct_iqa` package -- a dev-time notebook-generation tool.
 
-Per docs/repository_architecture_audit.md (Rule 4): this notebook is
-independent of any training notebook -- it loads the trained model from its
-saved checkpoint on disk rather than assuming any notebook state remains in
-memory from a training run in the same session.
+Per docs/internal/repository_architecture_audit.md (Rule 4): this notebook
+is independent of any training notebook -- it loads the trained model from
+its saved checkpoint on disk rather than assuming any notebook state
+remains in memory from a training run in the same session.
 
 **UPDATED 2026-09-13**: this notebook now performs the FINAL INDEPENDENT
 TEST-SET EVALUATION of experiment 003's final checkpoint
 (`experiments/003_final_training/checkpoint/final.pt`), not experiment
 001's `best.pt`. Experiment 001's own test-set numbers (already measured
 and persisted -- see `experiments/001_resnet50_baseline/README.md`,
-`results/metrics/001_resnet50_baseline_test_metrics.json`) are loaded here
-only as a fixed reference for a side-by-side comparison table; they are not
-recomputed. This notebook must never be used to select anything (checkpoint,
-hyperparameters, calibration parameters) -- that would contaminate the test
-set. See docs/replication/reproducibility.md.
+`results/metrics/001_resnet50_baseline_test_metrics.json`, reproducible via
+`tools/evaluate_baseline_test_set.py`) are loaded here only as a fixed
+reference (`EXPERIMENT_001_RAW_METRICS` below) for a side-by-side
+comparison table; they are not recomputed. This notebook must never be
+used to select anything (checkpoint, hyperparameters, calibration
+parameters) -- that would contaminate the test set. See
+docs/replication/reproducibility.md.
+
+**UPDATED 2026-09-14**: `EXPERIMENT_001_RAW_METRICS` was refreshed after
+experiment 001 was retrained under the corrected (PLCC-based) checkpoint-
+selection criterion -- see docs/internal/decisions/README.md. Re-run
+`tools/evaluate_baseline_test_set.py` and update the constant below by hand
+if experiment 001 is ever retrained again.
 """
 
 from pathlib import Path
@@ -470,7 +478,7 @@ recomputed here, only used as a fixed reference point.
 |---|---|---|
 | Training data | 900/1000 (100 held out for validation) | all 1000/1000 |
 | Learning rate | 1e-3 (paper default, not searched) | 1e-3 (selected by experiment 002's search) |
-| Checkpoint | best-validation-loss epoch (21, 0-indexed) | final epoch (29, 0-indexed / epoch 30) |
+| Checkpoint | best-validation-PLCC epoch (20, 0-indexed; `checkpoint_type="best_plcc"` -- see docs/internal/decisions/README.md, 2026-09-14) | final epoch (29, 0-indexed / epoch 30) |
 
 No statistical significance test is implemented in this project, so this
 section reports **empirical differences only** -- it does not claim
@@ -478,12 +486,12 @@ statistical significance for any difference below."""
 )
 code(
     """EXPERIMENT_001_RAW_METRICS = {
-    "PLCC": 0.8804,
-    "SROCC": 0.8793,
-    "KROCC": 0.6952,
-    "MSE": 0.3765,
-    "MAE": 0.5024,
-    "RMSE": 0.6136,
+    "PLCC": 0.8667,
+    "SROCC": 0.8699,
+    "KROCC": 0.6816,
+    "MSE": 0.3291,
+    "MAE": 0.4815,
+    "RMSE": 0.5736,
 }
 
 experiment_003_raw_metrics = {

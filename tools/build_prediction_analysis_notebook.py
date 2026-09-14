@@ -71,10 +71,10 @@ md(
 | Validation samples | 100 | 0 |
 | Learning rate | 1e-3 (paper default) | 1e-3 (selected by experiment 002) |
 | Epochs | 30 | 30 |
-| Checkpoint | best-validation-loss (epoch 21, 0-indexed) | final epoch (epoch 29, 0-indexed) |
-| Test PLCC | 0.8804 | 0.8490 |
-| Test SROCC | 0.8793 | 0.8525 |
-| Test KROCC | 0.6952 | 0.6611 |
+| Checkpoint | best-validation-PLCC (epoch 20, 0-indexed) | final epoch (epoch 29, 0-indexed) |
+| Test PLCC | 0.8667 | 0.8490 |
+| Test SROCC | 0.8699 | 0.8525 |
+| Test KROCC | 0.6816 | 0.6611 |
 
 Both are Ohashi-style RadImageNet ResNet50 models adapted to LDCT-IQAC --
 neither is an exact reproduction of the original paper (different
@@ -520,16 +520,18 @@ md(
 
 - Experiment 001 test PLCC/SROCC/KROCC are each higher than experiment
   003's (Section 3).
-- Experiment 001's prediction bias is **+0.305** (overprediction);
+- Experiment 001's prediction bias is **+0.186** (overprediction);
   experiment 003's is **-0.3396** (underprediction) -- the sign flipped.
 - Experiment 003's *final training loss* (0.001783) is lower than
-  experiment 001's *final training loss* (0.003255) -- i.e. experiment 003
+  experiment 001's *final training loss* (0.002992) -- i.e. experiment 003
   fits its own (larger, 1000-image) training set at least as tightly as
   experiment 001 fits its (900-image) training set, by the training-loss
   metric alone.
-- Experiment 001's checkpoint was selected by lowest **validation** loss
-  (epoch 21 of 30); experiment 003's checkpoint has no such selection --
-  it is unconditionally the epoch-30 (final) model.
+- Experiment 001's checkpoint is selected by highest **validation** PLCC
+  (epoch 20 of 30, `checkpoint_type="best_plcc"` -- see
+  `docs/internal/decisions/README.md`, 2026-09-14); experiment 003's
+  checkpoint has no such selection -- it is unconditionally the epoch-30
+  (final) model.
 - Experiment 003 was trained on all 1000 labeled images; experiment 001
   was trained on 900 of the 1000 (100 held out for validation).
 
@@ -702,13 +704,13 @@ distortion such as the descriptive-regression slope/intercept found in
 Section 7.
 
 Observed pattern in both experiments: **PLCC and SROCC are close to each
-other** (Exp 001: 0.8804 vs. 0.8793; Exp 003: 0.8490 vs. 0.8525), which is
+other** (Exp 001: 0.8667 vs. 0.8699; Exp 003: 0.8490 vs. 0.8525), which is
 consistent with the prediction-vs-ground-truth relationship being
 reasonably close to linear/monotonic in both cases (visible in the
 scatter plots of Section 8) rather than a strongly nonlinear-but-monotonic
 one (which would show SROCC clearly exceeding PLCC). **KROCC is
 consistently lower than both PLCC and SROCC** in both experiments (Exp
-001: 0.6952; Exp 003: 0.6611) -- expected, since KROCC is computed from
+001: 0.6816; Exp 003: 0.6611) -- expected, since KROCC is computed from
 concordant/discordant pairs and is mathematically on a different (more
 conservative) numeric scale than SROCC even when ranking agreement is
 similar; a lower KROCC here is not, on its own, evidence of any specific
