@@ -21,6 +21,16 @@ of the train/validation split and weight initialization is prioritized
 over shaving GPU time off a 30-epoch run that already completes in
 minutes.
 
+**Updated 2026-09-14** (checkpoint-selection fix, see
+`docs/internal/decisions/README.md`): experiment 001 was retrained on
+**CPU** (`device="cpu"`, PyTorch 2.14.0+cpu -- no CUDA device was available
+in the environment that performed this retrain), not the GPU used for the
+original 2026-09-13 run. This is recorded in
+`experiments/001_resnet50_baseline/config.json`'s `device` field for that
+checkpoint; it does not affect the seeding/determinism guarantees above,
+only wall-clock time (a CPU run of this size takes on the order of an
+hour, vs. minutes on the GPU noted above).
+
 ## Train/validation split
 
 `ct_iqa.data.splits.train_val_split` uses `torch.utils.data.random_split`
@@ -60,12 +70,13 @@ real dataset and real RadImageNet weights:
   RadImageNet-loaded model before any full-training decision is made, then
   restores pre-smoke-test weights.
 
-## Experiment 001's first real training run (2026-09-13)
+## Experiment 001's first real training run (2026-09-13, retrained 2026-09-14)
 
 The first full, RadImageNet-initialized, 30-epoch training run has been
 executed and persisted: `experiments/001_resnet50_baseline/` now contains
-`checkpoint/best.pt` (model + optimizer state + epoch + val_loss + config +
-seed), `history.json` (full per-epoch train/val loss), and
+`checkpoint/best.pt` (model + optimizer state + epoch + val_loss +
+`checkpoint_type` + config + seed), `history.json` (full per-epoch
+train/val loss **and** val PLCC/SROCC, added 2026-09-14), and
 `validation_metrics.json` (post-hoc PLCC/SROCC/KROCC on the **validation**
 split only). See `experiments/001_resnet50_baseline/README.md` for the
 actual measured numbers. The checkpoint was independently reloaded in a
@@ -73,22 +84,41 @@ fresh model instance/process and verified to produce finite, `[0,1]`-bounded
 predictions on a real validation batch before this was considered done.
 
 No NaN/Inf loss occurred at any of the 30 epochs (verified programmatically
-over the saved history, not just spot-checked). The validation loss curve
-is noticeably noisier than the training loss curve, which is expected given
-the validation split is only 100 images (2 batches) -- reported as an
-observed property of this run, not treated as a defect.
+over the saved history, not just spot-checked). The validation loss/PLCC
+curves are noticeably noisier than the training loss curve, which is
+expected given the validation split is only 100 images (2 batches) --
+reported as an observed property of this run, not treated as a defect.
 
-## Independent test-set evaluation procedure (2026-09-13)
+**Retrained 2026-09-14**: the checkpoint-selection criterion changed from
+lowest validation loss to highest validation PLCC (see
+`docs/internal/decisions/README.md`), which selects a different epoch (20,
+not 21) and therefore produces a different checkpoint/history/metrics than
+the original 2026-09-13 run. The "Test set contamination check" and
+"Independent test-set evaluation procedure" sections below describe the
+current (PLCC-based) procedure.
 
-`notebooks/04_evaluation/01_test_set_evaluation.ipynb` loads
-`checkpoint/best.pt` into a **fresh** `OhashiResNet50` instance (no
-dependency on the training notebook's process/memory), cross-checks the
-checkpoint's own recorded `dropout_p`/`in_channels`/`image_size` against
-the current `configs/*.yaml` before evaluating, then runs inference over
-the full 300-image test set exactly once (`model.eval()` /
-`torch.no_grad()`), using the identical preprocessing/target-normalization
-functions training used. See `experiments/001_resnet50_baseline/README.md`
-for the actual measured test metrics.
+## Independent test-set evaluation procedure (2026-09-13; script updated 2026-09-14)
+
+`tools/evaluate_baseline_test_set.py` loads
+`experiments/001_resnet50_baseline/checkpoint/best.pt` into a **fresh**
+`OhashiResNet50` instance (no dependency on the training notebook's
+process/memory), cross-checks the checkpoint's own recorded
+`dropout_p`/`in_channels`/`image_size` against the current
+`configs/*.yaml` before evaluating, then runs inference over the full
+300-image test set exactly once (`model.eval()` / `torch.no_grad()`),
+using the identical preprocessing/target-normalization functions training
+used. See `experiments/001_resnet50_baseline/README.md` for the actual
+measured test metrics.
+
+**Note:** this evaluation originally lived in
+`notebooks/04_evaluation/01_test_set_evaluation.ipynb`, but that notebook
+was repurposed (2026-09-13) to evaluate experiment 003 instead, using
+experiment 001's numbers only as a fixed reference for its comparison
+table -- it no longer reproduces them. `tools/evaluate_baseline_test_set.py`
+is the current, actual reproduction path for experiment 001's test
+metrics; it was used to re-evaluate experiment 001 after the 2026-09-14
+checkpoint-selection fix required retraining it (see
+`docs/internal/decisions/README.md`).
 
 **Calibration policy:** `ct_iqa.evaluation.calibration.five_parameter_logistic_fit`
 is deliberately never called with test-set data. It fits its parameters
@@ -102,7 +132,8 @@ until one is built, rather than computed in a way that would silently
 leak test information into the reported result.
 
 **Test set contamination check:** the checkpoint was selected using
-validation loss only (§ above), before this evaluation notebook ran; no
+validation-set PLCC only (§ above; validation loss until the 2026-09-14
+selection-criterion fix), before this evaluation notebook ran; no
 hyperparameter in `configs/*.yaml` was chosen using any number this
 notebook produced; this notebook constructs no training or validation
 `Dataset`/`DataLoader` at all. **Test set used only for final evaluation.**

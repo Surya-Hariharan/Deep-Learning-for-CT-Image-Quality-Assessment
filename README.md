@@ -43,14 +43,20 @@ calibration):
 
 | Metric | Experiment 001 (baseline) | Experiment 003 (final) |
 |---|---|---|
-| PLCC | **0.8804** | 0.8490 |
-| SROCC | **0.8793** | 0.8525 |
-| KROCC | **0.6952** | 0.6611 |
-| MAE | **0.5024** | 0.5195 |
-| RMSE | **0.6136** | 0.6689 |
+| PLCC | **0.8667** | 0.8490 |
+| SROCC | **0.8699** | 0.8525 |
+| KROCC | **0.6816** | 0.6611 |
+| MAE | **0.4815** | 0.5195 |
+| RMSE | **0.5736** | 0.6689 |
 
-The validation-selected baseline (001) outperforms the final full-data
-model (003) on every metric — a genuine finding, investigated in
+Experiment 001's checkpoint is selected by the best validation-set PLCC
+seen during training (`checkpoint_type="best_plcc"`), not by validation
+loss — see [`docs/internal/decisions/README.md`](docs/internal/decisions/README.md)
+for why this matters and [`docs/paper/training.md`](docs/paper/training.md)
+for why it's an implementation decision, not a paper-specified detail.
+Under this selection rule, the validation-selected baseline (001) still
+outperforms the final full-data model (003) on every metric above — a
+genuine finding, investigated in
 [`docs/replication/final_results.md`](docs/replication/final_results.md).
 These numbers are **not** compared against the original paper's reported
 values (different dataset, different label semantics — see
@@ -125,7 +131,8 @@ commands below to regenerate and re-execute it:
 | Train baseline | `tools/build_training_notebook.py` | `notebooks/03_training/01_resnet50_baseline.ipynb` |
 | Learning-rate search | `tools/build_lr_search_notebook.py` | `notebooks/03_training/02_learning_rate_search.ipynb` |
 | Final training | `tools/build_final_training_notebook.py` | `notebooks/03_training/03_final_training.ipynb` |
-| Test-set evaluation | `tools/build_evaluation_notebook.py` | `notebooks/04_evaluation/01_test_set_evaluation.ipynb` |
+| Baseline (001) test-set evaluation | `tools/evaluate_baseline_test_set.py` (plain script, not a notebook — see its module docstring) | writes `results/metrics/001_resnet50_baseline_test_metrics.json` directly |
+| Final (003) test-set evaluation | `tools/build_evaluation_notebook.py` | `notebooks/04_evaluation/01_test_set_evaluation.ipynb` |
 | Prediction analysis | `tools/build_prediction_analysis_notebook.py` | `notebooks/04_evaluation/02_prediction_analysis.ipynb` |
 
 Example, for the baseline training notebook:
@@ -143,6 +150,12 @@ Training notebooks are gated behind a `RUN_FULL_TRAINING` flag so
 re-running them doesn't silently trigger a long run. Evaluation and
 analysis notebooks are independent of any training notebook — they load
 a checkpoint from disk and write results to `results/`.
+
+Reproduce experiment 001's test-set metrics directly (no notebook step):
+
+```bash
+uv run python tools/evaluate_baseline_test_set.py
+```
 
 Run the test suite with:
 
@@ -216,8 +229,11 @@ and [`docs/replication/deviations.md`](docs/replication/deviations.md).
   numbers (different dataset, different label semantics).
 - Dropout probability (0.5) is this project's own choice; the paper
   doesn't specify one.
-- No data augmentation, LR scheduling, or early stopping (deliberately,
-  to stay close to the paper's stated training setup).
+- No data augmentation, LR scheduling, weight decay, or warmup
+  (deliberately, to stay close to the paper's stated training setup) —
+  but checkpoint selection **is** a validation-based model-selection step
+  (see `docs/paper/training.md`), not something the paper's fixed-epoch
+  configuration calls for.
 - No non-test calibration protocol exists yet, so only raw metrics are
   reported.
 - The final full-data model (003) performs worse than the

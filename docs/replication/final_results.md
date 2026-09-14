@@ -23,7 +23,10 @@ procedure):
    1000 labeled LDCT-IQAC training images, RadImageNet-initialized
    `OhashiResNet50`, Adam/MSE/batch 64/30 epochs/lr 1e-3
    (**PAPER FACT**, not searched -- see `docs/paper/training.md`),
-   checkpoint selected by lowest validation loss. Evaluated once on the
+   checkpoint selected by **highest validation PLCC**
+   (`config.selection_metric="plcc"`, updated 2026-09-14 -- see
+   `docs/internal/decisions/README.md`; previously lowest validation loss,
+   which does not guarantee maximum PLCC/SROCC). Evaluated once on the
    untouched 300-image test set.
 2. **Experiment 002 (learning-rate search)**: the same 900/100 split used
    to search the paper's own four candidate learning rates
@@ -55,17 +58,25 @@ named differently from `best.pt`).
 ## B. Experiment 001 baseline -- test-set result
 
 **OBSERVED RESULT.** RAW test metrics (`[0,4]` scale, n=300, no
-calibration):
+calibration), from the checkpoint selected by highest validation PLCC
+(epoch 20; retrained 2026-09-14 -- see section A and
+`docs/internal/decisions/README.md`):
 
 | PLCC | SROCC | KROCC | MSE | MAE | RMSE |
 |---|---|---|---|---|---|
-| 0.8804 | 0.8793 | 0.6952 | 0.3765 | 0.5024 | 0.6136 |
+| 0.8667 | 0.8699 | 0.6816 | 0.3291 | 0.4815 | 0.5736 |
 
-Systematic **overprediction**: mean prediction (2.436) exceeded mean
-ground truth (2.131) by **+0.3049**. Prediction std (1.0905) essentially
-matched ground-truth std (1.0871) -- std ratio **1.0030**, i.e. no
-meaningful compression toward the mean for this experiment. Full detail:
+Systematic **overprediction**: mean prediction (2.317) exceeded mean
+ground truth (2.131) by **+0.1862**. Prediction std (0.9219) was somewhat
+below ground-truth std (1.0871) -- std ratio **0.8480**, i.e. mild
+compression toward the mean. Full detail:
 `experiments/001_resnet50_baseline/README.md`.
+
+(For reference: the pre-2026-09-14 run, whose checkpoint was selected by
+lowest validation loss instead, epoch 21, scored PLCC 0.8804 / SROCC
+0.8793 / KROCC 0.6952 / MSE 0.3765 / MAE 0.5024 / RMSE 0.6136 with bias
++0.3049 on the same test set -- see section F for what changing the
+selection criterion did and did not change.)
 
 ## C. Experiment 002 LR selection
 
@@ -82,9 +93,9 @@ no test-set result -- none is reported or invented here (see
 epochs, no validation split, final-epoch checkpoint (`checkpoint/final.pt`,
 epoch 29 0-indexed). RadImageNet initialization verified (265/318
 backbone keys matched, 0 unexpected). Final training loss: **0.001783**
--- lower than experiment 001's final training loss (0.003255), despite
-experiment 003 performing worse on the test set (see F below). No test
-data was used at any point in this stage. Full detail:
+-- lower than experiment 001's final (epoch 30) training loss (0.002992),
+despite experiment 003 performing worse on the test set (see F below). No
+test data was used at any point in this stage. Full detail:
 `experiments/003_final_training/README.md`.
 
 ## E. Final test performance
@@ -125,24 +136,24 @@ preprocessing, or architecture at any stage.
 **OBSERVED RESULT.** Both models were evaluated on the identical,
 untouched 300-image test set -- same dataset, same architecture, same
 preprocessing, different training protocol (900/1000 +
-validation-selected checkpoint vs. all 1000/1000 + final-epoch
+validation-PLCC-selected checkpoint vs. all 1000/1000 + final-epoch
 checkpoint).
 
 | Metric | Experiment 001 | Experiment 003 | Difference (003-001) | Relative change |
 |---|---|---|---|---|
-| PLCC | 0.8804 | 0.8490 | -0.0315 | -3.57% |
-| SROCC | 0.8793 | 0.8525 | -0.0268 | -3.05% |
-| KROCC | 0.6952 | 0.6611 | -0.0341 | -4.91% |
-| MSE | 0.3765 | 0.4474 | +0.0710 | +18.85% |
-| MAE | 0.5024 | 0.5195 | +0.0171 | +3.40% |
-| RMSE | 0.6136 | 0.6689 | +0.0553 | +9.02% |
+| PLCC | 0.8667 | 0.8490 | -0.0178 | -2.05% |
+| SROCC | 0.8699 | 0.8525 | -0.0174 | -2.00% |
+| KROCC | 0.6816 | 0.6611 | -0.0206 | -3.01% |
+| MSE | 0.3291 | 0.4474 | +0.1184 | +35.97% |
+| MAE | 0.4815 | 0.5195 | +0.0379 | +7.88% |
+| RMSE | 0.5736 | 0.6689 | +0.0953 | +16.61% |
 
 (machine-readable: `results/tables/001_vs_003_analysis.csv`,
 `results/tables/001_vs_003_final_comparison.csv`)
 
 On this test set, the final (all-data, final-epoch) model performed
 empirically worse than the validation-selected baseline on every metric
-above, and its prediction bias flipped sign (+0.3049 vs. -0.3396). No
+above, and its prediction bias flipped sign (+0.1862 vs. -0.3396). No
 statistical significance test is implemented in this project -- these are
 measured differences, not a claim of significance.
 
@@ -151,59 +162,86 @@ quartiles of the ground-truth score distribution):
 
 | Experiment | Quartile (GT range) | n | mean GT | mean pred | mean residual | MAE | RMSE |
 |---|---|---|---|---|---|---|---|
-| 001 | Q1 [0.00, 1.17] | 82 | 0.774 | 1.220 | +0.445 | 0.544 | 0.659 |
-| 001 | Q2 [1.17, 2.17] | 76 | 1.757 | 2.062 | +0.305 | 0.560 | 0.680 |
-| 001 | Q3 [2.17, 3.00] | 77 | 2.706 | 3.109 | +0.403 | 0.552 | 0.629 |
-| 001 | Q4 [3.00, 4.00] | 65 | 3.600 | 3.610 | +0.010 | 0.323 | 0.424 |
+| 001 | Q1 [0.00, 1.17] | 82 | 0.774 | 1.318 | +0.544 | 0.621 | 0.702 |
+| 001 | Q2 [1.17, 2.17] | 76 | 1.757 | 2.008 | +0.251 | 0.457 | 0.555 |
+| 001 | Q3 [2.17, 3.00] | 77 | 2.706 | 2.848 | +0.143 | 0.401 | 0.453 |
+| 001 | Q4 [3.00, 4.00] | 65 | 3.600 | 3.311 | -0.289 | 0.430 | 0.542 |
 | 003 | Q1 [0.00, 1.17] | 82 | 0.774 | 0.882 | +0.108 | 0.315 | 0.385 |
 | 003 | Q2 [1.17, 2.17] | 76 | 1.757 | 1.452 | -0.304 | 0.485 | 0.584 |
 | 003 | Q3 [2.17, 3.00] | 77 | 2.706 | 2.296 | -0.410 | 0.466 | 0.609 |
 | 003 | Q4 [3.00, 4.00] | 65 | 3.600 | 2.737 | -0.863 | 0.881 | 1.019 |
 
-Experiment 001's bias is positive (overprediction) across all four
-quartiles, and is smallest at the highest quartile (+0.010). Experiment
-003's bias is positive only at the lowest quartile (+0.108) and becomes
+Experiment 001's bias is positive (overprediction) in the lowest three
+quartiles and turns negative (-0.289, mild underprediction) in the
+highest quartile -- unlike the pre-2026-09-14 (loss-selected) checkpoint,
+which stayed positive across all four (see section B). Experiment 003's
+bias is positive only at the lowest quartile (+0.108) and becomes
 increasingly negative at higher quartiles, reaching -0.863 (and its worst
-per-bin MAE/RMSE, 0.881/1.019) in the top quartile.
+per-bin MAE/RMSE, 0.881/1.019) in the top quartile -- unchanged from
+before, since experiment 003's checkpoint was not retrained (its training
+loop never called `trainer.train`; see section A).
 
 ### OBSERVED / PLAUSIBLE HYPOTHESIS / NOT DETERMINED
 
 **OBSERVED:**
 - Experiment 001 outperforms experiment 003 on every reported test
-  metric.
-- Experiment 001's bias is +0.3049 (overprediction); experiment 003's is
+  metric, both before and after the 2026-09-14 checkpoint-selection fix.
+- Experiment 001's bias is +0.1862 (overprediction); experiment 003's is
   -0.3396 (underprediction) -- signs are opposite.
 - Experiment 003's underprediction grows monotonically more negative from
   the lowest to the highest ground-truth quartile.
 - Experiment 003's final *training* loss (0.001783) is lower than
-  experiment 001's final training loss (0.003255).
-- Experiment 001's checkpoint was selected by lowest validation loss
-  (epoch 21/30); experiment 003's checkpoint has no such selection (it is
+  experiment 001's final training loss (0.002992).
+- Experiment 001's checkpoint is selected by highest validation PLCC
+  (epoch 20/30); experiment 003's checkpoint has no such selection (it is
   unconditionally epoch 30/30).
 - Experiment 003 trained on all 1000 labeled images; experiment 001 on
   900 of the 1000.
+- Changing experiment 001's selection criterion from lowest validation
+  loss (epoch 21) to highest validation PLCC (epoch 20) *did not* change
+  which experiment wins the overall comparison, but it did change
+  experiment 001's own numbers: test PLCC/SROCC/KROCC each *decreased*
+  slightly (e.g. PLCC 0.8804 -> 0.8667, worse) while MSE/MAE/RMSE each
+  *decreased* too (e.g. RMSE 0.6136 -> 0.5736, better, since lower is
+  better for these) and mean bias shrank (+0.3049 -> +0.1862). Validation-
+  set PLCC did not transfer to a higher test-set PLCC than validation-loss
+  selection did, on this run.
 
 **PLAUSIBLE HYPOTHESIS** (consistent with, but not proven by, the above):
-- Experiment 001's validation-based checkpoint selection may have acted
-  as an implicit regularizer/early-stopping mechanism that experiment
-  003's unconditional final-epoch checkpoint lacked.
-- The bias-sign flip may reflect where each specific selected/stopped
-  checkpoint's Sigmoid output happened to sit, rather than a general
-  property of "all-data training."
+- Experiment 001's validation-based checkpoint selection (on either
+  metric) may have acted as an implicit regularizer/early-stopping
+  mechanism that experiment 003's unconditional final-epoch checkpoint
+  lacked -- this holds regardless of which validation metric was used to
+  pick the epoch, since both selected checkpoints substantially
+  outperform experiment 003.
+- That validation PLCC and test PLCC diverged slightly for experiment 001
+  (previous point) is consistent with the 100-image validation split
+  being small enough that its epoch-to-epoch PLCC is noisy (see
+  `history.json`'s `val_plcc` swings, e.g. epoch 25's 0.922 vs.
+  neighboring epochs' ~0.97) -- one seed/split's validation PLCC ranking
+  need not perfectly predict the test-set ranking of nearby epochs.
+- The bias-sign flip (001 vs. 003) may reflect where each specific
+  selected/stopped checkpoint's Sigmoid output happened to sit, rather
+  than a general property of "all-data training."
 - Training-set-size difference (900 vs. 1000 images) could plausibly
-  affect the model this project's data does not isolate this from the
+  affect the model; this project's data does not isolate this from the
   checkpoint-selection explanation above.
 
 **NOT DETERMINED:**
 - Whether checkpoint-selection method, training-set size, or a
-  combination is the dominant cause -- no controlled ablation (e.g. a
-  final-epoch checkpoint from a 900/100 run, or a validation-selected
-  checkpoint from an all-1000 run) exists in this project.
+  combination is the dominant cause of the 001-vs-003 gap -- no
+  controlled ablation (e.g. a final-epoch checkpoint from a 900/100 run,
+  or a validation-selected checkpoint from an all-1000 run) exists in
+  this project.
 - Whether an earlier (non-final) epoch of experiment 003's own run would
   have matched or exceeded experiment 001 -- untestable without either a
   validation signal for experiment 003 (none exists) or evaluating
   intermediate checkpoints against the test set (out of scope; would
   contaminate the test set).
+- Whether PLCC-based selection is generally better or worse than
+  loss-based selection for this model/dataset -- this project has one
+  seed's worth of evidence (this run), not a multi-seed comparison, so no
+  general claim about which selection metric is "better" is made here.
 - Any causal mechanism for the bias-sign flip specifically.
 
 ## G. Prediction behavior
@@ -215,14 +253,17 @@ reported performance metric):
 
 | Experiment | slope (a) | intercept (b) | R² | std(pred)/std(GT) |
 |---|---|---|---|---|
-| 001 | 0.8831 | 0.5540 | 0.7751 | 1.0030 |
+| 001 | 0.7350 | 0.7509 | 0.7513 | 0.8480 |
 | 003 | 0.6856 | 0.3303 | 0.7207 | 0.8076 |
 
 An ideal, uncompressed 1:1 relationship would have slope 1.0 and
 intercept 0.0. Experiment 003's descriptive slope (0.686) is further from
-1.0 than experiment 001's (0.883), and its std ratio (0.808) is further
-from 1.0 -- both consistent with somewhat more compression of predictions
-toward the mean in experiment 003, though neither experiment shows a
+1.0 than experiment 001's (0.735), and its std ratio (0.808) is close to
+(but still slightly further from 1.0 than) experiment 001's (0.848) --
+both consistent with a similar, moderate degree of compression of
+predictions toward the mean in both experiments (unlike the
+pre-2026-09-14 checkpoint, whose std ratio of 1.003 showed essentially no
+compression at all -- see section B), though neither experiment shows a
 collapse (both retain most of the ground-truth spread and R² > 0.7).
 Neither experiment shows hard saturation at the score boundaries: no
 prediction reaches exactly 0 or 4 in either experiment's test set (min/max
@@ -240,7 +281,7 @@ distinct from, and does not overwrite, the original evaluation notebook's
 
 | Experiment | corr(GT, \|error\|) | mean \|error\| lowest GT quartile | mean \|error\| highest GT quartile |
 |---|---|---|---|
-| 001 | -0.171 | 0.544 | 0.389 |
+| 001 | -0.195 | 0.621 | 0.431 |
 | 003 | +0.462 | 0.315 | 0.783 |
 
 Experiment 001's absolute error is (weakly) *higher* for low-quality
@@ -252,7 +293,7 @@ mechanism is established by this data for why either pattern holds).
 **Top-error cases** (`results/tables/00{1,3}_top_error_cases.csv`, top 10
 by absolute error each): experiment 001's worst cases are dominated by
 strong *overprediction* on low/mid ground-truth images (e.g.
-`test235.tiff`, GT 0.83 -> prediction 2.69, error 1.86); experiment 003's
+`test228.tiff`, GT 0.33 -> prediction 1.80, error 1.46); experiment 003's
 worst cases are dominated by strong *underprediction* on high
 ground-truth images (e.g. `test180.tiff`, GT 4.00 -> prediction 1.79,
 error 2.21), consistent with the quality-bin and error-vs-quality findings
@@ -282,35 +323,53 @@ analysis-only phase.
 ## J. Observed findings
 
 - Experiment 001 outperforms experiment 003 on every reported test
-  metric (PLCC, SROCC, KROCC, MSE, MAE, RMSE) -- section F.
-- Experiment 001 overpredicts on average (+0.3049); experiment 003
+  metric (PLCC, SROCC, KROCC, MSE, MAE, RMSE) -- section F -- both before
+  and after switching experiment 001's checkpoint selection from lowest
+  validation loss to highest validation PLCC (2026-09-14).
+- Experiment 001 overpredicts on average (+0.1862); experiment 003
   underpredicts on average (-0.3396) -- opposite signs -- sections B, E.
 - Experiment 003's underprediction bias grows monotonically more negative
   at higher ground-truth quality (+0.108 to -0.863 across quartiles) --
-  section F.
+  section F. Experiment 001's bias is positive in the lowest three
+  quartiles and turns slightly negative (-0.289) in the highest quartile
+  -- section F.
 - Neither experiment shows hard saturation at the score boundaries --
   sections B, E.
-- Experiment 003's prediction std/ground-truth-std ratio (0.808) is
-  further from 1.0 than experiment 001's (1.003), and its descriptive
-  regression slope (0.686) is further from 1.0 than experiment 001's
-  (0.883) -- both indicate somewhat more compression toward the mean in
-  experiment 003 -- section G.
+- Experiment 003's prediction std/ground-truth-std ratio (0.808) and
+  experiment 001's (0.848) are both moderately below 1.0, and both
+  experiments' descriptive regression slopes (0.686 and 0.735
+  respectively) are similarly below 1.0 -- both experiments show a
+  broadly similar, moderate degree of compression toward the mean --
+  section G.
 - Experiment 003's final training loss is lower than experiment 001's,
   despite performing worse on the test set -- section D.
 - PLCC and SROCC are close to each other within each experiment (Exp 001:
-  0.8804 vs. 0.8793; Exp 003: 0.8490 vs. 0.8525), consistent with a
+  0.8667 vs. 0.8699; Exp 003: 0.8490 vs. 0.8525), consistent with a
   reasonably linear/monotonic prediction-vs-ground-truth relationship in
   both cases; KROCC is consistently lower than both in both experiments,
   expected given its different (more conservative) numeric scale.
+- Switching experiment 001's selection criterion from lowest validation
+  loss to highest validation PLCC selected a different epoch (20 instead
+  of 21) and changed experiment 001's own test-set numbers -- correlation
+  metrics slightly worsened (PLCC 0.8804 -> 0.8667) while MSE/MAE/RMSE
+  and mean bias all improved -- but did not change which experiment wins
+  the 001-vs-003 comparison. See section F for the full breakdown; this is
+  evidence that the two selection criteria are not equivalent in
+  practice, not evidence that one is generally superior (single-seed
+  result).
 
 ## K. Plausible hypotheses
 
 See the "OBSERVED / PLAUSIBLE HYPOTHESIS / NOT DETERMINED" breakdown in
 section F. In brief: the leading plausible (not proven) hypothesis is
-that experiment 001's validation-based checkpoint selection acted as an
-implicit regularizer that experiment 003's unconditional final-epoch
-checkpoint lacked; training-set-size difference (900 vs. 1000 images)
-remains a plausible, uncontrolled-for contributing factor.
+that experiment 001's validation-based checkpoint selection -- on either
+metric -- acted as an implicit regularizer that experiment 003's
+unconditional final-epoch checkpoint lacked; training-set-size difference
+(900 vs. 1000 images) remains a plausible, uncontrolled-for contributing
+factor. The small divergence between validation-PLCC and test-PLCC
+rankings for nearby epochs of experiment 001 is plausibly attributable to
+the 100-image validation split's epoch-to-epoch PLCC noise, not to a flaw
+in PLCC as a selection criterion per se.
 
 ## L. Limitations
 
@@ -331,6 +390,10 @@ remains a plausible, uncontrolled-for contributing factor.
 - No statistical significance testing is implemented anywhere in this
   project's evaluation code -- all differences reported here are
   descriptive.
+- The choice of PLCC over validation loss as the checkpoint-selection
+  metric (section A) is evaluated here on a single seed/run; this project
+  does not claim PLCC-based selection is generally superior to loss-based
+  selection, only that they are not equivalent in practice (section F).
 
 ## M. Reproducibility information
 

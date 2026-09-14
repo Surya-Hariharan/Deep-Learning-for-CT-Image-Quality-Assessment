@@ -33,6 +33,16 @@ Selected by lowest best-validation-loss (0.003540) among stable runs, per the
 predefined criterion in docs/replication/reproducibility.md. No test-set metric of any
 kind was used to make or influence this selection.
 
+**Note (2026-09-14):** `ct_iqa.training.trainer.train`'s checkpoint-selection
+criterion changed after this experiment ran (see
+`docs/internal/decisions/README.md`) -- it now defaults to selecting each
+run's saved `best.pt` by validation PLCC, not validation loss. This does
+**not** change the LR ranking/selection above: it reads `history.best_val_loss`
+directly (computed every epoch regardless of the checkpoint-selection
+criterion), not which checkpoint file was written to disk, and none of
+these per-LR checkpoints are reused by experiment 003 (which trains from a
+fresh RadImageNet initialization). This experiment was not rerun.
+
 ## Ohashi paper context (historical context only -- not a claim of superiority either way)
 
 The Ohashi paper's own reported configuration uses learning rate 1e-3 for its
