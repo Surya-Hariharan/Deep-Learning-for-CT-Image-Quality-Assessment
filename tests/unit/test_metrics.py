@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.stats import ConstantInputWarning
 
 from ct_iqa.evaluation.metrics import compute_metrics, compute_metrics_with_logistic_mapping
 
@@ -26,7 +27,10 @@ def test_inverse_correlation():
 def test_mse_known_value():
     y_true = [0.0, 0.0, 0.0]
     y_pred = [1.0, 1.0, 1.0]
-    metrics = compute_metrics(y_true, y_pred)
+    # constant inputs make plcc/srocc undefined (NaN); scipy warns about this,
+    # which is expected here since this test only cares about mse.
+    with pytest.warns(ConstantInputWarning):
+        metrics = compute_metrics(y_true, y_pred)
     assert metrics["mse"] == pytest.approx(1.0)
 
 

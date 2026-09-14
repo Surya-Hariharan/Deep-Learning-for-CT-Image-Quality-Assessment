@@ -46,6 +46,7 @@ code referenced elsewhere in this project lives in `src/ct_iqa/`, not here."""
 code(
     """import json
 import os
+import sys
 from collections import Counter
 from pathlib import Path
 
@@ -54,24 +55,30 @@ import numpy as np
 from PIL import Image
 
 _cwd = Path.cwd()
-if not (_cwd / "data").exists() and (_cwd.parent.parent / "data").exists():
-    os.chdir(_cwd.parent.parent)  # notebooks/01_exploration/ -> repo root
+_repo_root = _cwd if (_cwd / "data").exists() else _cwd.parent.parent  # notebooks/01_exploration/ -> repo root
+os.chdir(_repo_root)
+if str(_repo_root / "src") not in sys.path:
+    sys.path.insert(0, str(_repo_root / "src"))  # only needed until `pip install -e .` is run
 print(f"working directory: {Path.cwd()}")
-%matplotlib inline"""
+%matplotlib inline
+
+from ct_iqa.config import ExperimentConfig"""
 )
 
 # 3. Dataset paths
 md(
     """## Configuration
 
-Dataset paths, per `configs/dataset.yaml` (the authoritative source for
-these paths -- see `src/ct_iqa/config.py`)."""
+Dataset paths, loaded via `ExperimentConfig.from_yaml_files()` -- the same
+single authoritative configuration source used by the training and
+evaluation notebooks (see `src/ct_iqa/config.py`, `configs/dataset.yaml`)."""
 )
 code(
-    """TRAIN_IMAGE_DIR = Path("data/raw/ldct_iqac/train/image")
-TRAIN_JSON_PATH = Path("data/labels/ldct_iqac/train.json")
-TEST_IMAGE_DIR = Path("data/raw/ldct_iqac/test/images")
-TEST_JSON_PATH = Path("data/labels/ldct_iqac/test.json")
+    """config = ExperimentConfig.from_yaml_files()
+TRAIN_IMAGE_DIR = Path(config.train_image_dir)
+TRAIN_JSON_PATH = Path(config.train_json_path)
+TEST_IMAGE_DIR = Path(config.test_image_dir)
+TEST_JSON_PATH = Path(config.test_json_path)
 
 for p in [TRAIN_IMAGE_DIR, TRAIN_JSON_PATH, TEST_IMAGE_DIR, TEST_JSON_PATH]:
     assert p.exists(), f"missing: {p}"
