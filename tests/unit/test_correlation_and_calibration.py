@@ -1,6 +1,6 @@
 """Tests for `ct_iqa.evaluation.correlation` and `ct_iqa.evaluation.calibration`,
 extracted from `ct_iqa.evaluation.metrics` (see
-docs/repository_architecture_audit.md, section 3/7). `test_metrics.py`
+docs/internal/repository_architecture_audit.md, section 3/7). `test_metrics.py`
 already covers `compute_metrics`/`compute_metrics_with_logistic_mapping`
 end-to-end; these tests exercise the extracted modules directly.
 """

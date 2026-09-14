@@ -25,7 +25,7 @@ dropout_p: 0.5
 # src/ct_iqa/models/radimagenet_weights.py).
 #
 # UPDATED 2026-09-13, after the scientific pipeline audit
-# (docs/repository_architecture_audit.md's successor audit): the converted
+# (docs/internal/repository_architecture_audit.md's successor audit): the converted
 # checkpoint now exists locally and has been verified to load cleanly --
 # 265/318 backbone keys matched, 0 unexpected keys, the remaining 53
 # "missing" keys are all non-learned `num_batches_tracked` counters (see

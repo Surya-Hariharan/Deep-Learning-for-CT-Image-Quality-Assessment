@@ -2,7 +2,7 @@
 locally-downloaded weight files.
 
 Split out of `tests/unit/test_radimagenet_weights.py` (see
-docs/repository_architecture_audit.md, section 3): both weight files here
+docs/internal/repository_architecture_audit.md, section 3): both weight files here
 are gitignored and not part of the repository, so these tests are skipped
 automatically unless a contributor has fetched/converted the real files
 locally (see weights/pretrained/radimagenet/resnet50/README.md).

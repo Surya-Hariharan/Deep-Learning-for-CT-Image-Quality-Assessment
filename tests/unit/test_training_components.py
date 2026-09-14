@@ -1,6 +1,6 @@
 """Tests for the training components extracted from `ct_iqa.training.trainer`
 into `ct_iqa.training.optimizers`, `ct_iqa.training.losses`, and
-`ct_iqa.training.checkpointing` (see docs/repository_architecture_audit.md,
+`ct_iqa.training.checkpointing` (see docs/internal/repository_architecture_audit.md,
 section 3).
 """
 

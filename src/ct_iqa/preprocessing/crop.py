@@ -1,7 +1,7 @@
 """Center-crop preprocessing for CT images.
 
 Extracted from `ct_iqa.data.ldct_iqac` (see
-docs/repository_architecture_audit.md, section 6 "Data Pipeline Audit") with
+docs/internal/repository_architecture_audit.md, section 6 "Data Pipeline Audit") with
 no change in behavior: this is still a CROP, never a resize, per Ohashi et
 al.: "each image was cropped to the central region according to the input
 size required by the model" -- done to preserve the original CT images'

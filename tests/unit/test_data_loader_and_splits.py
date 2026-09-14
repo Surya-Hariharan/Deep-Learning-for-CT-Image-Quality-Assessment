@@ -1,5 +1,5 @@
 """Tests for `ct_iqa.data.splits` and `ct_iqa.data.loader`, extracted from
-`ct_iqa.training.trainer` (see docs/repository_architecture_audit.md,
+`ct_iqa.training.trainer` (see docs/internal/repository_architecture_audit.md,
 section 3/6).
 """
 

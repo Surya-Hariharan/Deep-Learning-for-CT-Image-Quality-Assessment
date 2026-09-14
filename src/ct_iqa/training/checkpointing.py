@@ -3,7 +3,7 @@
 Checkpoints are written under an experiment's own directory
 (`experiments/<NNN_name>/checkpoint/`), never under `weights/` --
 `weights/pretrained/` is reserved for externally-sourced pretrained weights,
-never experiment-generated output (see docs/decisions/README.md).
+never experiment-generated output (see docs/internal/decisions/README.md).
 
 Checkpoint format (updated 2026-09-13, ahead of experiment 001's first real
 training run): a dict with `model_state_dict` plus whatever of

@@ -1,5 +1,5 @@
 """Tests for the preprocessing functions extracted from `ct_iqa.data.ldct_iqac`
-into `ct_iqa.preprocessing` (see docs/repository_architecture_audit.md,
+into `ct_iqa.preprocessing` (see docs/internal/repository_architecture_audit.md,
 section 6). These cover the same crop/normalize behavior previously only
 exercised indirectly through `LDCTIQACDataset.__getitem__`.
 """

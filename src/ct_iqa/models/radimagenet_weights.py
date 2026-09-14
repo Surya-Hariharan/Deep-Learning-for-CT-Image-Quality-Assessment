@@ -2,7 +2,7 @@
 state-dict compatible with `ct_iqa.models.resnet50.ResNet50Backbone`.
 
 Moved from `scripts/convert_radimagenet_weights.py` into the `ct_iqa`
-package (see docs/repository_architecture_audit.md): this is reusable,
+package (see docs/internal/repository_architecture_audit.md): this is reusable,
 tested implementation tied specifically to `ResNet50Backbone`'s layout, not
 a one-off script, and is already imported as library code by
 `tests/integration/test_radimagenet_weights_integration.py`. The conversion

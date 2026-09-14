@@ -50,7 +50,7 @@ this project's data preparation step is verification, not generation. See
 
 All dataset/preprocessing/model logic used below is **imported** from
 `src/ct_iqa/` -- nothing is reimplemented in this notebook (per
-`docs/repository_architecture_audit.md`, Rules 1-3). Only lightweight,
+`docs/internal/repository_architecture_audit.md`, Rules 1-3). Only lightweight,
 one-off file-integrity inspection code (Section 4) is written directly in
 this notebook, matching the convention already established in
 `notebooks/01_exploration/01_dataset_eda.ipynb`.
@@ -103,7 +103,7 @@ md(
 Paths come from `configs/dataset.yaml` via `ExperimentConfig` -- not
 hardcoded here, so this notebook can never silently drift from the
 authoritative dataset configuration (see
-`docs/repository_architecture_audit.md`, "Import/Dependency Problems")."""
+`docs/internal/repository_architecture_audit.md`, "Import/Dependency Problems")."""
 )
 code(
     """from collections import Counter

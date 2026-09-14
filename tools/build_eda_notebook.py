@@ -2,7 +2,7 @@
 
 Run this script to (re)build the notebook from the cell definitions below.
 Not part of the `ct_iqa` package -- a dev-time notebook-generation tool
-(see docs/repository_architecture_audit.md on why these generators live
+(see docs/internal/repository_architecture_audit.md on why these generators live
 under `tools/` rather than `scripts/`).
 
 The generated notebook is a research record: hand-editing the `.ipynb` JSON

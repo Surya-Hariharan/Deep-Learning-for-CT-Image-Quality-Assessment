@@ -3,6 +3,16 @@
 Date: 2026-09-12
 Scope: audit only. No files were moved, renamed, deleted, or rewritten while producing this document.
 
+**Status: historical snapshot, point-in-time, not the current tree.** The
+findings below (the `scripts/` directory, the pre-`ct_iqa` package layout,
+`data/train(ing)/`+`data/test(ing)/`, etc.) describe the repository as it
+existed on 2026-09-12 and motivated the restructuring/fixes that followed
+(see `docs/internal/decisions/README.md` for what changed and when; `src/`
+now contains only the `ct_iqa` package, and `scripts/` was replaced by
+`tools/`). Kept as-is, unedited, for provenance -- do not update this
+document's body to match the current tree; if you're looking for the
+current structure, read the tree itself or `README.md`.
+
 ## 1. Current Repository Structure
 
 ```
