@@ -10,7 +10,7 @@ training -> checkpoint). Held-out test-set evaluation lives in the separate
 checkpoint from disk rather than sharing in-memory state.
 
 Split out of the single, previous notebooks/02_ohashi_resnet50_ldct_iqac.ipynb
-(see docs/repository_architecture_audit.md, section 5): that notebook's
+(see docs/internal/repository_architecture_audit.md, section 5): that notebook's
 markdown narrative was previously written but never inserted into the
 notebook (a `def md(text): pass` no-op) -- this generator restores it as
 real markdown cells.
@@ -52,7 +52,7 @@ quality **regressor** on the **LDCT-IQAC** dataset.
 - All architecture/data/preprocessing/training code lives in the `ct_iqa`
   package (`src/ct_iqa/`) and is only **imported** below -- this notebook is
   an experiment runner, not an implementation surface (see
-  `docs/repository_architecture_audit.md`, Rules 1-3).
+  `docs/internal/repository_architecture_audit.md`, Rules 1-3).
 - Held-out test-set evaluation is a **separate notebook**
   (`notebooks/04_evaluation/01_test_set_evaluation.ipynb`) that loads this
   run's checkpoint from `experiments/001_resnet50_baseline/checkpoint/` --
@@ -278,6 +278,14 @@ lr=1e-3, **MSE** loss, batch size 64, 30 epochs. No scheduler, warmup,
 weight decay, augmentation, or mixed precision -- all deliberately absent
 so this run stays close to the paper's stated configuration.
 
+**Checkpoint selection metric**: `config.selection_metric` (default
+`"plcc"`, from `configs/training.yaml`) -- `trainer.train` now tracks
+PLCC/SROCC on the validation split every epoch and saves `best.pt` on
+whichever epoch improves this metric, not on validation loss alone (loss
+minimization does not guarantee maximum PLCC/SROCC, the metrics this
+project actually reports; see `docs/replication/deviations.md`). This is an
+implementation decision, not a paper detail.
+
 **Experiment 001 is now a real run**: `RUN_FULL_TRAINING = True` below is a
 deliberate choice, not an accidental default -- the smoke test above
 already confirmed the pipeline works, so this cell commits to the full
@@ -299,8 +307,11 @@ code(
 
 if RUN_FULL_TRAINING:
     history = train(model, train_loader, val_loader, config)
-    print(f"best epoch: {history.best_epoch}  best val loss: {history.best_val_loss:.6f}")
+    print(f"selection metric: {history.selection_metric}  best epoch: {history.best_epoch}  "
+          f"best {history.selection_metric}: {history.best_selection_value:.6f}")
+    print(f"best val loss (for reference, not the selection criterion): {history.best_val_loss:.6f}")
     print(f"final train loss: {history.train_loss[-1]:.6f}  final val loss: {history.val_loss[-1]:.6f}")
+    print(f"final val plcc: {history.val_plcc[-1]:.4f}  final val srocc: {history.val_srocc[-1]:.4f}")
 else:
     history = None
     print("RUN_FULL_TRAINING is False -- skipping the full training loop.")
@@ -308,19 +319,31 @@ else:
 )
 code(
     """if history is not None:
-    plt.figure(figsize=(6, 4))
-    plt.plot(history.train_loss, label="train")
-    plt.plot(history.val_loss, label="val")
-    plt.axvline(history.best_epoch, color="gray", linestyle="--", label="best epoch")
-    plt.xlabel("epoch")
-    plt.ylabel("MSE loss (normalized [0,1] target space)")
-    plt.legend()
-    plt.title("Training/validation loss -- experiment 001")
+    fig, (ax_loss, ax_corr) = plt.subplots(1, 2, figsize=(11, 4))
+
+    ax_loss.plot(history.train_loss, label="train")
+    ax_loss.plot(history.val_loss, label="val")
+    ax_loss.axvline(history.best_epoch, color="gray", linestyle="--", label="best epoch")
+    ax_loss.set_xlabel("epoch")
+    ax_loss.set_ylabel("MSE loss (normalized [0,1] target space)")
+    ax_loss.legend()
+    ax_loss.set_title("Training/validation loss")
+
+    ax_corr.plot(history.val_plcc, label="val PLCC")
+    ax_corr.plot(history.val_srocc, label="val SROCC")
+    ax_corr.axvline(history.best_epoch, color="gray", linestyle="--", label=f"best epoch ({history.selection_metric})")
+    ax_corr.set_xlabel("epoch")
+    ax_corr.set_ylabel("correlation")
+    ax_corr.legend()
+    ax_corr.set_title("Validation PLCC/SROCC (selection metric)")
+
+    plt.suptitle("Experiment 001 -- training/validation curves")
+    plt.tight_layout()
     figure_path = Path("results/figures/001_resnet50_baseline_training_curve.png")
     figure_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(figure_path, dpi=150, bbox_inches="tight")
     plt.show()
-    print(f"saved training curve to {figure_path}")
+    print(f"saved training curves to {figure_path}")
 else:
     print("No training history -- RUN_FULL_TRAINING was False in this run.")"""
 )
@@ -355,20 +378,22 @@ else:
 md(
     """## Checkpoint & Experiment Artifacts
 
-The best-validation-loss checkpoint is written to
+The checkpoint with the best `config.selection_metric` value
+(`"plcc"` by default) is written to
 `experiments/001_resnet50_baseline/checkpoint/best.pt` by
 `ct_iqa.training.trainer.train` (via `ct_iqa.training.checkpointing`) --
-including the optimizer state, epoch, val_loss, resolved config, and seed
-alongside the model weights, so the checkpoint alone documents what
-produced it. Experiment-generated checkpoints live under `experiments/`,
+including the optimizer state, epoch, val_loss, resolved config, seed, and
+`checkpoint_type` (`"best_<selection_metric>"`) alongside the model
+weights, so the checkpoint alone documents what produced it and what it was
+selected on. Experiment-generated checkpoints live under `experiments/`,
 never under `weights/` -- `weights/pretrained/` is reserved for
 externally-sourced pretrained weights only.
 
 Training/validation history and validation metrics are saved as
 machine-readable JSON under `experiments/001_resnet50_baseline/` (not
 `results/`, since they describe THIS run, not a final cross-experiment
-analysis artifact); the loss-curve figure was already saved to
-`results/figures/` above."""
+analysis artifact); the training/validation curve figure was already saved
+to `results/figures/` above."""
 )
 code(
     """experiment_dir = Path(config.experiment_dir)
@@ -379,10 +404,16 @@ if history is not None:
     history_record = {
         "train_loss": history.train_loss,
         "val_loss": history.val_loss,
+        "val_plcc": history.val_plcc,
+        "val_srocc": history.val_srocc,
+        "selection_metric": history.selection_metric,
         "best_epoch": history.best_epoch,
+        "best_selection_value": history.best_selection_value,
         "best_val_loss": history.best_val_loss,
         "final_train_loss": history.train_loss[-1],
         "final_val_loss": history.val_loss[-1],
+        "final_val_plcc": history.val_plcc[-1],
+        "final_val_srocc": history.val_srocc[-1],
         "epochs_completed": len(history.train_loss),
     }
     (experiment_dir / "history.json").write_text(json.dumps(history_record, indent=2))
@@ -417,10 +448,11 @@ fresh_model.to(config.device)
 fresh_model.eval()
 
 metadata = load_checkpoint_metadata(config.checkpoint_dir, map_location=config.device)
-print(f"checkpoint path      : {checkpoint_path}")
-print(f"checkpoint epoch     : {metadata.get('epoch')}")
-print(f"checkpoint val_loss  : {metadata.get('val_loss')}")
-print(f"checkpoint seed      : {metadata.get('seed')}")
+print(f"checkpoint path         : {checkpoint_path}")
+print(f"checkpoint epoch        : {metadata.get('epoch')}")
+print(f"checkpoint type         : {metadata.get('checkpoint_type')}")
+print(f"checkpoint val_loss     : {metadata.get('val_loss')}")
+print(f"checkpoint seed         : {metadata.get('seed')}")
 print(f"optimizer state saved: {'optimizer_state_dict' in metadata}")
 
 with torch.no_grad():
