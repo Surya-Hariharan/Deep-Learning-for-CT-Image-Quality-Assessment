@@ -1,7 +1,7 @@
 # Shared settings for study v2 (Experiments A, B, C). Experiment files in configs/experiments/ overlay this one.
 # Strict loader: unknown keys are rejected. Scientific choices are explicit here, with their evidence:
-#   bn_eps          -> docs/decisions/ADR-002-batchnorm-and-preprocessing.md (53/53 BN layers in the weights file)
-#   split_manifest  -> docs/decisions/ADR-003-split-and-test-discipline.md (frozen, never regenerated)
+#   bn_eps          -> docs/decisions/0002-batchnorm-and-preprocessing.md (53/53 BN layers in the weights file)
+#   split_manifest  -> docs/decisions/0003-split-and-test-discipline.md (frozen, never regenerated)
 #   hyperparameters -> historical starting recipe (batch 64, lr 1e-3, 30 epochs); NOT tuned on any test data.
 
 model:

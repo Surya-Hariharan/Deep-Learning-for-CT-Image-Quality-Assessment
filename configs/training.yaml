@@ -18,7 +18,7 @@ device: cuda
 # IMPLEMENTATION DECISION (not specified by the paper): which metric
 # `ct_iqa.training.trainer.train` uses to pick the "best" checkpoint.
 # PLCC is the primary IQA evaluation metric this project reports (see
-# docs/replication/final_results.md), so it -- not the training loss in
+# docs/replication/final-results.md), so it -- not the training loss in
 # normalized [0, 1] space -- is what model selection optimizes for.
 # "srocc" or "val_loss" are also accepted, for ablation/backward
 # compatibility. See docs/replication/deviations.md.

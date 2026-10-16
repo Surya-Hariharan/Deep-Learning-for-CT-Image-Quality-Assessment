@@ -1,5 +1,5 @@
 # Experiment A: reference ResNet50 regression (MSE). Differs from historical 001 in bn_eps and in the
-# 800/100/100 split; see docs/experiments/EXPERIMENT_A_REFERENCE.md.
+# 800/100/100 split; see docs/experiments/a-reference.md.
 model:
   name: resnet50_regression
 loss:
