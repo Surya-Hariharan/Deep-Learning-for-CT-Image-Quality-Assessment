@@ -9,7 +9,7 @@ simply unknown, that is stated as unknown.
 
 ## Dataset: LDCT-IQAC instead of the paper's own dataset
 
-**IMPLEMENTATION DECISION.** See `dataset_adaptation.md` for the full
+**IMPLEMENTATION DECISION.** See `dataset-adaptation.md` for the full
 comparison. Summary: LDCT-IQAC's human radiologist quality score is used as
 the regression target, not the paper's VIF metric.
 
@@ -109,7 +109,7 @@ a missing/incompatible file raises loudly instead.
 a fixed 30-epoch training run with no described checkpoint-selection or
 early-stopping procedure -- see `docs/paper/training.md`). Since this
 project reports and compares experiments primarily on PLCC/SROCC (raw
-`[0,4]` scale -- see `docs/replication/final_results.md`), not on training
+`[0,4]` scale -- see `docs/replication/final-results.md`), not on training
 loss, `ct_iqa.training.trainer.train` selects the saved `best.pt`
 checkpoint by the best validation-set PLCC seen during training
 (`config.selection_metric`, default `"plcc"` in `configs/training.yaml`),
@@ -123,7 +123,7 @@ loss alone could be presented as "validation-selected" while not actually
 being selected for the metric it's compared on. Experiment 001 was
 retrained under the corrected criterion; see
 `docs/internal/decisions/README.md` (2026-09-14 entry) for the mechanism
-and `docs/replication/final_results.md` section F for what changing the
+and `docs/replication/final-results.md` section F for what changing the
 criterion did and did not change about the measured result (both
 selection criteria still make experiment 001 outperform experiment 003).
 

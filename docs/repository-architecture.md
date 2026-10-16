@@ -76,7 +76,7 @@ repository root.
 ## Notebooks versus source
 
 Notebooks in `notebooks/` import `ct_iqa` and read run directories. The historical 001-003 notebooks, their generator scripts and `results/` were removed from the working tree
-(see [ARCHIVED_ARTIFACTS](ARCHIVED_ARTIFACTS.md)).
+(see [ARCHIVED_ARTIFACTS](archived-artifacts.md)).
 
 ## Where things live
 

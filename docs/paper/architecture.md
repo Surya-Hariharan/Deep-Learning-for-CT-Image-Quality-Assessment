@@ -14,7 +14,7 @@
 
 The paper also evaluates an **InceptionResNetV2** backbone; that is
 explicitly **out of scope** for this project (see
-`docs/replication/replication_scope.md`) and is not implemented anywhere in
+`docs/replication/replication-scope.md`) and is not implemented anywhere in
 `src/ct_iqa/`.
 
 ## What the paper does not specify

@@ -23,8 +23,8 @@ objective/uncertainty changes, not to a different backbone or pipeline.
 | Backbone | custom ResNet50, v1 strides | same (`models.backbone`) | RadImageNet Keras layout |
 | Head | Dropout 0.5, Linear(2048,1), Sigmoid | same | reference |
 | Pretrained weights | converted RadImageNet, no checksum recorded | same file, SHA-256 verified at load | provenance |
-| BatchNorm eps | train/validate 1e-3 (set on weight load), test 1e-5 (fresh model) | **1.001e-5 throughout** | [ADR-002](../decisions/ADR-002-batchnorm-and-preprocessing.md) |
-| Split | 900 train / 100 validation (`random_split`, seed 42) | 800 / 100 / 100 frozen manifest | [ADR-003](../decisions/ADR-003-split-and-test-discipline.md) |
+| BatchNorm eps | train/validate 1e-3 (set on weight load), test 1e-5 (fresh model) | **1.001e-5 throughout** | [ADR-002](../decisions/0002-batchnorm-and-preprocessing.md) |
+| Split | 900 train / 100 validation (`random_split`, seed 42) | 800 / 100 / 100 frozen manifest | [ADR-003](../decisions/0003-split-and-test-discipline.md) |
 | Checkpoint selection | val PLCC, 0-based epoch index in files | val PLCC, **1-based** epochs | consistency |
 | Device | CPU (001) | set at run time, recorded | hardware |
 | Optimizer, loss, lr, batch, epochs, dropout, seed | Adam, MSE, 1e-3, 64, 30, 0.5, 42 | same | historical starting recipe |
@@ -33,7 +33,7 @@ A is therefore "the historical recipe re-implemented on corrected infrastructure
 001. Whether A matches 001's validation behavior is itself an empirical question (PENDING).
 
 ## 5. Architecture and outputs
-See [MODEL_ARCHITECTURE](../MODEL_ARCHITECTURE.md) section 2. Output: `ModelOutput.mean` in [0, 1]; evaluation uses
+See [MODEL_ARCHITECTURE](../model-architecture.md) section 2. Output: `ModelOutput.mean` in [0, 1]; evaluation uses
 `denormalize_score` (x4).
 
 ## 6. Loss
@@ -43,7 +43,7 @@ See [MODEL_ARCHITECTURE](../MODEL_ARCHITECTURE.md) section 2. Output: `ModelOutp
 Frozen manifest, train 800 / validation 100 (calibration 100 unused by A). Official test: retrospective only.
 
 ## 8. Preprocessing
-Center crop 224, `2x - 1`, channel replication inside the model ([PREPROCESSING_AND_WEIGHTS](../PREPROCESSING_AND_WEIGHTS.md)).
+Center crop 224, `2x - 1`, channel replication inside the model ([PREPROCESSING_AND_WEIGHTS](../preprocessing-and-weights.md)).
 
 ## 9. Hyperparameters
 Adam lr 1e-3, no weight decay, batch 64, 30 epochs, dropout 0.5, seed 42. Not tuned in this study.
@@ -55,7 +55,7 @@ Adam lr 1e-3, no weight decay, batch 64, 30 epochs, dropout 0.5, seed 42. Not tu
 Highest validation PLCC; strict improvement; 1-based epoch; saved atomically to `checkpoints/best.pt`.
 
 ## 12. Metrics
-PLCC, SROCC, KROCC, MSE, MAE, RMSE (raw, [0, 4]) - [EVALUATION_METRICS](../EVALUATION_METRICS.md).
+PLCC, SROCC, KROCC, MSE, MAE, RMSE (raw, [0, 4]) - [EVALUATION_METRICS](../evaluation-metrics.md).
 
 ## 13. Baselines and ablations
 A is the baseline. It also serves as B's `lambda = 0` ablation row. Optional seed repeats change initialization and

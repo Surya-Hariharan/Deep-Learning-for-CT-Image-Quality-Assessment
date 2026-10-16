@@ -19,7 +19,7 @@ makes no novelty claim for the loss itself.
 
 ## 4. Architecture and outputs
 Same model as A (`resnet50_regression`). The ranking branch exists in training only
-([MODEL_ARCHITECTURE](../MODEL_ARCHITECTURE.md) section 3).
+([MODEL_ARCHITECTURE](../model-architecture.md) section 3).
 
 ## 5. Loss
 Within each mini-batch, with predicted means `f` (normalized) and raw scores `y`:

@@ -40,4 +40,4 @@ therefore not an untouched confirmatory set for any new study. The labels carry 
   between variants smaller than that cannot be called real. Paired bootstrap intervals are required for comparisons.
 - The calibration set of 100 gives a finite 90% conformal rank (k = 91 of 100) but only coarse coverage control.
 - Because the split is at image level, slices from one patient may sit in several partitions, which can make
-  validation and calibration optimistic. This is listed in `docs/LIMITATIONS_AND_THREATS.md`.
+  validation and calibration optimistic. This is listed in `docs/limitations-and-threats.md`.

@@ -1,12 +1,12 @@
 > **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
-> working tree. They remain in git history (commit `75be360` and earlier); see [`docs/ARCHIVED_ARTIFACTS.md`](../../docs/ARCHIVED_ARTIFACTS.md).
+> working tree. They remain in git history (commit `75be360` and earlier); see [`docs/archived-artifacts.md`](../../docs/archived-artifacts.md).
 
 # Experiment 001: ResNet50 baseline
 
 **Status: complete** — training and independent test-set evaluation both
 finished (2026-09-14, retrained after the checkpoint-selection fix below;
 originally completed 2026-09-13). This is the **best-performing** of the
-two completed runs; see [`docs/replication/final_results.md`](../../docs/replication/final_results.md)
+two completed runs; see [`docs/replication/final-results.md`](../../docs/replication/final-results.md)
 for the full analysis and comparison against experiment 003.
 
 **Retrained 2026-09-14**: the checkpoint is now selected by best validation
@@ -63,7 +63,7 @@ n=300:
 Predictions overpredict the mean ground-truth score by +0.186 on the
 `[0,4]` scale. For the full bias/residual analysis and how this run
 compares to experiment 003, see
-[`docs/replication/final_results.md`](../../docs/replication/final_results.md).
+[`docs/replication/final-results.md`](../../docs/replication/final-results.md).
 
 Artifacts: `results/predictions/001_resnet50_baseline_test_predictions.csv`,
 `results/metrics/001_resnet50_baseline_test_metrics.json`,

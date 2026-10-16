@@ -1,5 +1,5 @@
 > **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
-> working tree. They remain in git history (commit `75be360` and earlier); see `../../ARCHIVED_ARTIFACTS.md`.
+> working tree. They remain in git history (commit `75be360` and earlier); see `../../archived-artifacts.md`.
 
 # Decisions log
 
@@ -23,7 +23,7 @@ Checkpoints now record which metric selected them
 successor review) identified that the previous version selected the "best"
 checkpoint purely by minimum validation loss in normalized `[0, 1]` target
 space, while this project reports and compares experiments on raw-scale
-PLCC/SROCC (see `README.md`, `docs/replication/final_results.md`). Minimum
+PLCC/SROCC (see `README.md`, `docs/replication/final-results.md`). Minimum
 MSE does not guarantee maximum PLCC/SROCC, so a model selected on loss alone
 could be, and was being presented as, something it wasn't actually selected
 for.
@@ -40,7 +40,7 @@ this does NOT change experiment 002's own result: its LR ranking reads
 `selection_metric`), not which checkpoint file happened to be written to
 disk, and none of its per-trial checkpoints are reused downstream
 (experiment 003 trains from a fresh RadImageNet init, not from 001's or
-002's weights -- see `docs/replication/final_results.md`, section A). It
+002's weights -- see `docs/replication/final-results.md`, section A). It
 was not rerun. Experiment 003 (`build_final_training_notebook.py`) has its
 own hand-rolled training loop with no validation split and never calls
 `trainer.train`, so it is unaffected by this change and was not retrained.

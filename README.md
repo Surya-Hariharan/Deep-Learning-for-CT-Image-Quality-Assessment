@@ -16,7 +16,7 @@ The repository now also contains a configuration-driven framework for a new stud
 ResNet50 backbone: **A** reference regression (MSE), **B** ranking-aware regression (MSE + pairwise ranking), **C**
 uncertainty-aware regression (Gaussian NLL + split-conformal intervals). **Status: implemented and tested on synthetic
 data only; no study-v2 model has been trained and the official test set has not been used.** Start at
-[`docs/README.md`](docs/README.md); protocol in [`docs/EXPERIMENT_PROTOCOL.md`](docs/EXPERIMENT_PROTOCOL.md).
+[`docs/README.md`](docs/README.md); protocol in [`docs/experiment-protocol.md`](docs/experiment-protocol.md).
 
 ```bash
 uv sync --extra dev
@@ -26,7 +26,7 @@ uv run pytest tests/unit tests/regression tests/integration/test_study_synthetic
 
 Everything below this section describes the **historical experiments 001-003**, which are preserved unchanged. Their
 BatchNorm epsilon differed between training (1e-3) and test evaluation (1e-5); see
-[`docs/decisions/ADR-002-batchnorm-and-preprocessing.md`](docs/decisions/ADR-002-batchnorm-and-preprocessing.md).
+[`docs/decisions/0002-batchnorm-and-preprocessing.md`](docs/decisions/0002-batchnorm-and-preprocessing.md).
 
 ## What this is
 
@@ -75,7 +75,7 @@ for why it's an implementation decision, not a paper-specified detail.
 Under this selection rule, the validation-selected baseline (001) still
 outperforms the final full-data model (003) on every metric above — a
 genuine finding, investigated in
-[`docs/replication/final_results.md`](docs/replication/final_results.md).
+[`docs/replication/final-results.md`](docs/replication/final-results.md).
 These numbers are **not** compared against the original paper's reported
 values (different dataset, different label semantics — see
 [Research context](#research-context)).
@@ -103,7 +103,7 @@ needed to run the test suite and regenerate/execute notebooks.
 
 **The LDCT-IQAC images are not included or redistributed by this repository**
 (the dataset is published by the challenge organizers, see
-[`docs/DATASET_AND_LABELS.md`](docs/DATASET_AND_LABELS.md)). Only the derived label files
+[`docs/dataset-and-labels.md`](docs/dataset-and-labels.md)). Only the derived label files
 (`data/labels/ldct_iqac/{train,test}.json` — filename → quality score,
 no pixel data) are tracked in git.
 
@@ -163,7 +163,7 @@ python -m ct_iqa.cli train --config configs/experiments/a_reference.yaml --devic
 
 The historical experiments 001-003 (notebooks, generator scripts, result
 figures/tables) are no longer in the working tree; see
-[`docs/ARCHIVED_ARTIFACTS.md`](docs/ARCHIVED_ARTIFACTS.md) for what was removed
+[`docs/archived-artifacts.md`](docs/archived-artifacts.md) for what was removed
 and how to recover it from git history.
 
 Run the test suite with:
@@ -189,7 +189,7 @@ uv run pytest
 ├── tools/              split-manifest creation and checkpoint-structure inspection
 ├── weights/pretrained/  externally-sourced pretrained weights (gitignored)
 ├── experiments/         per-run checkpoints + config (gitignored binaries)
-├── (results/)           historical 001-003 outputs, removed from the tree; see docs/ARCHIVED_ARTIFACTS.md
+├── (results/)           historical 001-003 outputs, removed from the tree; see docs/archived-artifacts.md
 └── tests/unit/, tests/integration/
 ```
 
@@ -199,13 +199,13 @@ uv run pytest
   and evaluation exactly as the Ohashi et al. paper specifies them.
 - [`docs/replication/`](docs/replication/) — how this project adapts that
   methodology: dataset differences
-  ([`dataset_adaptation.md`](docs/replication/dataset_adaptation.md)),
+  ([`dataset-adaptation.md`](docs/replication/dataset-adaptation.md)),
   every deliberate deviation
   ([`deviations.md`](docs/replication/deviations.md)), seeding/split/
   reproducibility details
   ([`reproducibility.md`](docs/replication/reproducibility.md)), and the
   full results writeup
-  ([`final_results.md`](docs/replication/final_results.md)).
+  ([`final-results.md`](docs/replication/final-results.md)).
 - [`docs/internal/`](docs/internal/) — repository engineering history.
   Not needed to install, run, or understand the project.
 - [`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md)
@@ -227,7 +227,7 @@ a different regression target:
 | Training config | Adam, MSE, batch 64, 30 epochs, lr 1e-3 | Same |
 | Evaluation | PLCC / SROCC / KROCC, 5PL-mapped | Same raw metrics; 5PL calibration deferred |
 
-Full detail: [`docs/replication/dataset_adaptation.md`](docs/replication/dataset_adaptation.md)
+Full detail: [`docs/replication/dataset-adaptation.md`](docs/replication/dataset-adaptation.md)
 and [`docs/replication/deviations.md`](docs/replication/deviations.md).
 
 ## Limitations
@@ -247,7 +247,7 @@ and [`docs/replication/deviations.md`](docs/replication/deviations.md).
 - The final full-data model (003) performs worse than the
   validation-selected baseline (001) on the test set; the cause isn't
   fully determined — see
-  [`docs/replication/final_results.md`](docs/replication/final_results.md).
+  [`docs/replication/final-results.md`](docs/replication/final-results.md).
 - No statistical significance testing is implemented; all comparisons
   are descriptive.
 

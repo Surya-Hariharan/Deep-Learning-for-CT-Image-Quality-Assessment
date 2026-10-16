@@ -1,7 +1,7 @@
 # Research questions
 
 Hypotheses are statements to be tested; none has been tested yet. Results belong only in
-[RESULTS_AND_COMPARISON](RESULTS_AND_COMPARISON.md).
+[RESULTS_AND_COMPARISON](results-and-comparison.md).
 
 ## Primary question
 
@@ -31,7 +31,7 @@ radiologist quality scores, or provide useful uncertainty, relative to the refer
 
 ## Evaluation criteria
 
-Metrics in [EVALUATION_METRICS](EVALUATION_METRICS.md) on the validation partition; comparisons by paired bootstrap;
+Metrics in [EVALUATION_METRICS](evaluation-metrics.md) on the validation partition; comparisons by paired bootstrap;
 the official test set is evaluated once per frozen model and is retrospective.
 
 ## Not in scope

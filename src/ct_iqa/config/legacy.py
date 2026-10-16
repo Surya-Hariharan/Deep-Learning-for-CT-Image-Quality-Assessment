@@ -135,7 +135,7 @@ class ExperimentConfig:
     in_channels: int = 1
 
     # --- dataset paths (LDCT-IQAC -- our dataset, NOT the paper's own
-    #     dataset; see docs/replication/dataset_adaptation.md) ---
+    #     dataset; see docs/replication/dataset-adaptation.md) ---
     train_image_dir: str = _DEFAULT_TRAIN_IMAGE_DIR
     train_json_path: str = _DEFAULT_TRAIN_JSON_PATH
     test_image_dir: str = _DEFAULT_TEST_IMAGE_DIR

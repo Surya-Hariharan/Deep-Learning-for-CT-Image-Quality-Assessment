@@ -33,5 +33,5 @@ not removed.
 ## Caveat
 
 Running the historical notebooks or generators after restoring them can overwrite checkpoints and evaluate the official
-test set; see [`audit/VALIDATION_REPORT.md`](audit/VALIDATION_REPORT.md) and the study-v2
-[`EXPERIMENT_PROTOCOL.md`](EXPERIMENT_PROTOCOL.md) before doing so.
+test set; see [`audit/validation-report.md`](audit/validation-report.md) and the study-v2
+[`experiment-protocol.md`](experiment-protocol.md) before doing so.

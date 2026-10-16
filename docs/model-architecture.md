@@ -32,7 +32,7 @@ flowchart TD
 ```
 
 State-dict keys: `backbone.*`, `fc.weight`, `fc.bias`, identical to the historical `OhashiResNet50`
-(verified structurally for all six checkpoints, see [audit/CHECKPOINT_COMPATIBILITY.md](audit/CHECKPOINT_COMPATIBILITY.md)).
+(verified structurally for all six checkpoints, see [audit/checkpoint-compatibility.md](audit/checkpoint-compatibility.md)).
 
 ## 3. Experiment B: ranking-aware training path (training only)
 

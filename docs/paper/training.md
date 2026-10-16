@@ -31,5 +31,5 @@ The regression **target** used during training in the paper is the VIF
 score computed from synthetically-degraded images (see
 `docs/paper/preprocessing.md`). This project's training loop instead
 regresses against LDCT-IQAC's radiologist-assigned quality score -- see
-`docs/replication/dataset_adaptation.md` and
+`docs/replication/dataset-adaptation.md` and
 `docs/replication/deviations.md`.

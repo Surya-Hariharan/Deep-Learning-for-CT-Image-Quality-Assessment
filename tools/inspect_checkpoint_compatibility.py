@@ -7,7 +7,7 @@ computed, and no checkpoint is modified (SHA-256 is recorded before and after).
 
 Usage (from the repository root):
     python tools/inspect_checkpoint_compatibility.py
-Writes docs/audit/CHECKPOINT_COMPATIBILITY.md and .json.
+Writes docs/audit/checkpoint-compatibility.md and .json.
 """
 
 from __future__ import annotations
@@ -101,7 +101,7 @@ def main() -> None:
         lines.append(f"| `{r['path']}` | {r['checkpoint_type']} | {r['epoch_index_0based']} | `{r['stored_config_subset']}` | `{r['sha256_before'][:16]}...` |")
     lines += ["", "Matching key names alone do not establish identical behavior: BatchNorm epsilon is not stored in a",
               "state_dict (see ADR-002). Structural compatibility is a necessary, not a sufficient, condition.", ""]
-    (out / "CHECKPOINT_COMPATIBILITY.md").write_text("\n".join(lines), encoding="utf-8")
+    (out / "checkpoint-compatibility.md").write_text("\n".join(lines), encoding="utf-8")
     print("\n".join(lines))
 
 

@@ -16,7 +16,7 @@ images' spatial resolution rather than compressing/interpolating it away.
 - **Source image format.** The paper's own dataset construction/format is
   not something this project has independently verified beyond what is
   needed to replicate the preprocessing steps above. See
-  `docs/replication/dataset_adaptation.md` for this project's dataset
+  `docs/replication/dataset-adaptation.md` for this project's dataset
   (LDCT-IQAC) and its actual on-disk format (TIFF).
 - **Synthetic degradation.** The paper's own methodology (as referenced by
   this project's task brief) constructs training data by applying

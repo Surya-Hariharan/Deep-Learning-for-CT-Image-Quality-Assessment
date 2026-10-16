@@ -22,7 +22,7 @@ uncertainty; no ensembling or MC dropout is used, so none is claimed.
 ## 4. Architecture and outputs
 `resnet50_gaussian`: shared backbone, dropout 0.5, `fc` -> sigmoid -> `mu_n in [0,1]`, `fc_logvar` -> clamp[-10, 2] ->
 `s_n` (normalized-space log-variance). `ModelOutput(mean, log_var)`. The clamp keeps `exp(-s)` and `exp(s)` finite
-(unit-tested at the bounds with finite gradients). Diagram: [MODEL_ARCHITECTURE](../MODEL_ARCHITECTURE.md) section 4.
+(unit-tested at the bounds with finite gradients). Diagram: [MODEL_ARCHITECTURE](../model-architecture.md) section 4.
 
 ## 5. Loss
 `L_C = (1/(2N)) sum_i [exp(-s_i) (y_i - mu_i)^2 + s_i]` in the normalized space (constant omitted); matches

@@ -1,8 +1,8 @@
 # Experiment protocol (study v2)
 
 Status: **protocol drafted; split frozen; no experiment of this study has been run.** Frozen-protocol marker for
-test evaluation: not yet created (see "Freezing"). Decision records: [ADR-002](decisions/ADR-002-batchnorm-and-preprocessing.md),
-[ADR-003](decisions/ADR-003-split-and-test-discipline.md).
+test evaluation: not yet created (see "Freezing"). Decision records: [ADR-002](decisions/0002-batchnorm-and-preprocessing.md),
+[ADR-003](decisions/0003-split-and-test-discipline.md).
 
 ## Experiments
 
@@ -18,7 +18,7 @@ Historical experiments `001`-`003` are separate and immutable; their IDs are nev
 
 Frozen manifest: `experiments/study_v2/protocol/split_manifest.json` (800 train / 100 validation / 100 calibration,
 seed 2026, image-level). Official test set: 300 images, retrospective only. Preprocessing: center crop 224x224,
-`2x - 1`, grayscale replicated to 3 channels inside the model (see [PREPROCESSING_AND_WEIGHTS](PREPROCESSING_AND_WEIGHTS.md)).
+`2x - 1`, grayscale replicated to 3 channels inside the model (see [PREPROCESSING_AND_WEIGHTS](preprocessing-and-weights.md)).
 Score scale: raw [0, 4]; training targets normalized to [0, 1]; all reported errors are in the [0, 4] scale.
 
 ## Common settings (identical across A, B, C)
@@ -52,7 +52,7 @@ guarantee. Guarantee assumptions: exchangeability of calibration and evaluation 
 PLCC, SROCC, KROCC, MSE, MAE, RMSE on raw [0, 4] scores (no logistic mapping; any 5PL mapping is reported
 separately and fitted on validation data only). For C additionally Gaussian NLL (reported in the normalized and
 [0, 4] scale, labeled), empirical coverage, interval width, and Spearman correlation between `sigma` and absolute error.
-Definitions: [EVALUATION_METRICS](EVALUATION_METRICS.md).
+Definitions: [EVALUATION_METRICS](evaluation-metrics.md).
 
 ## Comparing A, B, C
 
@@ -76,4 +76,4 @@ test set refuses to run without it.
 
 ## Commands
 
-See [REPRODUCIBILITY](REPRODUCIBILITY.md) (generated once the CLI exists).
+See [REPRODUCIBILITY](reproducibility.md) (generated once the CLI exists).

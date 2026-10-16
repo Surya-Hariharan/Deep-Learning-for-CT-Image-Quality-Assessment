@@ -26,7 +26,7 @@ audit's "Model Selection Mismatch in Training Loop" finding): the previous
 version of this module selected the "best" checkpoint purely by minimum
 validation loss in normalized [0, 1] target space. Minimum MSE does not
 guarantee maximum PLCC/SROCC -- the metrics this project actually reports
-and compares experiments on (see README.md, docs/replication/final_results.md)
+and compares experiments on (see README.md, docs/replication/final-results.md)
 -- so `train()` now computes PLCC/SROCC each epoch (on raw [0, 4] scores,
 via `ct_iqa.evaluation.correlation`) and selects on `config.selection_metric`
 (default `"plcc"`); `"val_loss"` remains available for backward

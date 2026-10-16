@@ -1,5 +1,5 @@
 > **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
-> working tree. They remain in git history (commit `75be360` and earlier); see [`docs/ARCHIVED_ARTIFACTS.md`](../../docs/ARCHIVED_ARTIFACTS.md).
+> working tree. They remain in git history (commit `75be360` and earlier); see [`docs/archived-artifacts.md`](../../docs/archived-artifacts.md).
 
 # Experiment 002: Learning Rate Search
 
@@ -51,7 +51,7 @@ fresh RadImageNet initialization). This experiment was not rerun.
 The Ohashi paper's own reported configuration uses learning rate 1e-3 for its
 ResNet50 baseline (see docs/paper/training.md) -- for the paper's own dataset and
 VIF-based regression target, not LDCT-IQAC. 
-This search's empirically-selected learning rate for LDCT-IQAC (1e-3) happens to match the paper's reported value. This is reported as an observation, not evidence that either dataset's choice is more 'correct' -- the two experiments differ in dataset and label semantics (see docs/replication/dataset_adaptation.md).
+This search's empirically-selected learning rate for LDCT-IQAC (1e-3) happens to match the paper's reported value. This is reported as an observation, not evidence that either dataset's choice is more 'correct' -- the two experiments differ in dataset and label semantics (see docs/replication/dataset-adaptation.md).
 
 ## Artifacts
 

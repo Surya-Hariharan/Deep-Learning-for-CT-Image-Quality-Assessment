@@ -46,13 +46,13 @@ the repository labels [repo]. The official page does not mention patient groupin
 
 ## Partitions used in study v2
 
-Frozen 800 / 100 / 100 split of the 1000 training images ([ADR-003](decisions/ADR-003-split-and-test-discipline.md),
+Frozen 800 / 100 / 100 split of the 1000 training images ([ADR-003](decisions/0003-split-and-test-discipline.md),
 `experiments/study_v2/protocol/split_manifest.json`, SHA-256 `be5831c5...0a16`). Label statistics by partition (from the
 manifest): train mean 2.105 (std 1.066), validation 1.954 (1.111), calibration 1.936 (1.001).
 
 ## Historical split (experiments 001-003)
 
-900 / 100 `random_split` with seed 42; unchanged and documented in `docs/replication/dataset_adaptation.md`
+900 / 100 `random_split` with seed 42; unchanged and documented in `docs/replication/dataset-adaptation.md`
 (earlier project notes on the same data).
 
 ## Access

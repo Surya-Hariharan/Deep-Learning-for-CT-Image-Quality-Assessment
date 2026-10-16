@@ -1,5 +1,5 @@
 > **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
-> working tree. They remain in git history (commit `75be360` and earlier); see `../ARCHIVED_ARTIFACTS.md`.
+> working tree. They remain in git history (commit `75be360` and earlier); see `../archived-artifacts.md`.
 
 # Reproducibility
 
@@ -179,7 +179,7 @@ directly). This project's protocol, in order:
 300-image test set exactly once. RAW test metrics: PLCC 0.8490, SROCC
 0.8525, KROCC 0.6611, MSE 0.4474, MAE 0.5195, RMSE 0.6689 (`[0,4]` scale).
 See `experiments/003_final_training/README.md` and
-`docs/replication/final_results.md` for the full record, including the
+`docs/replication/final-results.md` for the full record, including the
 baseline-vs-final comparison and observed prediction bias.
 
 **Test set contamination check:** training (experiment 003), LR selection

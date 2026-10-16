@@ -1,6 +1,6 @@
 # Preprocessing and pretrained weights
 
-Decision record: [ADR-002](decisions/ADR-002-batchnorm-and-preprocessing.md). Code: `src/ct_iqa/preprocessing/`,
+Decision record: [ADR-002](decisions/0002-batchnorm-and-preprocessing.md). Code: `src/ct_iqa/preprocessing/`,
 `src/ct_iqa/models/{backbone,weights,radimagenet_weights}.py`.
 
 ## Input pipeline (per image)

@@ -3,7 +3,7 @@
 `load_backbone_weights` loads a converted RadImageNet state-dict into a
 `ResNet50Backbone`. Unlike the historical `OhashiResNet50.load_radimagenet_weights`, it
 NEVER modifies BatchNorm epsilon: epsilon is a construction-time property
-(`bn_eps`, see docs/decisions/ADR-002-batchnorm-and-preprocessing.md).
+(`bn_eps`, see docs/decisions/0002-batchnorm-and-preprocessing.md).
 
 The Keras `.h5` -> PyTorch conversion itself lives in `ct_iqa.models.radimagenet_weights`
 (unchanged); it is re-exported here as `convert`.

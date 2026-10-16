@@ -21,7 +21,7 @@ quality score directly from a CT image.
 
 Two backbone architectures are evaluated in the paper: **ResNet50** and
 **InceptionResNetV2**. This project implements and replicates **only the
-ResNet50 baseline** -- see `docs/replication/replication_scope.md`.
+ResNet50 baseline** -- see `docs/replication/replication-scope.md`.
 
 ## Files in this section
 

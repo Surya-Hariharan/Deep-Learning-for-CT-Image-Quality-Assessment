@@ -22,7 +22,7 @@ Stage 4 - architecture
 - Checkpoint compatibility matrix: all six historical checkpoints load strictly (structure only). ADR-001.
 
 Protocol freeze
-- Frozen 800/100/100 image-level split (seed 2026) with manifest hash; ADR-003; `EXPERIMENT_PROTOCOL.md`.
+- Frozen 800/100/100 image-level split (seed 2026) with manifest hash; ADR-003; `experiment-protocol.md`.
 
 Stage 5 - training infrastructure
 - Losses (MSE, margin ranking, Gaussian NLL), in-batch pair mask, selection policies, atomic run checkpoints,

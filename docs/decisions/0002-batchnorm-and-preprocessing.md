@@ -35,7 +35,7 @@ the `2x - 1` pixel mapping was attributed to RadImageNet's reference code withou
    `(p - 127.5) * 2 / 255` equals `2(p/255) - 1`, i.e. exactly `2x - 1` for `x = p / 255`.
    Status: **partially verified**. E4 documents it for the PyTorch release; no source states the convention for the
    TensorFlow `.h5` file used here, and the two releases may differ. It is adopted as the best-supported option
-   and flagged as an open assumption in `docs/PREPROCESSING_AND_WEIGHTS.md`.
+   and flagged as an open assumption in `docs/preprocessing-and-weights.md`.
 4. **Center crop (not resize) is retained**, as in the historical pipeline. E4 resizes to 224x224; the Ohashi
    method crops. This is a documented deviation from RadImageNet's example, chosen to keep native resolution.
 5. **Historical behavior is preserved, not rewritten.** `ct_iqa.models.ohashi_resnet50.OhashiResNet50` and
@@ -45,7 +45,7 @@ the `2x - 1` pixel mapping was attributed to RadImageNet's reference code withou
 ## Consequences
 
 - Experiment A uses `bn_eps = 1.001e-5` and therefore **differs from historical 001** (1e-3 train / 1e-5 eval).
-  The difference is recorded in `docs/experiments/EXPERIMENT_A_REFERENCE.md`.
+  The difference is recorded in `docs/experiments/a-reference.md`.
 - The effect of the historical mismatch on 001-003 predictions is **unquantified**: no inference was run.
   Historical metrics must not be re-labelled as produced at a single epsilon.
 - Applying a checkpoint trained at a different epsilon with `bn_eps = 1.001e-5` (e.g. loading 001 into the new

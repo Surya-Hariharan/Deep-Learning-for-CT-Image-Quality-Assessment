@@ -28,7 +28,7 @@ does not attempt to replicate from Ohashi et al.
 - **Synthetic degradation + VIF labeling**, the paper's own dataset
   construction pipeline. This project instead uses LDCT-IQAC, a dataset
   that already varies in real quality with human-assigned labels -- see
-  `dataset_adaptation.md`. There is no `src/ct_iqa/degradation/` or
+  `dataset-adaptation.md`. There is no `src/ct_iqa/degradation/` or
   `src/ct_iqa/labeling/` package, and none is planned unless this project's
   scope changes to require reproducing the paper's own dataset from
   scratch.

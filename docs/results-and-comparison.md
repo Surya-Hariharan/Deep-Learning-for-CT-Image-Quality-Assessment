@@ -7,7 +7,7 @@ the [0, 4] score scale; correlations are raw (no logistic mapping).
 ## 1. Historical experiments 001-003 (immutable)
 
 Test evaluation is on the official 300-image set; checkpoint-selection and BatchNorm context differ per row.
-Source (files removed from the working tree, recoverable from git history, see [ARCHIVED_ARTIFACTS](ARCHIVED_ARTIFACTS.md)): `results/metrics/001_resnet50_baseline_test_metrics.json`, `results/metrics/003_final_training_test_metrics.json`,
+Source (files removed from the working tree, recoverable from git history, see [ARCHIVED_ARTIFACTS](archived-artifacts.md)): `results/metrics/001_resnet50_baseline_test_metrics.json`, `results/metrics/003_final_training_test_metrics.json`,
 `results/tables/*.csv`.
 
 | Experiment | Run / checkpoint | Training data | Selection rule | Split evaluated | PLCC | SROCC | KROCC | MSE | MAE | RMSE |
@@ -35,7 +35,7 @@ causes (eps mismatch, image-level leakage within the training pool, distribution
 | Run ID | lambda / margin / delta | Split | PLCC | SROCC | KROCC | MSE | MAE | RMSE | Status |
 |---|---|---|---|---|---|---|---|---|---|
 | - | 0 (= A) | validation (100) | - | - | - | - | - | - | **NOT RUN** |
-| - | grid per [EXPERIMENT_B](experiments/EXPERIMENT_B_RANKING_AWARE.md) | validation (100) | - | - | - | - | - | - | **NOT RUN** |
+| - | grid per [EXPERIMENT_B](experiments/b-ranking-aware.md) | validation (100) | - | - | - | - | - | - | **NOT RUN** |
 
 ## 4. Experiment C (new)
 

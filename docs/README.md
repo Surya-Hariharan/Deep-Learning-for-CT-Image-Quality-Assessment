@@ -2,24 +2,24 @@
 
 Start with the root [`README.md`](../README.md). Suggested reading order for the study-v2 rebuild:
 
-1. [PROJECT_OVERVIEW](PROJECT_OVERVIEW.md) - purpose, scope, map, entry points
-2. [RESEARCH_QUESTIONS](RESEARCH_QUESTIONS.md) - questions, hypotheses, criteria
-3. [LITERATURE_REVIEW](LITERATURE_REVIEW.md) - Ohashi et al., RadImageNet, LDCT-IQAC
-4. [DATASET_AND_LABELS](DATASET_AND_LABELS.md) - verified facts, missing metadata
-5. [REPOSITORY_ARCHITECTURE](REPOSITORY_ARCHITECTURE.md) and [MODEL_ARCHITECTURE](MODEL_ARCHITECTURE.md) - modules and diagrams
-6. [PREPROCESSING_AND_WEIGHTS](PREPROCESSING_AND_WEIGHTS.md) - input pipeline, checksums, BatchNorm epsilon
-7. [EXPERIMENT_PROTOCOL](EXPERIMENT_PROTOCOL.md) and [EVALUATION_METRICS](EVALUATION_METRICS.md)
-8. Experiment specifications: [A](experiments/EXPERIMENT_A_REFERENCE.md), [B](experiments/EXPERIMENT_B_RANKING_AWARE.md), [C](experiments/EXPERIMENT_C_UNCERTAINTY_AWARE.md)
-9. [REPRODUCIBILITY](REPRODUCIBILITY.md), [RESULTS_AND_COMPARISON](RESULTS_AND_COMPARISON.md), [LIMITATIONS_AND_THREATS](LIMITATIONS_AND_THREATS.md), [CHANGELOG](CHANGELOG.md)
-10. [ARCHIVED_ARTIFACTS](ARCHIVED_ARTIFACTS.md) - historical notebooks, scripts and results removed from the tree, and how to recover them
+1. [Project Overview](project-overview.md) - purpose, scope, map, entry points
+2. [Research Questions](research-questions.md) - questions, hypotheses, criteria
+3. [Literature Review](literature-review.md) - Ohashi et al., RadImageNet, LDCT-IQAC
+4. [Dataset and Labels](dataset-and-labels.md) - verified facts, missing metadata
+5. [Repository Architecture](repository-architecture.md) and [Model Architecture](model-architecture.md) - modules and diagrams
+6. [Preprocessing and Weights](preprocessing-and-weights.md) - input pipeline, checksums, BatchNorm epsilon
+7. [Experiment Protocol](experiment-protocol.md) and [Evaluation Metrics](evaluation-metrics.md)
+8. Experiment specifications: [A](experiments/a-reference.md), [B](experiments/b-ranking-aware.md), [C](experiments/c-uncertainty-aware.md)
+9. [Reproducibility](reproducibility.md), [Results and Comparison](results-and-comparison.md), [Limitations and Threats](limitations-and-threats.md), [Changelog](CHANGELOG.md)
+10. [Archived Artifacts](archived-artifacts.md) - historical notebooks, scripts and results removed from the tree, and how to recover them
 
-Decision records: [ADR-001 model registry](decisions/ADR-001-model-registry.md),
-[ADR-002 BatchNorm and preprocessing](decisions/ADR-002-batchnorm-and-preprocessing.md),
-[ADR-003 split and test discipline](decisions/ADR-003-split-and-test-discipline.md).
+Decision records: [ADR 0001: model registry](decisions/0001-model-registry.md),
+[ADR 0002: BatchNorm and preprocessing](decisions/0002-batchnorm-and-preprocessing.md),
+[ADR 0003: split and test discipline](decisions/0003-split-and-test-discipline.md).
 
-Audit trail: [INITIAL_AUDIT](audit/INITIAL_AUDIT.md), [CLEANUP_MANIFEST](audit/CLEANUP_MANIFEST.md),
-[MIGRATION_MAP](audit/MIGRATION_MAP.md), [CHECKPOINT_COMPATIBILITY](audit/CHECKPOINT_COMPATIBILITY.md),
-[VALIDATION_REPORT](audit/VALIDATION_REPORT.md), backup hashes in `audit/BACKUP_MANIFEST.sha256`.
+Audit trail: [Initial Audit](audit/initial-audit.md), [Cleanup Manifest](audit/CLEANUP_MANIFEST.md),
+[Migration Map](audit/MIGRATION_MAP.md), [Checkpoint Compatibility](audit/checkpoint-compatibility.md),
+[Validation Report](audit/validation-report.md), backup hashes in `audit/BACKUP_MANIFEST.sha256`.
 
 Historical material (kept unchanged as the record of experiments 001-003):
 

@@ -3,7 +3,7 @@
 (Moved from `ct_iqa.models.resnet50`, which now re-exports this module. The only
 functional change is the explicit `bn_eps` constructor argument: BatchNorm epsilon
 is fixed at construction and is never modified by weight loading. See
-docs/decisions/ADR-002-batchnorm-and-preprocessing.md.)
+docs/decisions/0002-batchnorm-and-preprocessing.md.)
 
 `torchvision` is not installed in this project's environment, so the
 backbone is implemented directly in PyTorch rather than imported. This is

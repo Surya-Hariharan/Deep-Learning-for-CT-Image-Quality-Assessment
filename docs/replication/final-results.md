@@ -1,5 +1,5 @@
 > **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
-> working tree. They remain in git history (commit `75be360` and earlier); see `../ARCHIVED_ARTIFACTS.md`.
+> working tree. They remain in git history (commit `75be360` and earlier); see `../archived-artifacts.md`.
 
 # Final results
 
@@ -421,7 +421,7 @@ Both experiments 001 and 003 are **Ohashi-style RadImageNet ResNet50
 models adapted to LDCT-IQAC**, not exact reproductions of the paper. The
 paper regresses a synthetic-degradation-derived VIF score on its own
 dataset; this project regresses LDCT-IQAC's real radiologist-assigned
-quality score. See `docs/replication/dataset_adaptation.md` and
+quality score. See `docs/replication/dataset-adaptation.md` and
 `docs/replication/deviations.md` for the full, itemized list of paper
 facts vs. implementation decisions. The PLCC/SROCC/KROCC values reported
 above are never compared numerically against the paper's own reported

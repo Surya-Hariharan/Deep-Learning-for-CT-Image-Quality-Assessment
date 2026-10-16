@@ -14,7 +14,7 @@ factory, and about 25 call sites constructed the class directly. Experiments B a
    experiments and losses state explicitly which outputs they need.
 3. Head layer attribute names (`dropout`, `fc`, `fc_logvar`) are kept at module top level so the regression model's
    `state_dict` keys equal the historical class's (`backbone.*`, `fc.*`). All six historical checkpoints load strictly
-   into it ([CHECKPOINT_COMPATIBILITY](../audit/CHECKPOINT_COMPATIBILITY.md)); on synthetic weights the outputs equal the
+   into it ([CHECKPOINT_COMPATIBILITY](../audit/checkpoint-compatibility.md)); on synthetic weights the outputs equal the
    legacy class's at equal epsilon (`tests/regression/test_legacy_compatibility.py`).
 4. `OhashiResNet50` and its module are **kept unchanged** (not turned into an alias). Rationale: it carries the historical
    weight-load side effect on epsilon that the old runs depended on; rewriting it as a wrapper would risk silently changing
