@@ -27,6 +27,25 @@ def latest_completed_run(experiment_id: str, output_root: str | Path = "experime
     return runs[-1] if runs else None
 
 
+def select_run(experiment_id: str, run_id: str | None = None,
+               output_root: str | Path = "experiments/study_v2") -> Path | None:
+    """Pick one completed run explicitly.
+
+    With `run_id`, return that run (error if it is not a completed run of the experiment). Without it, return the
+    only completed run, `None` if there is none, and raise if several exist, so a notebook can never silently
+    use an arbitrary hyperparameter-grid or repeated run.
+    """
+    runs = completed_runs(experiment_id, output_root)
+    names = [p.name for p in runs]
+    if run_id is not None:
+        if run_id not in names:
+            raise ValueError(f"{run_id!r} is not a completed run of {experiment_id}; completed runs: {names}")
+        return runs[names.index(run_id)]
+    if len(runs) > 1:
+        raise ValueError(f"{len(runs)} completed runs of {experiment_id}; set RUN_ID to one of: {names}")
+    return runs[0] if runs else None
+
+
 def read_predictions(run_dir: str | Path, name: str = "predictions_validation.csv") -> dict[str, list]:
     """Columns of a predictions CSV as lists (strings for filename, floats otherwise)."""
     with (Path(run_dir) / name).open(newline="", encoding="utf-8") as f:
