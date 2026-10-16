@@ -172,6 +172,44 @@ def test_select_stage1_no_eligible_point(tmp_path):
     assert rec["selected"] is None and "A remains" in rec["outcome"]
 
 
+def _complete_stage2(tmp_path, lam, rmses, corrs):
+    for i, (p, rmse, c) in enumerate(zip(grid.b_grid_stage2(lam), rmses, corrs)):
+        _fake_run(tmp_path, grid.B_EXPERIMENT_ID, f"s{i}", loss="mse_ranking", ranking=p,
+                  metrics={"plcc": c, "srocc": c, "krocc": c, "mse": rmse ** 2, "mae": rmse, "rmse": rmse})
+
+
+def test_select_final_needs_a_written_stage1_record_and_a_complete_stage2(tmp_path):
+    a = _fake_run(tmp_path, "A_reference_resnet50", "a1")
+    _complete_stage1(tmp_path, [0.30, 0.32, 0.31, 0.30], [0.85, 0.95, 0.90, 0.70])
+    with pytest.raises(FileNotFoundError, match="stage-1 selection record"):
+        grid.select_final(a, seed=42, output_root=tmp_path)
+    grid.write_selection_record(grid.select_stage1(a, seed=42, output_root=tmp_path), tmp_path)
+    with pytest.raises(ValueError, match="stage 2 / final selection is incomplete"):
+        grid.select_final(a, seed=42, output_root=tmp_path)
+    with pytest.raises(ValueError, match="seed 43"):
+        grid.stage1_lambda(a, seed=43, output_root=tmp_path)
+
+
+def test_select_final_covers_all_seven_configurations(tmp_path):
+    a = _fake_run(tmp_path, "A_reference_resnet50", "a1")                         # rmse 0.3, mean corr 0.8
+    _complete_stage1(tmp_path, [0.30, 0.32, 0.31, 0.30], [0.85, 0.95, 0.90, 0.70])   # stage 1 picks lambda 0.3
+    grid.write_selection_record(grid.select_stage1(a, seed=42, output_root=tmp_path), tmp_path)
+    # stage 2 at lambda 0.3: margin 0.02 -> corr 0.93 ok; margin 0.1 -> 0.99 but RMSE fails; delta 0.5 -> 0.92 ok
+    _complete_stage2(tmp_path, 0.3, [0.30, 0.40, 0.30], [0.93, 0.99, 0.92])
+    rec = grid.select_final(a, seed=42, output_root=tmp_path)
+    assert rec["stage"] == 2 and rec["stage1_lambda"] == 0.3 and len(rec["candidates"]) == 7
+    assert rec["selected"]["run_id"] == "s0"                                      # a stage-2 point beats the stage-1 pick
+    assert grid.final_point(rec) == {"lambda_rank": 0.3, "margin": 0.02, "min_score_diff": 0.25}
+    assert grid.write_selection_record(rec, tmp_path).name == "selection_record_stage2.json"
+
+
+def test_final_point_refuses_wrong_stage_or_empty_selection():
+    with pytest.raises(ValueError, match="stage-2"):
+        grid.final_point({"stage": 1, "selected": {}})
+    with pytest.raises(ValueError, match="nothing to retrain"):
+        grid.final_point({"stage": 2, "selected": None})
+
+
 def test_config_frame_side_by_side():
     a = load_study_config(REPO / "configs/experiments/a_reference.yaml", REPO / "configs/base.yaml").to_dict()
     b = load_study_config(REPO / "configs/experiments/b_ranking_aware.yaml", REPO / "configs/base.yaml").to_dict()

@@ -43,6 +43,14 @@ validation RMSE is within 5% of A's, choose the highest mean of validation (PLCC
 more than the paired-bootstrap 95% interval half-width, report "no demonstrated improvement" and keep A as the
 recommended model. The `lambda = 0` ablation is A itself (the equality of the objectives is unit-tested).
 
+Interpretation of "among configurations" (fixed before any B run, which is still NOT RUN): the rule is applied to
+all 7 declared configurations (4 stage-1 points plus the 3 stage-2 points at the stage-1 lambda), at the tuning seed
+42; the stage-1 lambda only decides which stage-2 points exist, and is read from the written stage-1 selection
+record. Ties keep the earlier point. The result is a final selection record (`selection_record_stage2.json`).
+Final retraining reruns that one configuration at an explicitly listed set of seeds; a seed whose run already
+exists is reused, so including seed 42 reuses the tuning run, whose validation numbers are selection-biased. Model
+selection never uses calibration or official-test data. The seed list is a separate protocol decision.
+
 ## 8. Evaluation and comparison
 Metrics as A. Comparison with A on the validation partition via `evaluation.bootstrap.paired_bootstrap_difference`
 (unit: image, optimistic because patient grouping is unknown). Seed repeats, if affordable, report the spread.

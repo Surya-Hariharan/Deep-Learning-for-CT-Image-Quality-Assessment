@@ -116,27 +116,16 @@ def bootstrap_mean_corr_difference(y, pred_a, pred_b, n_boot: int = 2000, seed: 
             "ci_low": float(lo), "ci_high": float(hi), "half_width": float((hi - lo) / 2), "n_boot_used": int(len(d))}
 
 
-def select_stage1(a_run_dir: str | Path, seed: int, output_root: str | Path = "experiments/study_v2") -> dict:
-    """Apply the declared stage-1 rule to completed validation results; return a selection record (not written).
-
-    Rule (b-ranking-aware.md section 7): among grid points whose validation RMSE is within 5% of A's, take the
-    highest mean of validation (PLCC, SROCC, KROCC); if it does not exceed A by more than the paired-bootstrap 95%
-    half-width, the outcome is "no demonstrated improvement" and A stays the recommended model.
-    Operationalization used here: the bootstrap is of the mean-of-three-correlations difference (B - A).
-    """
-    a = run_summary(a_run_dir)
-    if a["manifest"]["loss"] != "mse":
-        raise ValueError(f"{a_run_dir} is not an Experiment A (mse) run")
-    points = b_grid_stage1()
+def _candidate_rows(points: list[dict], seed: int, output_root: str | Path, a_rmse: float, label: str) -> list[dict]:
+    """One validation row per grid point from its single completed run; refuses missing or ambiguous points."""
     done = completed_point_runs(points, seed, output_root)
     missing = [points[i] for i, ids in done.items() if not ids]
     dupes = {i: ids for i, ids in done.items() if len(ids) > 1}
     if missing:
-        raise ValueError(f"stage 1 is incomplete at seed {seed}; no completed run for {missing}")
+        raise ValueError(f"{label} is incomplete at seed {seed}; no completed run for {missing}")
     if dupes:
         raise ValueError(f"ambiguous: several completed runs for one grid point at seed {seed}: {dupes}")
     root = Path(output_root) / B_EXPERIMENT_ID / "runs"
-    a_rmse, a_corr = a["metrics"]["rmse"], _mean_corr(a["metrics"])
     rows = []
     for i, p in enumerate(points):
         s = run_summary(root / done[i][0])
@@ -144,18 +133,25 @@ def select_stage1(a_run_dir: str | Path, seed: int, output_root: str | Path = "e
         rows.append({**p, "seed": seed, "run_id": done[i][0], "best_epoch": s["manifest"]["best_epoch_1based"],
                      **{k: m[k] for k in ("plcc", "srocc", "krocc", "mse", "mae", "rmse")},
                      "mean_corr": _mean_corr(m), "rmse_within_5pct_of_A": m["rmse"] <= (1 + RMSE_TOLERANCE) * a_rmse})
+    return rows
+
+
+def _apply_rule(a: dict, rows: list[dict], stage: int, seed: int, output_root: str | Path, rule_note: str) -> dict:
+    """The declared rule over `rows` (RMSE guard, highest mean correlation, paired bootstrap against A)."""
+    root = Path(output_root) / B_EXPERIMENT_ID / "runs"
+    a_rmse, a_corr = a["metrics"]["rmse"], _mean_corr(a["metrics"])
     eligible = [r for r in rows if r["rmse_within_5pct_of_A"]]
-    record = {"created_utc": utc_now(), "experiment_id": B_EXPERIMENT_ID, "stage": 1, "seed": seed,
+    record = {"created_utc": utc_now(), "experiment_id": B_EXPERIMENT_ID, "stage": stage, "seed": seed,
               "partition": "validation (also used for checkpoint selection: selection-biased, exploratory)",
               "rule_source": GRID_DOC + " section 7",
               "rule": "RMSE within 5% of A; highest mean(PLCC, SROCC, KROCC); improvement only if the paired-bootstrap "
-                      "mean-correlation difference exceeds its 95% half-width",
+                      "mean-correlation difference exceeds its 95% half-width. " + rule_note,
               "reference_run": a["run_dir"].name, "reference_rmse": a_rmse, "reference_mean_corr": a_corr,
               "candidates": rows}
     if not eligible:
         record.update(selected=None, outcome="no grid point passes the RMSE guard; A remains the recommended model")
         return record
-    best = max(eligible, key=lambda r: r["mean_corr"])           # ties keep the earlier (smaller-lambda) point
+    best = max(eligible, key=lambda r: r["mean_corr"])           # ties keep the earlier point in list order
     pa = read_predictions(a["run_dir"])
     pb = read_predictions(root / best["run_id"])
     if pa["filename"] != pb["filename"]:
@@ -166,6 +162,73 @@ def select_stage1(a_run_dir: str | Path, seed: int, output_root: str | Path = "e
                   outcome=("selected configuration exceeds A by more than the bootstrap half-width" if improved else
                            "no demonstrated improvement: A remains the recommended model"))
     return record
+
+
+def _reference_a(a_run_dir: str | Path) -> dict:
+    a = run_summary(a_run_dir)
+    if a["manifest"]["loss"] != "mse":
+        raise ValueError(f"{a_run_dir} is not an Experiment A (mse) run")
+    return a
+
+
+def select_stage1(a_run_dir: str | Path, seed: int, output_root: str | Path = "experiments/study_v2") -> dict:
+    """Apply the declared stage-1 rule to completed validation results; return a selection record (not written).
+
+    Rule (b-ranking-aware.md section 7): among grid points whose validation RMSE is within 5% of A's, take the
+    highest mean of validation (PLCC, SROCC, KROCC); if it does not exceed A by more than the paired-bootstrap 95%
+    half-width, the outcome is "no demonstrated improvement" and A stays the recommended model.
+    Operationalization used here: the bootstrap is of the mean-of-three-correlations difference (B - A).
+    """
+    a = _reference_a(a_run_dir)
+    rows = _candidate_rows(b_grid_stage1(), seed, output_root, a["metrics"]["rmse"], "stage 1")
+    return _apply_rule(a, rows, 1, seed, output_root, "Candidates: the 4 stage-1 points.")
+
+
+def load_selection_record(stage: int, output_root: str | Path = "experiments/study_v2") -> dict:
+    path = Path(output_root) / B_EXPERIMENT_ID / f"selection_record_stage{stage}.json"
+    if not path.is_file():
+        raise FileNotFoundError(f"{path} does not exist; write the stage-{stage} selection record first")
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def stage1_lambda(a_run_dir: str | Path, seed: int, output_root: str | Path = "experiments/study_v2") -> float:
+    """The lambda chosen in stage 1, read from the WRITTEN stage-1 record (never typed by hand).
+
+    Refuses a record made for another seed or another A reference run, or one that selected nothing."""
+    rec = load_selection_record(1, output_root)
+    a_name = Path(a_run_dir).name
+    if rec["seed"] != seed or rec["reference_run"] != a_name:
+        raise ValueError(f"the stage-1 record was made for seed {rec['seed']} / A run {rec['reference_run']}, "
+                         f"not seed {seed} / A run {a_name}")
+    if rec["selected"] is None:
+        raise ValueError("stage 1 selected no point (RMSE guard failed for all); there is no lambda for stage 2")
+    return rec["selected"]["lambda_rank"]
+
+
+def select_final(a_run_dir: str | Path, seed: int, output_root: str | Path = "experiments/study_v2") -> dict:
+    """Final B configuration: the declared rule applied to ALL declared configurations (4 stage-1 points plus the
+    3 stage-2 sensitivity points at the stage-1 lambda), at the tuning seed. Returns a record (not written).
+
+    This reads the section-7 phrase "among configurations" as covering both stages; the stage-1 lambda only decides
+    which stage-2 points exist. Ties keep the earlier point (stage 1 before stage 2, smaller lambda first)."""
+    lam = stage1_lambda(a_run_dir, seed, output_root)
+    a = _reference_a(a_run_dir)
+    points = b_grid_stage1() + b_grid_stage2(lam)
+    rows = _candidate_rows(points, seed, output_root, a["metrics"]["rmse"], "stage 2 / final selection")
+    record = _apply_rule(a, rows, 2, seed, output_root,
+                         f"Candidates: all 7 declared configurations (stage 1 plus stage 2 at lambda {lam}).")
+    record["stage1_lambda"] = lam
+    return record
+
+
+def final_point(record: dict) -> dict:
+    """The grid point to retrain, from a final selection record; refuses a record that selected nothing."""
+    if record.get("stage") != 2:
+        raise ValueError("final retraining needs the final (stage-2) selection record")
+    if record["selected"] is None:
+        raise ValueError("the final selection chose no configuration (RMSE guard failed for all); "
+                         "there is nothing to retrain")
+    return {k: record["selected"][k] for k in ("lambda_rank", "margin", "min_score_diff")}
 
 
 def write_selection_record(record: dict, output_root: str | Path = "experiments/study_v2") -> Path:
