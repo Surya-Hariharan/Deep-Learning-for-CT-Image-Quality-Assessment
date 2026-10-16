@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -126,14 +127,23 @@ def fit(model: nn.Module, loss_fn, train_loader: DataLoader, val_loader: DataLoa
                 config=cfg.to_dict(), run_id=run_id, selection_policy=cfg.train.selection_metric)
         logger.info("epoch %d/%d train_loss=%.5f val_loss=%.5f val_plcc=%.4f%s", epoch, cfg.train.epochs,
                     train_loss, ev.loss, pm["plcc"], " *" if selected else "")
+        _write_history(run_dir, cfg, selector, epochs, complete=False)   # survives a crash in a later epoch
 
     if selector.best_epoch == 0:
         raise RuntimeError("no checkpoint was selected (all selection metrics were NaN)")
+    return _write_history(run_dir, cfg, selector, epochs, complete=True)
+
+
+def _write_history(run_dir: Path, cfg, selector: Selector, epochs: list[dict], complete: bool) -> dict:
+    """Atomically (temp file + os.replace) write `<run_dir>/history.json`; `complete` is False until training ends."""
     history = {
-        "epoch_indexing": "1-based", "selection_policy": cfg.train.selection_metric,
+        "epoch_indexing": "1-based", "selection_policy": cfg.train.selection_metric, "complete": complete,
         "best_epoch": selector.best_epoch,
         "best_value": None if math.isnan(selector.best_value) else selector.best_value,
         "epochs": epochs,
     }
-    (Path(run_dir) / "history.json").write_text(json.dumps(history, indent=1), encoding="utf-8")
+    path = Path(run_dir) / "history.json"
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(history, indent=1), encoding="utf-8")
+    os.replace(tmp, path)
     return history

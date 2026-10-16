@@ -16,6 +16,50 @@ _EPOCH_COLUMNS = ("epoch", "train_loss", "val_loss", "val_plcc", "val_srocc", "v
                   "val_rmse", "selected")
 
 
+def _flatten(d: dict, prefix: str = "") -> dict:
+    out = {}
+    for k, v in d.items():
+        if isinstance(v, dict):
+            out.update(_flatten(v, f"{prefix}{k}."))
+        else:
+            out[f"{prefix}{k}"] = v
+    return out
+
+
+def config_frame(**configs: dict):
+    """Side-by-side table of one or more config dicts (`StudyConfig.to_dict()`), one row per `section.key`."""
+    import pandas as pd
+
+    return pd.DataFrame({name: pd.Series(_flatten(c), dtype=object) for name, c in configs.items()})
+
+
+def reproducibility_frame(summary: dict):
+    """What identifies a run: IDs, config, seed, device, split and weights hashes, selected epoch, artifact paths
+    (relative to the repository root, as recorded); `summary` is `ct_iqa.experiment.runs.run_summary(...)`."""
+    import pandas as pd
+
+    m, run_dir = summary["manifest"], summary["run_dir"]
+    w = m.get("pretrained_weights") or {}
+    rows = {
+        "run_id": m["run_id"], "experiment_id": m["experiment_id"], "status": m["status"],
+        "started / completed (UTC)": f"{m.get('started_utc')} / {m.get('completed_utc')}",
+        "git commit (dirty)": f"{(m.get('git') or {}).get('commit')} ({(m.get('git') or {}).get('dirty')})",
+        "model / loss / optimizer": f"{m['model']} / {m['loss']} / {m['optimizer']}",
+        "seed": m["seed"], "device requested": m["environment"].get("device_requested"),
+        "cuda device": m["environment"].get("cuda_device_name", "-"), "torch": m["environment"].get("torch"),
+        "bn_eps": m["bn_eps"], "split manifest": m["split_manifest"],
+        "split manifest SHA-256": m["split_manifest_sha256"],
+        "pretrained weights SHA-256 verified": w.get("sha256_verified"),
+        "overrides on top of the YAML": m.get("overrides", "(not recorded: run predates override logging)"),
+        "selection rule": m["selection_rule"], "selected epoch (1-based)": m.get("best_epoch_1based"),
+        "official test set used": m["official_test_set_used"],
+        "run directory": run_dir.as_posix(),
+        **{f"artifact: {a}": f"{(run_dir / a).as_posix()} (sha256 {h[:12]}...)"
+           for a, h in m.get("artifact_sha256", {}).items()},
+    }
+    return pd.DataFrame({"value": pd.Series(rows, dtype=object)})
+
+
 def metrics_frame(metrics: dict):
     """One-column table of the point metrics found in a metrics dict (raw [0, 4] scale)."""
     import pandas as pd
@@ -112,6 +156,137 @@ def plot_intervals(y, pred, sigma, q, target_coverage: float, terciles=None, tit
     fig.suptitle(title)
     fig.tight_layout()
     return fig
+
+
+def plot_loss_parts(history: dict, title: str = ""):
+    """Per-epoch loss components (train solid, validation dashed), e.g. mse / rank (B) or nll / mse (C), plus the
+    total objective; a second panel shows the fraction of eligible in-batch pairs when the run logged pair counts."""
+    import matplotlib.pyplot as plt
+
+    tr, va = loss_parts_frame(history, "train_loss_parts"), loss_parts_frame(history, "val_loss_parts")
+    total = history_frame(history)
+    parts = [c for c in tr.columns if not c.startswith("n_")]
+    pairs = "n_valid_pairs" in tr.columns and "n_possible_pairs" in tr.columns
+    fig, axes = plt.subplots(1, 2 if pairs else 1, figsize=(11 if pairs else 6, 3.8), squeeze=False)
+    ax = axes[0][0]
+    ax.plot(total.index, total["train_loss"], color="k", label="train total")
+    ax.plot(total.index, total["val_loss"], color="k", ls="--", label="validation total")
+    for i, c in enumerate(parts):
+        ax.plot(tr.index, tr[c], color=f"C{i}", label=f"train {c}")
+        if c in va.columns:
+            ax.plot(va.index, va[c], color=f"C{i}", ls="--", label=f"validation {c}")
+    ax.axvline(history["best_epoch"], ls=":", color="gray", label=f"selected epoch {history['best_epoch']}")
+    ax.set(xlabel="epoch (1-based)", ylabel="value (normalized score space)", title="Objective and its components")
+    ax.grid(alpha=0.3)
+    ax.legend(fontsize=8)
+    if pairs:
+        bx = axes[0][1]
+        bx.plot(tr.index, tr["n_valid_pairs"] / tr["n_possible_pairs"], label="train")
+        bx.plot(va.index, va["n_valid_pairs"] / va["n_possible_pairs"], ls="--", label="validation")
+        bx.set(xlabel="epoch (1-based)", ylabel="eligible / possible pairs", ylim=(0, 1.05),
+               title="Eligible in-batch pairs (sample-weighted mean)")
+        bx.grid(alpha=0.3)
+        bx.legend()
+    fig.suptitle(title)
+    fig.tight_layout()
+    return fig
+
+
+def plot_residuals(y, pred, title: str = ""):
+    """Residual (prediction - label) histogram and residual vs label, both on the [0, 4] scale, with n."""
+    import matplotlib.pyplot as plt
+
+    y, pred = np.asarray(y, dtype=float), np.asarray(pred, dtype=float)
+    r = pred - y
+    fig, (a0, a1) = plt.subplots(1, 2, figsize=(10, 3.8))
+    a0.hist(r, bins=20, color="tab:blue", alpha=0.8)
+    a0.axvline(0, color="k", ls="--", lw=1)
+    a0.set(xlabel="residual = prediction - label (score units)", ylabel="images",
+           title=f"Residual distribution (n = {len(r)}, mean = {r.mean():+.3f})")
+    a1.scatter(y, r, s=12, alpha=0.7)
+    a1.axhline(0, color="k", ls="--", lw=1)
+    a1.set(xlabel="label (0-4)", ylabel="residual (score units)", title="Residual vs label")
+    for a in (a0, a1):
+        a.grid(alpha=0.3)
+    fig.suptitle(title)
+    fig.tight_layout()
+    return fig
+
+
+def error_by_score_bin(y, pred, edges=(0.0, 1.0, 2.0, 3.0, 4.0)):
+    """Error summary per label range (last bin closed on the right), with the number of images per bin."""
+    import pandas as pd
+
+    y, pred = np.asarray(y, dtype=float), np.asarray(pred, dtype=float)
+    r = pred - y
+    rows = []
+    for i, (lo, hi) in enumerate(zip(edges[:-1], edges[1:])):
+        last = i == len(edges) - 2
+        m = (y >= lo) & ((y <= hi) if last else (y < hi))
+        n = int(m.sum())
+        rows.append({"label range": f"[{lo:g}, {hi:g}{']' if last else ')'}", "n": n,
+                     "mean residual": float(r[m].mean()) if n else math.nan,
+                     "MAE": float(np.abs(r[m]).mean()) if n else math.nan,
+                     "RMSE": float(np.sqrt((r[m] ** 2).mean())) if n else math.nan})
+    return pd.DataFrame(rows).set_index("label range")
+
+
+def plot_sigma_vs_error(sigma, abs_error, title: str = ""):
+    """Predicted sigma vs absolute error (both in score units); the dashed line is |error| = sigma."""
+    import matplotlib.pyplot as plt
+
+    sigma, abs_error = np.asarray(sigma, dtype=float), np.asarray(abs_error, dtype=float)
+    fig, ax = plt.subplots(figsize=(4.8, 4.2))
+    ax.scatter(sigma, abs_error, s=12, alpha=0.7)
+    top = float(max(sigma.max(), abs_error.max())) * 1.05
+    ax.plot([0, top], [0, top], "k--", lw=1, label="|error| = sigma")
+    ax.set(xlabel="predicted sigma (score units)", ylabel="|prediction - label| (score units)",
+           title=title or f"Uncertainty vs error (n = {len(sigma)})")
+    ax.grid(alpha=0.3)
+    ax.legend()
+    fig.tight_layout()
+    return fig
+
+
+def binned_sigma_calibration(sigma, error, n_bins: int = 5):
+    """Equal-count bins of predicted sigma: mean sigma vs observed RMSE of the error in each bin.
+
+    For a well-calibrated Gaussian predictor RMSE ~ mean sigma (ratio ~ 1); with ~20 images per bin the
+    estimate is noisy, so this is a diagnostic, not a test.
+    """
+    import pandas as pd
+
+    sigma, error = np.asarray(sigma, dtype=float), np.asarray(error, dtype=float)
+    order = np.argsort(sigma, kind="stable")
+    rows = []
+    for b, idx in enumerate(np.array_split(order, n_bins), start=1):
+        rmse = float(np.sqrt(np.mean(error[idx] ** 2)))
+        ms = float(sigma[idx].mean())
+        rows.append({"sigma bin": b, "n": int(len(idx)), "mean sigma": ms, "RMSE of error": rmse,
+                     "RMSE / mean sigma": rmse / ms})
+    return pd.DataFrame(rows).set_index("sigma bin")
+
+
+def clamp_hits(log_var_norm) -> dict:
+    """How many predicted log-variances sit exactly on the clamp bounds of `ct_iqa.models.heads`."""
+    from ct_iqa.models.heads import LOGVAR_MAX, LOGVAR_MIN
+
+    s = np.asarray(log_var_norm, dtype=float)
+    return {"n": int(len(s)), f"at lower bound {LOGVAR_MIN:g}": int(np.sum(s <= LOGVAR_MIN)),
+            f"at upper bound {LOGVAR_MAX:g}": int(np.sum(s >= LOGVAR_MAX)),
+            "min log-var": float(s.min()), "max log-var": float(s.max())}
+
+
+def seed_aggregate(rows, metrics=POINT_METRICS):
+    """Across-seed mean, SD (ddof = 1) and n of each metric, from one metrics dict per run.
+
+    This is training-randomness variability for a fixed configuration; it is a different quantity from an
+    image-bootstrap interval and the two must not be pooled.
+    """
+    import pandas as pd
+
+    df = pd.DataFrame([{m: r[m] for m in metrics} for r in rows])
+    return pd.DataFrame({"mean": df.mean(), "SD across seeds": df.std(ddof=1), "n seeds": len(df)})
 
 
 def plot_bootstrap_differences(results: dict, label: str, metrics=POINT_METRICS):

@@ -101,6 +101,46 @@ def test_experiment_c_calibration_uses_calibration_partition_and_reports_both_in
     assert "log_var_normalized" in csv_header
 
 
+def test_completed_run_records_overrides_complete_history_and_c_calibration_predictions(synthetic_root):
+    ov = {"train": {"device": "cpu"}}
+    run_dir = run_experiment(_cfg(synthetic_root, "resnet50_gaussian", "gaussian_nll", "C_ov"), overrides=ov)
+    m = json.loads((run_dir / "run_manifest.json").read_text())
+    assert m["overrides"] == ov and m["status"] == "completed"
+    assert json.loads((run_dir / "history.json").read_text())["complete"] is True
+    assert "predictions_calibration.csv" in m["artifact_sha256"]
+    rows = (run_dir / "predictions_calibration.csv").read_text().splitlines()
+    assert "log_var_normalized" in rows[0] and len(rows) == 1 + 8                 # 8 calibration images
+    from ct_iqa.experiment.report import reproducibility_frame
+    from ct_iqa.experiment.runs import run_summary
+    repro = reproducibility_frame(run_summary(run_dir))["value"]
+    assert repro["run_id"] == run_dir.name and repro["overrides on top of the YAML"] == ov
+    assert repro["artifact: predictions_calibration.csv"].startswith(run_dir.as_posix())
+
+
+def test_failure_marks_run_failed_and_keeps_per_epoch_history(synthetic_root, monkeypatch):
+    real = engine._train_one_epoch
+    calls = {"n": 0}
+
+    def flaky(*args, **kwargs):
+        calls["n"] += 1
+        if calls["n"] == 2:
+            raise FloatingPointError("synthetic failure in epoch 2")
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(engine, "_train_one_epoch", flaky)
+    cfg = _cfg(synthetic_root, "resnet50_regression", "mse", "A_fail")
+    with pytest.raises(FloatingPointError, match="epoch 2"):
+        run_experiment(cfg)
+    (run_dir,) = (synthetic_root / "out" / "A_fail" / "runs").iterdir()
+    m = json.loads((run_dir / "run_manifest.json").read_text())
+    assert m["status"] == "failed" and m["error"]["type"] == "FloatingPointError" and "failed_utc" in m
+    h = json.loads((run_dir / "history.json").read_text())
+    assert h["complete"] is False and [e["epoch"] for e in h["epochs"]] == [1]
+    from ct_iqa.experiment.runs import completed_runs, runs_table
+    assert completed_runs("A_fail", synthetic_root / "out") == []
+    assert runs_table("A_fail", synthetic_root / "out")[0]["status"] == "failed"
+
+
 def test_final_test_evaluation_is_guarded(synthetic_root, tmp_path):
     run_dir = run_experiment(_cfg(synthetic_root, "resnet50_regression", "mse", "A_guard"))
     with pytest.raises(PermissionError, match="retrospective"):

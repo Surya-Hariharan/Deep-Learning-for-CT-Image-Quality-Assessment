@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 import math
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from ct_iqa.training.engine import evaluate_loader, fit
 from ct_iqa.utils.seed import set_seed
 
 FROZEN_MARKER = Path("experiments/study_v2/protocol/FROZEN")
+logger = logging.getLogger(__name__)
 
 
 def _json_default(o):
@@ -62,7 +64,14 @@ def _write_predictions(path: Path, names: list[str], ev, extra_sigma: bool) -> N
             w.writerow(row)
 
 
-def run_experiment(cfg: StudyConfig, config_path: str | Path | None = None, repo_root: str | Path = ".") -> Path:
+def run_experiment(cfg: StudyConfig, config_path: str | Path | None = None, repo_root: str | Path = ".",
+                   overrides: dict | None = None) -> Path:
+    """Train, select, evaluate (and for C calibrate) in a new run directory; return that directory.
+
+    `overrides` is recorded verbatim in `run_manifest.json` (e.g. the device or B grid values applied on top of
+    the YAML); it is provenance only, `cfg` must already contain them. If anything fails after the run directory
+    exists, the manifest is marked `status: "failed"` with the error, and the exception is re-raised.
+    """
     cfg.validate()
     labels = json.loads(Path(cfg.data.train_json_path).read_text(encoding="utf-8"))
     manifest = load_manifest(cfg.data.split_manifest, labels)       # verifies non-overlap, coverage, hash
@@ -80,9 +89,22 @@ def run_experiment(cfg: StudyConfig, config_path: str | Path | None = None, repo
         "model": cfg.model.name, "loss": cfg.loss.name, "optimizer": cfg.optim.name,
         "bn_eps": cfg.model.bn_eps, "selection_rule": cfg.train.selection_metric,
         "epoch_indexing": "1-based", "official_test_set_used": False,
+        "overrides": dict(overrides or {}),
     }
     _dump(manifest_path, run_manifest)
+    logger.info("run %s started in %s", run_id, run_dir.as_posix())
+    try:
+        _train_and_evaluate(cfg, run_dir, run_id, manifest, manifest_path, run_manifest)
+    except BaseException as e:                          # includes KeyboardInterrupt: an interrupted run is not complete
+        run_manifest.update({"status": "failed", "failed_utc": utc_now(),
+                             "error": {"type": type(e).__name__, "message": str(e)}})
+        _dump(manifest_path, run_manifest)
+        raise
+    return run_dir
 
+
+def _train_and_evaluate(cfg: StudyConfig, run_dir: Path, run_id: str, manifest: dict, manifest_path: Path,
+                        run_manifest: dict) -> None:
     set_seed(cfg.train.seed)
     loaders, names = build_study_loaders(cfg.data, cfg.train, manifest)
     model, report = build_model(cfg.model, cfg.data.image_size)
@@ -107,6 +129,8 @@ def run_experiment(cfg: StudyConfig, config_path: str | Path | None = None, repo
                  "predictions_validation.csv", "checkpoints/best.pt"]
     if gaussian:
         cal_ev = evaluate_loader(model, loaders["calibration"], loss_fn, cfg.train.device)
+        _write_predictions(run_dir / "predictions_calibration.csv", names["calibration"], cal_ev, True)
+        artifacts.append("predictions_calibration.csv")
         calibration = calibrate_and_evaluate(
             cal_ev.y_raw, cal_ev.mean_norm, cal_ev.log_var_norm,
             val_ev.y_raw, val_ev.mean_norm, val_ev.log_var_norm, cfg.calibration.target_coverage)
@@ -121,7 +145,6 @@ def run_experiment(cfg: StudyConfig, config_path: str | Path | None = None, repo
         "artifact_sha256": {a: sha256_path(run_dir / a) for a in artifacts},
     })
     _dump(manifest_path, run_manifest)
-    return run_dir
 
 
 def final_test_evaluation(run_dir: str | Path, acknowledge_retrospective: bool,
