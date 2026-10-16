@@ -1,0 +1,39 @@
+# Shared settings for study v2 (Experiments A, B, C). Experiment files in configs/experiments/ overlay this one.
+# Strict loader: unknown keys are rejected. Scientific choices are explicit here, with their evidence:
+#   bn_eps          -> docs/decisions/ADR-002-batchnorm-and-preprocessing.md (53/53 BN layers in the weights file)
+#   split_manifest  -> docs/decisions/ADR-003-split-and-test-discipline.md (frozen, never regenerated)
+#   hyperparameters -> historical starting recipe (batch 64, lr 1e-3, 30 epochs); NOT tuned on any test data.
+
+model:
+  dropout_p: 0.5
+  bn_eps: 1.001e-5
+  in_channels: 1
+  pretrained_weights: weights/pretrained/radimagenet/resnet50/radimagenet_resnet50_backbone.pt
+  pretrained_sha256: 45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785
+
+optim:
+  name: adam
+  learning_rate: 0.001
+  weight_decay: 0.0
+
+data:
+  train_image_dir: data/raw/ldct_iqac/train/image
+  train_json_path: data/labels/ldct_iqac/train.json
+  test_image_dir: data/raw/ldct_iqac/test/images
+  test_json_path: data/labels/ldct_iqac/test.json
+  split_manifest: experiments/study_v2/protocol/split_manifest.json
+  image_size: 224
+
+train:
+  epochs: 30
+  batch_size: 64
+  seed: 42
+  device: cpu            # override on the command line with --device cuda; the snapshot records the actual value
+  selection_metric: val_plcc
+
+calibration:
+  method: split_conformal
+  target_coverage: 0.90  # fixed before any calibration result exists
+
+run:
+  output_root: experiments/study_v2

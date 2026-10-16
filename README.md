@@ -10,6 +10,24 @@ to the LDCT-IQAC dataset.
 ![Status](https://img.shields.io/badge/Pipeline-Complete-success)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+## Study v2 (in progress): three ResNet50 objectives
+
+The repository now also contains a configuration-driven framework for a new study on one shared RadImageNet-initialized
+ResNet50 backbone: **A** reference regression (MSE), **B** ranking-aware regression (MSE + pairwise ranking), **C**
+uncertainty-aware regression (Gaussian NLL + split-conformal intervals). **Status: implemented and tested on synthetic
+data only; no study-v2 model has been trained and the official test set has not been used.** Start at
+[`docs/README.md`](docs/README.md); protocol in [`docs/EXPERIMENT_PROTOCOL.md`](docs/EXPERIMENT_PROTOCOL.md).
+
+```bash
+uv sync --extra dev
+uv run python -m ct_iqa.cli validate-config --config configs/experiments/a_reference.yaml
+uv run pytest tests/unit tests/regression tests/integration/test_study_synthetic_end_to_end.py
+```
+
+Everything below this section describes the **historical experiments 001-003**, which are preserved unchanged. Their
+BatchNorm epsilon differed between training (1e-3) and test evaluation (1e-5); see
+[`docs/decisions/ADR-002-batchnorm-and-preprocessing.md`](docs/decisions/ADR-002-batchnorm-and-preprocessing.md).
+
 ## What this is
 
 This project trains a deep-learning model that scores a CT image's
@@ -83,8 +101,9 @@ needed to run the test suite and regenerate/execute notebooks.
 
 ### 2. Get the data
 
-**LDCT-IQAC is a private dataset and is not included or redistributed by
-this repository.** Only the derived label files
+**The LDCT-IQAC images are not included or redistributed by this repository**
+(the dataset is published by the challenge organizers, see
+[`docs/DATASET_AND_LABELS.md`](docs/DATASET_AND_LABELS.md)). Only the derived label files
 (`data/labels/ldct_iqac/{train,test}.json` — filename → quality score,
 no pixel data) are tracked in git.
 

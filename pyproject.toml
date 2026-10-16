@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ct-iqa"
 version = "0.1.0"
-description = "No-reference CT image quality assessment: a RadImageNet-ResNet50 (Ohashi et al.) baseline replication on the LDCT-IQAC dataset."
+description = "No-reference CT image quality assessment on LDCT-IQAC with ResNet50-family models: reference regression, ranking-aware regression and uncertainty-aware regression (builds on the RadImageNet-ResNet50 baseline of Ohashi et al.)."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
@@ -24,6 +24,9 @@ dev = [
     "pytest",
     "nbformat",
 ]
+
+[project.scripts]
+ct-iqa = "ct_iqa.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

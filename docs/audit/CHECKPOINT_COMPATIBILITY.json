@@ -1,0 +1,201 @@
+[
+ {
+  "path": "experiments/001_resnet50_baseline/checkpoint/best.pt",
+  "sha256_before": "b482931f57b0d46708921a8a6bbd0dda680c61a79ef5c0b26fa8cf05f2735f43",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "checkpoint_type",
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed",
+   "val_loss"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 0.001,
+   "selection_metric": "plcc",
+   "device": "cpu"
+  },
+  "epoch_index_0based": 20,
+  "checkpoint_type": "best_plcc",
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "b482931f57b0d46708921a8a6bbd0dda680c61a79ef5c0b26fa8cf05f2735f43",
+  "unchanged": true,
+  "compatible": true
+ },
+ {
+  "path": "experiments/002_learning_rate_search/lr_1e-2/checkpoint/best.pt",
+  "sha256_before": "2907a0926aa6985fd507308441d70f445e9bbb04aabd1f344cf8b63c71fa8189",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed",
+   "val_loss"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 0.01,
+   "selection_metric": null,
+   "device": "cuda"
+  },
+  "epoch_index_0based": 25,
+  "checkpoint_type": null,
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "2907a0926aa6985fd507308441d70f445e9bbb04aabd1f344cf8b63c71fa8189",
+  "unchanged": true,
+  "compatible": true
+ },
+ {
+  "path": "experiments/002_learning_rate_search/lr_1e-3/checkpoint/best.pt",
+  "sha256_before": "068d7f9ba91fdb67d2a79f065b511dee57f43f3341183b3f4154c6a34f77d8d4",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed",
+   "val_loss"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 0.001,
+   "selection_metric": null,
+   "device": "cuda"
+  },
+  "epoch_index_0based": 26,
+  "checkpoint_type": null,
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "068d7f9ba91fdb67d2a79f065b511dee57f43f3341183b3f4154c6a34f77d8d4",
+  "unchanged": true,
+  "compatible": true
+ },
+ {
+  "path": "experiments/002_learning_rate_search/lr_1e-4/checkpoint/best.pt",
+  "sha256_before": "8b20e31fe2725273a2572ab4c311d07367cc586cfbde86b95b169196504edc35",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed",
+   "val_loss"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 0.0001,
+   "selection_metric": null,
+   "device": "cuda"
+  },
+  "epoch_index_0based": 19,
+  "checkpoint_type": null,
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "8b20e31fe2725273a2572ab4c311d07367cc586cfbde86b95b169196504edc35",
+  "unchanged": true,
+  "compatible": true
+ },
+ {
+  "path": "experiments/002_learning_rate_search/lr_1e-5/checkpoint/best.pt",
+  "sha256_before": "6b04669d221c595c47f07af1425d01836942c1b7d6aeed94a90d2beb96ef9e21",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed",
+   "val_loss"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 1e-05,
+   "selection_metric": null,
+   "device": "cuda"
+  },
+  "epoch_index_0based": 29,
+  "checkpoint_type": null,
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "6b04669d221c595c47f07af1425d01836942c1b7d6aeed94a90d2beb96ef9e21",
+  "unchanged": true,
+  "compatible": true
+ },
+ {
+  "path": "experiments/003_final_training/checkpoint/final.pt",
+  "sha256_before": "07185bae687d31e480cb7fe934fbe01430cc3bca9a00cb2a61a6e00986751e55",
+  "loaded_weights_only": true,
+  "payload_keys": [
+   "checkpoint_type",
+   "config",
+   "epoch",
+   "model_state_dict",
+   "optimizer_state_dict",
+   "seed"
+  ],
+  "stored_config_subset": {
+   "dropout_p": 0.5,
+   "in_channels": 1,
+   "image_size": 224,
+   "learning_rate": 0.001,
+   "selection_metric": null,
+   "device": "cuda"
+  },
+  "epoch_index_0based": 29,
+  "checkpoint_type": "final_epoch",
+  "n_checkpoint_keys": 320,
+  "n_model_keys": 320,
+  "missing_in_checkpoint": [],
+  "unexpected_in_checkpoint": [],
+  "shape_mismatches": [],
+  "dtype_mismatches": [],
+  "strict_load": "OK",
+  "sha256_after": "07185bae687d31e480cb7fe934fbe01430cc3bca9a00cb2a61a6e00986751e55",
+  "unchanged": true,
+  "compatible": true
+ }
+]

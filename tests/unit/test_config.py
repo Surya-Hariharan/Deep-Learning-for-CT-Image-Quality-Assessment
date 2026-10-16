@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from ct_iqa.config import ExperimentConfig
+from config import ExperimentConfig
 
 
 def test_checkpoint_dir_is_derived_from_experiment_dir():
