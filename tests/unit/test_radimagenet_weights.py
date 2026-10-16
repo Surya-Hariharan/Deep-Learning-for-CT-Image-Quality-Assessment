@@ -20,8 +20,8 @@ import pytest
 import torch
 from torch import nn
 
-from models.ohashi_resnet50 import OhashiResNet50
-from models.resnet50 import ResNet50Backbone
+from ct_iqa.models.ohashi_resnet50 import OhashiResNet50
+from ct_iqa.models.resnet50 import ResNet50Backbone
 
 
 def _fake_pretrained_state_dict() -> dict[str, torch.Tensor]:

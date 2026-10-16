@@ -11,9 +11,9 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from config import ExperimentConfig
-from data.loader import build_dataloaders, build_test_dataloader
-from data.splits import train_val_split
+from ct_iqa.config import ExperimentConfig
+from ct_iqa.data.loader import build_dataloaders, build_test_dataloader
+from ct_iqa.data.splits import train_val_split
 
 
 class _ListDataset:

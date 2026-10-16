@@ -18,8 +18,8 @@ import logging
 import sys
 from pathlib import Path
 
-from config.loader import load_study_config, study_config_from_dict
-from config.schema import ConfigError, StudyConfig
+from ct_iqa.config.loader import load_study_config, study_config_from_dict
+from ct_iqa.config.schema import ConfigError, StudyConfig
 
 
 def _load(args) -> StudyConfig:
@@ -31,8 +31,8 @@ def _load(args) -> StudyConfig:
 
 
 def cmd_validate(args) -> int:
-    from data.splits import load_manifest
-    from models.weights import sha256_file
+    from ct_iqa.data.splits import load_manifest
+    from ct_iqa.models.weights import sha256_file
 
     cfg = _load(args)
     problems = []
@@ -63,7 +63,7 @@ def cmd_validate(args) -> int:
 
 
 def cmd_train(args) -> int:
-    from experiment.run import run_experiment
+    from ct_iqa.experiment.run import run_experiment
 
     cfg = _load(args)
     run_dir = run_experiment(cfg, config_path=args.config)
@@ -72,14 +72,14 @@ def cmd_train(args) -> int:
 
 
 def _evaluate(args) -> int:
-    from data.loader import build_study_loaders
-    from data.splits import load_manifest
-    from evaluation.metrics import compute_point_metrics
-    from experiment.metadata import utc_now
-    from losses.registry import build_loss
-    from models.registry import build_model
-    from training.checkpointing import load_run_checkpoint
-    from training.engine import evaluate_loader
+    from ct_iqa.data.loader import build_study_loaders
+    from ct_iqa.data.splits import load_manifest
+    from ct_iqa.evaluation.metrics import compute_point_metrics
+    from ct_iqa.experiment.metadata import utc_now
+    from ct_iqa.losses.registry import build_loss
+    from ct_iqa.models.registry import build_model
+    from ct_iqa.training.checkpointing import load_run_checkpoint
+    from ct_iqa.training.engine import evaluate_loader
 
     run_dir = Path(args.run_dir)
     cfg = study_config_from_dict(json.loads((run_dir / "config.snapshot.json").read_text(encoding="utf-8")))
@@ -100,7 +100,7 @@ def _evaluate(args) -> int:
 
 
 def cmd_final_test(args) -> int:
-    from experiment.run import final_test_evaluation
+    from ct_iqa.experiment.run import final_test_evaluation
 
     print(f"wrote {final_test_evaluation(args.run_dir, args.acknowledge_retrospective)}")
     return 0

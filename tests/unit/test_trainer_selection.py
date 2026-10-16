@@ -20,8 +20,8 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from config import ExperimentConfig
-from training.trainer import train
+from ct_iqa.config import ExperimentConfig
+from ct_iqa.training.trainer import train
 
 
 class _TinyRegressor(nn.Module):
