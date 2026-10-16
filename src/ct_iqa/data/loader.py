@@ -51,3 +51,39 @@ def build_test_dataloader(config: ExperimentConfig) -> DataLoader:
         image_size=config.image_size,
     )
     return DataLoader(test_dataset, batch_size=config.batch_size, shuffle=False)
+
+
+# ---------------------------------------------------------------------------
+# Study-v2 loaders: built from the frozen split manifest. The official test set is NOT reachable from here;
+# it is only loaded by `ct_iqa.experiment.run.final_test_evaluation` behind explicit guards.
+# ---------------------------------------------------------------------------
+
+import torch  # noqa: E402
+from torch.utils.data import Subset  # noqa: E402
+
+from ct_iqa.data.splits import partition_indices  # noqa: E402
+
+
+def build_study_datasets(data_cfg, manifest: dict) -> dict[str, tuple[Subset, list[str]]]:
+    """Return {partition: (Subset, filenames in subset order)} for train / validation / calibration."""
+    full = LDCTIQACDataset(image_dir=data_cfg.train_image_dir, json_path=data_cfg.train_json_path,
+                           image_size=data_cfg.image_size)
+    names = [s.filename for s in full.samples]
+    out = {}
+    for part in ("train", "validation", "calibration"):
+        idx = partition_indices(names, manifest, part)
+        out[part] = (Subset(full, idx), [names[i] for i in idx])
+    return out
+
+
+def build_study_loaders(data_cfg, train_cfg, manifest: dict) -> tuple[dict[str, DataLoader], dict[str, list[str]]]:
+    """Seeded loaders: the train loader shuffles with its own generator so batch order depends only on `train.seed`."""
+    parts = build_study_datasets(data_cfg, manifest)
+    generator = torch.Generator().manual_seed(train_cfg.seed)
+    loaders = {
+        "train": DataLoader(parts["train"][0], batch_size=train_cfg.batch_size, shuffle=True,
+                            drop_last=False, generator=generator),
+        "validation": DataLoader(parts["validation"][0], batch_size=train_cfg.batch_size, shuffle=False),
+        "calibration": DataLoader(parts["calibration"][0], batch_size=train_cfg.batch_size, shuffle=False),
+    }
+    return loaders, {k: v[1] for k, v in parts.items()}
