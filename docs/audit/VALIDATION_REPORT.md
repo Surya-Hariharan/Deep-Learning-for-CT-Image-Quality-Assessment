@@ -1,7 +1,7 @@
 # Validation report (Stage 10)
 
-Date: 2026-10-16. Branch `study-v2-rebuild` (from `main` at `821461ee24c7fea4d6c1b787c626cbde076ee998`). Nothing is
-committed. Environment: Windows, CPU only, torch 2.14.0, Python 3.10 venv created by `uv sync --extra dev`
+Date: 2026-10-16. Branch `study-v2-rebuild` (from `main` at `821461ee24c7fea4d6c1b787c626cbde076ee998`). Committed
+locally as five commits (`b742ed5` to `4cb61de`); not pushed. Environment: Windows, CPU only, torch 2.14.0, Python 3.10 venv created by `uv sync --extra dev`
 (`uv.lock` unchanged).
 
 ## Tests run (exact outcomes)
@@ -36,7 +36,7 @@ test selection above excludes those tests.
 ## What was NOT done
 
 No study-v2 training run; no inference with any historical or new checkpoint; no official-test evaluation; no BatchNorm
-epsilon impact measurement on historical predictions (remains unquantified); no commit or push; Mermaid diagrams not
+epsilon impact measurement on historical predictions (remains unquantified); no push; Mermaid diagrams not
 rendered; notebooks 03-07 not executed against real runs (none exist).
 
 ## Artifact preservation check

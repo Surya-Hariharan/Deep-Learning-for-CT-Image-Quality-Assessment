@@ -51,6 +51,26 @@ the `2x - 1` pixel mapping was attributed to RadImageNet's reference code withou
 - Applying a checkpoint trained at a different epsilon with `bn_eps = 1.001e-5` (e.g. loading 001 into the new
   model) is a different numerical function from what was evaluated. Any future use must say so.
 
+## Addendum (2026-10-16, pre-training review): conflicting preprocessing evidence for the `.h5` release
+
+| # | Source | Observation |
+|---|---|---|
+| E6 | RadImageNet [acl/acl_train.py](https://raw.githubusercontent.com/BMEII-AI/RadImageNet/main/acl/acl_train.py), fetched 2026-10-16 | TensorFlow **downstream** fine-tuning script. Builds `ResNet50(weights="../RadImageNet_models/RadImageNet-ResNet50-notop.h5", include_top=False, pooling="avg")` and feeds it through `ImageDataGenerator(rescale=1./255, preprocessing_function=preprocess_input)` with `tensorflow.keras.applications.imagenet_utils.preprocess_input`. No BatchNorm settings. |
+| E7 | RadImageNet repository listing | Only `pytorch_example.ipynb` and the `acl` / `breast` / `covid19` / `hemorrhage` / `meniscus` / `pneumonia` / `sarscovid2` / `thyroid` folders were seen; the listing fetched was truncated, so other scripts may exist. No pre-training code was found. |
+
+Reading of E6 (**not verified by running it**): `preprocess_input` defaults to Keras "caffe" mode (RGB to BGR, subtract
+ImageNet channel means on a 0-255 scale), and `ImageDataGenerator` applies `preprocessing_function` before `rescale`.
+If so, the TF fine-tuning input is roughly `(BGR - mean) / 255`, about [-0.5, 0.5], which differs from E4's `2x - 1`
+in [-1, 1]. E6 describes fine-tuning, not how the weights were pre-trained, so it does not prove the `.h5`
+pre-training convention either. E4 (PyTorch release) and E6 (TensorFlow release usage) disagree; **the convention
+the `.h5` weights were pre-trained under remains unverified.**
+
+Consequence: `2x - 1` is a frozen, labelled **assumption** (as in historical 001-003, which keeps A comparable to
+them), not a verified property of the weights. All three experiments use the same convention, so the A/B/C
+comparison is unaffected; absolute performance may be. The project owner approved this freeze on 2026-10-16 on that
+basis; no preprocessing comparison has been run and the convention is not claimed to be correct. An optional validation-only sensitivity comparison
+(`2x - 1` vs caffe-style) is proposed in the review report and needs separate approval.
+
 ## Open items
 
 - Confirm the TensorFlow `.h5` input convention (E4 covers the PyTorch release only).
