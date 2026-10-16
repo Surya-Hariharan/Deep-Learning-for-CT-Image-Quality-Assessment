@@ -1,3 +1,6 @@
+> **Archived references.** Notebooks, `tools/build_*` scripts and `results/` files mentioned below were removed from the
+> working tree. They remain in git history (commit `75be360` and earlier); see `../ARCHIVED_ARTIFACTS.md`.
+
 # Dataset adaptation: LDCT-IQAC vs. the paper's dataset
 
 **OUR IMPLEMENTATION.** This document exists specifically so that this

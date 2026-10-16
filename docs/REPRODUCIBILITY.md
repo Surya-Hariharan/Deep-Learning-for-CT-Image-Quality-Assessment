@@ -61,7 +61,7 @@ hardware or library versions.
 ## Historical experiments
 
 Reproducing 001-003 requires the legacy path (`ct_iqa.models.ohashi_resnet50`, `ct_iqa.config.ExperimentConfig`, the
-`tools/build_*` notebook generators) and reproduces their original BatchNorm behavior (training eps 1e-3 after weight
+notebook generators, now archived: [ARCHIVED_ARTIFACTS](ARCHIVED_ARTIFACTS.md)) and reproduces their original BatchNorm behavior (training eps 1e-3 after weight
 load, test evaluation eps 1e-5). Their six checkpoints are structurally loadable into the new regression model
 ([CHECKPOINT_COMPATIBILITY](audit/CHECKPOINT_COMPATIBILITY.md)), but evaluating them at a different epsilon is a different
 numerical function; the effect is unquantified.

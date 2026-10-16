@@ -138,43 +138,33 @@ python -m ct_iqa.models.radimagenet_weights
 
 ### 4. Run it
 
-All reusable code lives in `src/ct_iqa/`; notebooks under `notebooks/`
-only configure and run it. Each notebook is generated from a script in
-`tools/` — edit the generator, not the `.ipynb`, then re-run both
-commands below to regenerate and re-execute it:
+All reusable code lives in `src/ct_iqa/`; the notebooks under `notebooks/`
+only configure and run it. The study-v2 workflow (Experiments A, B, C) is:
 
-| Stage | Generator | Notebook |
-|---|---|---|
-| Explore the dataset | `tools/build_eda_notebook.py` | `notebooks/01_exploration/01_dataset_eda.ipynb` |
-| Prepare data splits | `tools/build_dataset_preparation_notebook.py` | `notebooks/02_data_preparation/01_dataset_preparation.ipynb` |
-| Train baseline | `tools/build_training_notebook.py` | `notebooks/03_training/01_resnet50_baseline.ipynb` |
-| Learning-rate search | `tools/build_lr_search_notebook.py` | `notebooks/03_training/02_learning_rate_search.ipynb` |
-| Final training | `tools/build_final_training_notebook.py` | `notebooks/03_training/03_final_training.ipynb` |
-| Baseline (001) test-set evaluation | `tools/evaluate_baseline_test_set.py` (plain script, not a notebook — see its module docstring) | writes `results/metrics/001_resnet50_baseline_test_metrics.json` directly |
-| Final (003) test-set evaluation | `tools/build_evaluation_notebook.py` | `notebooks/04_evaluation/01_test_set_evaluation.ipynb` |
-| Prediction analysis | `tools/build_prediction_analysis_notebook.py` | `notebooks/04_evaluation/02_prediction_analysis.ipynb` |
+| Notebook | Purpose |
+|---|---|
+| `notebooks/00_environment_and_data_audit.ipynb` | environment, label and weight-checksum checks |
+| `notebooks/01_dataset_exploration.ipynb` | label distributions per partition of the frozen split |
+| `notebooks/02_preprocessing_validation.ipynb` | crop / `2x-1` / BatchNorm epsilon checks on synthetic data |
+| `notebooks/03_reference_baseline.ipynb` | Experiment A (reference regression) |
+| `notebooks/04_ranking_aware_experiment.ipynb` | Experiment B (ranking-aware) |
+| `notebooks/05_uncertainty_experiment.ipynb` | Experiment C (Gaussian NLL + split conformal) |
+| `notebooks/06_comparative_analysis.ipynb` | paired comparison of A, B, C |
+| `notebooks/07_error_analysis_and_visualization.ipynb` | residual and uncertainty plots |
 
-Example, for the baseline training notebook:
-
-```bash
-# regenerate the notebook from its generator script
-uv run python tools/build_training_notebook.py
-
-# execute it end-to-end in a clean process
-uv run jupyter execute notebooks/03_training/01_resnet50_baseline.ipynb \
-    --output=01_resnet50_baseline.ipynb
-```
-
-Training notebooks are gated behind a `RUN_FULL_TRAINING` flag so
-re-running them doesn't silently trigger a long run. Evaluation and
-analysis notebooks are independent of any training notebook — they load
-a checkpoint from disk and write results to `results/`.
-
-Reproduce experiment 001's test-set metrics directly (no notebook step):
+Training in notebooks 03-05 is gated behind `RUN_TRAINING = False`; nothing
+trains unless you change it. The same runs can be started from the command
+line:
 
 ```bash
-uv run python tools/evaluate_baseline_test_set.py
+python -m ct_iqa.cli validate-config --config configs/experiments/a_reference.yaml
+python -m ct_iqa.cli train --config configs/experiments/a_reference.yaml --device cuda
 ```
+
+The historical experiments 001-003 (notebooks, generator scripts, result
+figures/tables) are no longer in the working tree; see
+[`docs/ARCHIVED_ARTIFACTS.md`](docs/ARCHIVED_ARTIFACTS.md) for what was removed
+and how to recover it from git history.
 
 Run the test suite with:
 
@@ -195,12 +185,11 @@ uv run pytest
 │   ├── replication/    this project's adaptation, deviations, and results
 │   └── internal/       engineering/process history, not needed to use the project
 ├── src/ct_iqa/         all reusable implementation (models, data, training, evaluation)
-├── notebooks/          research execution: 01_exploration -> 02_data_preparation
-│                       -> 03_training -> 04_evaluation
-├── tools/              notebook-generator scripts (authoritative source for notebooks)
+├── notebooks/          study-v2 notebooks 00-07 (Experiments A, B, C)
+├── tools/              split-manifest creation and checkpoint-structure inspection
 ├── weights/pretrained/  externally-sourced pretrained weights (gitignored)
 ├── experiments/         per-run checkpoints + config (gitignored binaries)
-├── results/             evaluation outputs: figures/tables/predictions/metrics
+├── (results/)           historical 001-003 outputs, removed from the tree; see docs/ARCHIVED_ARTIFACTS.md
 └── tests/unit/, tests/integration/
 ```
 

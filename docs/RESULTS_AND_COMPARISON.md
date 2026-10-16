@@ -7,7 +7,7 @@ the [0, 4] score scale; correlations are raw (no logistic mapping).
 ## 1. Historical experiments 001-003 (immutable)
 
 Test evaluation is on the official 300-image set; checkpoint-selection and BatchNorm context differ per row.
-Source: `results/metrics/001_resnet50_baseline_test_metrics.json`, `results/metrics/003_final_training_test_metrics.json`,
+Source (files removed from the working tree, recoverable from git history, see [ARCHIVED_ARTIFACTS](ARCHIVED_ARTIFACTS.md)): `results/metrics/001_resnet50_baseline_test_metrics.json`, `results/metrics/003_final_training_test_metrics.json`,
 `results/tables/*.csv`.
 
 | Experiment | Run / checkpoint | Training data | Selection rule | Split evaluated | PLCC | SROCC | KROCC | MSE | MAE | RMSE |
