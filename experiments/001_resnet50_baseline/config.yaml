@@ -1,3 +1,9 @@
+# NOTE (added 2026-10-16, study-v2-rebuild): this file is the PLANNED config written
+# when the experiment was scaffolded. It is NOT the record of the run. In particular
+# radimagenet_weights_path is null here, whereas the run actually used the converted
+# RadImageNet weights. The authoritative record is config.json in this directory.
+# Values below are unchanged from the original.
+#
 # Planned configuration for experiment 001 (ResNet50 baseline).
 #
 # This mirrors configs/{dataset,preprocessing,model,training}.yaml at the

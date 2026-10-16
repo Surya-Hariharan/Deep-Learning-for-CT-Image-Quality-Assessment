@@ -1,20 +1,16 @@
 # =============================================================================
 # DATASET SAFETY -- read this before touching this file.
 #
-# The PNG (Pulmonary Nodule Growth) dataset lives in data/external/png/. It
-# is ~1,536 NIfTI volumes of patient data collected under a hospital ethics
-# approval (see docs/datasets.md). It must NEVER be committed: it is not
-# ours to redistribute. The *.nii / *.nii.gz rules below are what actually
-# prevent this even if the folder location changes -- do not weaken them.
-# This dataset is UNRELATED to the LDCT-IQAC dataset below; both datasets'
-# rules coexist in this one file, but neither implies anything about the
-# other (see docs/replication/dataset_adaptation.md).
+# This project uses the LDCT-IQAC 2023 dataset (patient-derived CT images).
+# The images must NEVER be committed: they are not ours to redistribute.
+# The medical-image extension rules below (*.tif, *.tiff, *.dcm, *.nii,
+# *.nii.gz, ...) are the backstop that protects against this even if a
+# directory is renamed -- do not weaken them.
+# (An earlier version of this header described an unrelated NIfTI dataset
+# and a docs/datasets.md file; neither exists in this repository.)
 # =============================================================================
 
-# --- the PNG dataset: ignored in full ---
-# Not just the volumes -- patient-characteristics.csv carries per-patient
-# age/sex, characteristics.csv per-nodule measurements, and NGP3T.json the
-# manifest tying them together. All of it is patient data.
+# --- external datasets: ignored in full (kept as a protective default) ---
 data/external/
 
 # --- LDCT-IQAC dataset: raw images ignored, JSON score labels kept ---
