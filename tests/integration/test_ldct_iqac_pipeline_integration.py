@@ -23,13 +23,13 @@ import pytest
 import torch
 from PIL import Image
 
-from ct_iqa.config import ExperimentConfig
-from ct_iqa.data.ldct_iqac import SCORE_MAX, SCORE_MIN, LDCTIQACDataset, normalize_score
-from ct_iqa.data.loader import build_dataloaders
-from ct_iqa.models.ohashi_resnet50 import OhashiResNet50
-from ct_iqa.training.losses import build_loss
-from ct_iqa.training.optimizers import build_optimizer
-from ct_iqa.training.trainer import train_one_step
+from config import ExperimentConfig
+from data.ldct_iqac import SCORE_MAX, SCORE_MIN, LDCTIQACDataset, normalize_score
+from data.loader import build_dataloaders
+from models.ohashi_resnet50 import OhashiResNet50
+from training.losses import build_loss
+from training.optimizers import build_optimizer
+from training.trainer import train_one_step
 
 _config = ExperimentConfig()
 requires_real_dataset = pytest.mark.skipif(

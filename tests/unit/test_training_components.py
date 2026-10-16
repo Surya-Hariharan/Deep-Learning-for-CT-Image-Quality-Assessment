@@ -9,16 +9,16 @@ from __future__ import annotations
 import torch
 from torch import nn
 
-from ct_iqa.config import ExperimentConfig
-from ct_iqa.models.ohashi_resnet50 import OhashiResNet50
-from ct_iqa.training.checkpointing import (
+from config import ExperimentConfig
+from models.ohashi_resnet50 import OhashiResNet50
+from training.checkpointing import (
     best_checkpoint_path,
     load_checkpoint,
     load_checkpoint_metadata,
     save_checkpoint,
 )
-from ct_iqa.training.losses import build_loss
-from ct_iqa.training.optimizers import build_optimizer
+from training.losses import build_loss
+from training.optimizers import build_optimizer
 
 
 def test_build_optimizer_returns_adam():
