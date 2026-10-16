@@ -7,7 +7,7 @@ best fetched/converted locally rather than duplicated in the repo.
 `weights/pretrained/` holds only externally-sourced pretrained weights --
 never experiment-generated checkpoints, which live under
 `experiments/<NNN_name>/checkpoint/` instead (see
-`docs/internal/decisions/README.md`).
+`docs/archived-artifacts.md (git history)`).
 
 ## Source
 
@@ -72,7 +72,7 @@ updated to point at `radimagenet_resnet50_backbone.pt` (previously `null`).
 Because `weights/pretrained/` is gitignored, this path will not resolve on
 a machine that hasn't obtained/converted the file -- `torch.load` then
 raises `FileNotFoundError` (never a silent fallback to ImageNet weights or
-to random initialization; see `docs/replication/deviations.md`).
+to random initialization; see `docs/archived-artifacts.md (git history)`).
 
 **What is still NOT verified:** this project has not independently
 re-verified the RadImageNet authors' own training procedure or the

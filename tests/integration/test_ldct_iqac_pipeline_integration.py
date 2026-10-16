@@ -7,7 +7,7 @@ locally (e.g. a fresh clone before dataset setup -- see README.md,
 "Dataset setup").
 
 Added by the scientific pipeline audit (see
-docs/replication/reproducibility.md) to cover two invariants that were not
+docs/archived-artifacts.md (git history)) to cover two invariants that were not
 previously tested against real data: (1) no train/test leakage by
 filename, pixel content, or label key, and (2) a full real-data training
 step (dataset -> preprocessing -> DataLoader -> model -> loss -> backward

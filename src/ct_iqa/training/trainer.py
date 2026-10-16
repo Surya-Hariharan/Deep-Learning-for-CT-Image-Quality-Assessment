@@ -7,7 +7,7 @@ added -- these are deliberately absent so the first experiment stays close
 to the paper's stated configuration. Best-checkpoint saving IS a form of
 validation-based model selection (see `config.selection_metric` below) and
 is not claimed to be paper-specified -- it's an explicit, documented
-IMPLEMENTATION DECISION (see docs/replication/deviations.md), not something
+IMPLEMENTATION DECISION (see docs/archived-artifacts.md (git history)), not something
 this project pretends the paper calls for.
 
 DataLoader construction (`ct_iqa.data.loader`), the optimizer/loss builders
@@ -26,7 +26,7 @@ audit's "Model Selection Mismatch in Training Loop" finding): the previous
 version of this module selected the "best" checkpoint purely by minimum
 validation loss in normalized [0, 1] target space. Minimum MSE does not
 guarantee maximum PLCC/SROCC -- the metrics this project actually reports
-and compares experiments on (see README.md, docs/replication/final-results.md)
+and compares experiments on (see README.md, docs/archived-artifacts.md (git history))
 -- so `train()` now computes PLCC/SROCC each epoch (on raw [0, 4] scores,
 via `ct_iqa.evaluation.correlation`) and selects on `config.selection_metric`
 (default `"plcc"`); `"val_loss"` remains available for backward
@@ -50,7 +50,7 @@ from ct_iqa.training.optimizers import build_optimizer
 
 # Metrics `train()` can select the "best" checkpoint on, and whether higher
 # or lower values are better for each. IMPLEMENTATION DECISION: the paper
-# does not specify a selection rule -- see docs/replication/deviations.md.
+# does not specify a selection rule -- see docs/archived-artifacts.md (git history).
 _HIGHER_IS_BETTER = {"plcc": True, "srocc": True, "val_loss": False}
 
 logger = logging.getLogger(__name__)

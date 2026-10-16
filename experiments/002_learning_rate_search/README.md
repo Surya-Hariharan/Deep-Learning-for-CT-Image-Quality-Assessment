@@ -33,12 +33,12 @@ another run), identical 900/100 train/validation split for all four runs.
 **SELECTED LEARNING RATE: 0.001**
 
 Selected by lowest best-validation-loss (0.003540) among stable runs, per the
-predefined criterion in docs/replication/reproducibility.md. No test-set metric of any
+predefined criterion in docs/archived-artifacts.md. No test-set metric of any
 kind was used to make or influence this selection.
 
 **Note (2026-09-14):** `ct_iqa.training.trainer.train`'s checkpoint-selection
 criterion changed after this experiment ran (see
-`docs/internal/decisions/README.md`) -- it now defaults to selecting each
+`docs/archived-artifacts.md`) -- it now defaults to selecting each
 run's saved `best.pt` by validation PLCC, not validation loss. This does
 **not** change the LR ranking/selection above: it reads `history.best_val_loss`
 directly (computed every epoch regardless of the checkpoint-selection
@@ -49,9 +49,9 @@ fresh RadImageNet initialization). This experiment was not rerun.
 ## Ohashi paper context (historical context only -- not a claim of superiority either way)
 
 The Ohashi paper's own reported configuration uses learning rate 1e-3 for its
-ResNet50 baseline (see docs/paper/training.md) -- for the paper's own dataset and
+ResNet50 baseline (see docs/archived-artifacts.md) -- for the paper's own dataset and
 VIF-based regression target, not LDCT-IQAC. 
-This search's empirically-selected learning rate for LDCT-IQAC (1e-3) happens to match the paper's reported value. This is reported as an observation, not evidence that either dataset's choice is more 'correct' -- the two experiments differ in dataset and label semantics (see docs/replication/dataset-adaptation.md).
+This search's empirically-selected learning rate for LDCT-IQAC (1e-3) happens to match the paper's reported value. This is reported as an observation, not evidence that either dataset's choice is more 'correct' -- the two experiments differ in dataset and label semantics (see docs/archived-artifacts.md).
 
 ## Artifacts
 

@@ -6,12 +6,12 @@
 **Status: complete** — training and independent test-set evaluation both
 finished (2026-09-14, retrained after the checkpoint-selection fix below;
 originally completed 2026-09-13). This is the **best-performing** of the
-two completed runs; see [`docs/replication/final-results.md`](../../docs/replication/final-results.md)
+two completed runs; see `docs/archived-artifacts.md`
 for the full analysis and comparison against experiment 003.
 
 **Retrained 2026-09-14**: the checkpoint is now selected by best validation
 PLCC (`checkpoint_type="best_plcc"`), not lowest validation loss — see
-[`docs/internal/decisions/README.md`](../../docs/internal/decisions/README.md),
+`docs/archived-artifacts.md`,
 2026-09-14 entry. This changed which epoch was selected (20, not 21) and
 therefore the test-set numbers below; device was also CPU for this run
 (no CUDA available), unlike the original CUDA run.
@@ -37,7 +37,7 @@ Orchestrated by `notebooks/03_training/01_resnet50_baseline.ipynb`
   criterion): validation loss at this epoch was 0.004227, vs. this run's
   lowest validation loss of 0.003906 at epoch 22 — confirming these are
   genuinely different epochs, which is exactly why the selection metric
-  matters (see `docs/internal/decisions/README.md`, 2026-09-14).
+  matters (see `docs/archived-artifacts.md`, 2026-09-14).
 - Final (epoch 30) training loss: 0.002992, validation loss: 0.022808,
   validation PLCC: 0.9590, validation SROCC: 0.9701.
 - Full per-epoch history (including `val_plcc`/`val_srocc`): `history.json`.
@@ -63,7 +63,7 @@ n=300:
 Predictions overpredict the mean ground-truth score by +0.186 on the
 `[0,4]` scale. For the full bias/residual analysis and how this run
 compares to experiment 003, see
-[`docs/replication/final-results.md`](../../docs/replication/final-results.md).
+`docs/archived-artifacts.md`.
 
 Artifacts: `results/predictions/001_resnet50_baseline_test_predictions.csv`,
 `results/metrics/001_resnet50_baseline_test_metrics.json`,

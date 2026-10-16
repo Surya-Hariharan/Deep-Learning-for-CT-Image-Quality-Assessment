@@ -69,13 +69,13 @@ calibration):
 
 Experiment 001's checkpoint is selected by the best validation-set PLCC
 seen during training (`checkpoint_type="best_plcc"`), not by validation
-loss — see [`docs/internal/decisions/README.md`](docs/internal/decisions/README.md)
-for why this matters and [`docs/paper/training.md`](docs/paper/training.md)
+loss — see `docs/archived-artifacts.md`
+for why this matters and `docs/archived-artifacts.md`
 for why it's an implementation decision, not a paper-specified detail.
 Under this selection rule, the validation-selected baseline (001) still
 outperforms the final full-data model (003) on every metric above — a
 genuine finding, investigated in
-[`docs/replication/final-results.md`](docs/replication/final-results.md).
+`docs/archived-artifacts.md`.
 These numbers are **not** compared against the original paper's reported
 values (different dataset, different label semantics — see
 [Research context](#research-context)).
@@ -195,19 +195,10 @@ uv run pytest
 
 ## Documentation map
 
-- [`docs/paper/`](docs/paper/) — architecture, preprocessing, training,
-  and evaluation exactly as the Ohashi et al. paper specifies them.
-- [`docs/replication/`](docs/replication/) — how this project adapts that
-  methodology: dataset differences
-  ([`dataset-adaptation.md`](docs/replication/dataset-adaptation.md)),
-  every deliberate deviation
-  ([`deviations.md`](docs/replication/deviations.md)), seeding/split/
-  reproducibility details
-  ([`reproducibility.md`](docs/replication/reproducibility.md)), and the
-  full results writeup
-  ([`final-results.md`](docs/replication/final-results.md)).
-- [`docs/internal/`](docs/internal/) — repository engineering history.
-  Not needed to install, run, or understand the project.
+- [`docs/README.md`](docs/README.md) — index of the study-v2 documentation: project overview, experiment
+  protocol, specs for Experiments A, B and C, decision records, dataset, preprocessing and metrics.
+- [`docs/archived-artifacts.md`](docs/archived-artifacts.md) — historical papers, replication notes, audits,
+  notebooks and results that were removed from the tree, and how to recover them from git history.
 - [`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md)
   — pretrained weight source, conversion, and verification.
 - `experiments/*/README.md` — per-run training/evaluation record.
@@ -227,8 +218,8 @@ a different regression target:
 | Training config | Adam, MSE, batch 64, 30 epochs, lr 1e-3 | Same |
 | Evaluation | PLCC / SROCC / KROCC, 5PL-mapped | Same raw metrics; 5PL calibration deferred |
 
-Full detail: [`docs/replication/dataset-adaptation.md`](docs/replication/dataset-adaptation.md)
-and [`docs/replication/deviations.md`](docs/replication/deviations.md).
+Full detail: `docs/archived-artifacts.md`
+and `docs/archived-artifacts.md`.
 
 ## Limitations
 
@@ -240,14 +231,14 @@ and [`docs/replication/deviations.md`](docs/replication/deviations.md).
 - No data augmentation, LR scheduling, weight decay, or warmup
   (deliberately, to stay close to the paper's stated training setup) —
   but checkpoint selection **is** a validation-based model-selection step
-  (see `docs/paper/training.md`), not something the paper's fixed-epoch
+  (see `docs/archived-artifacts.md`), not something the paper's fixed-epoch
   configuration calls for.
 - No non-test calibration protocol exists yet, so only raw metrics are
   reported.
 - The final full-data model (003) performs worse than the
   validation-selected baseline (001) on the test set; the cause isn't
   fully determined — see
-  [`docs/replication/final-results.md`](docs/replication/final-results.md).
+  `docs/archived-artifacts.md`.
 - No statistical significance testing is implemented; all comparisons
   are descriptive.
 

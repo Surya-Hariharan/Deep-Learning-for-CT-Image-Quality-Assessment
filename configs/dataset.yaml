@@ -1,10 +1,10 @@
 # Dataset configuration: LDCT-IQAC.
 #
 # This is OUR replication dataset, not the reference paper's own dataset --
-# see docs/replication/dataset-adaptation.md. It ships real, radiologist-scored
+# see docs/archived-artifacts.md (git history). It ships real, radiologist-scored
 # CT images spanning a range of quality levels; there is no synthetic
 # degradation step and no VIF label computation in this pipeline (see
-# docs/replication/deviations.md).
+# docs/archived-artifacts.md (git history)).
 
 name: ldct_iqac
 

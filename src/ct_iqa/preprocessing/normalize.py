@@ -7,7 +7,7 @@ algebraically identical to `2 * x - 1` once `pixel` is already scaled to
 [0, 1]) -- confirmed from RadImageNet's official reference code
 (`BMEII-AI/RadImageNet/pytorch_example.ipynb`); the Ohashi paper itself does
 not state a normalization formula for its own preprocessing (see
-docs/replication/deviations.md).
+docs/archived-artifacts.md (git history)).
 
 This is pixel-space normalization only -- it is unrelated to LABEL/score
 normalization (`ct_iqa.data.ldct_iqac.normalize_score`), which maps the

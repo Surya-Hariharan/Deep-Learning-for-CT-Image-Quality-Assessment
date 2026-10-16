@@ -52,7 +52,7 @@ manifest): train mean 2.105 (std 1.066), validation 1.954 (1.111), calibration 1
 
 ## Historical split (experiments 001-003)
 
-900 / 100 `random_split` with seed 42; unchanged and documented in `docs/replication/dataset-adaptation.md`
+900 / 100 `random_split` with seed 42; unchanged and documented in `docs/archived-artifacts.md`
 (earlier project notes on the same data).
 
 ## Access

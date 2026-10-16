@@ -1,11 +1,11 @@
 # Model configuration: RadImageNet-pretrained ResNet50 + Ohashi regression head.
 #
 # PAPER FACT: backbone ResNet50, RadImageNet pretraining, classification head
-# replaced by Dropout -> Dense(1) -> Sigmoid. See docs/paper/architecture.md.
+# replaced by Dropout -> Dense(1) -> Sigmoid. See docs/archived-artifacts.md (git history).
 #
 # IMPLEMENTATION DECISION (not specified by the paper): the exact dropout
 # probability, and single-channel-to-3-channel replication for the
-# grayscale LDCT-IQAC images. See docs/replication/deviations.md.
+# grayscale LDCT-IQAC images. See docs/archived-artifacts.md (git history).
 
 architecture: ohashi_resnet50
 backbone: resnet50
@@ -25,7 +25,7 @@ dropout_p: 0.5
 # src/ct_iqa/models/radimagenet_weights.py).
 #
 # UPDATED 2026-09-13, after the scientific pipeline audit
-# (docs/internal/repository_architecture_audit.md's successor audit): the converted
+# (docs/archived-artifacts.md (git history)'s successor audit): the converted
 # checkpoint now exists locally and has been verified to load cleanly --
 # 265/318 backbone keys matched, 0 unexpected keys, the remaining 53
 # "missing" keys are all non-learned `num_batches_tracked` counters (see

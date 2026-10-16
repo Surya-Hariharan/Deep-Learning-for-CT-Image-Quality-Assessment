@@ -7,7 +7,7 @@
 finished (2026-09-13). This run trains on all labeled data using the
 learning rate selected by experiment 002
 (`experiments/002_learning_rate_search/`). See
-[`docs/replication/final-results.md`](../../docs/replication/final-results.md)
+`docs/archived-artifacts.md`
 for the full analysis and comparison against experiment 001.
 
 Orchestrated by `notebooks/03_training/03_final_training.ipynb`
@@ -50,7 +50,7 @@ set experiment 001 was evaluated against, n=300:
 This run underpredicts the mean ground-truth score by -0.34 on the
 `[0,4]` scale (the opposite direction of experiment 001's bias), and
 underperforms experiment 001 on every metric above. See
-[`docs/replication/final-results.md`](../../docs/replication/final-results.md)
+`docs/archived-artifacts.md`
 for the full residual/quartile breakdown and discussion of possible
 causes (checkpoint selection method and training-set size are both
 plausible, uncontrolled-for factors — not determined by this data alone).

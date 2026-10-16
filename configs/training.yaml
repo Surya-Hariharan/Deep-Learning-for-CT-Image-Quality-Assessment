@@ -2,7 +2,7 @@
 #
 # PAPER FACT: Adam optimizer, MSE loss, batch size 64, 30 epochs,
 # learning rate 1e-3. No scheduler, warmup, weight decay, augmentation, or
-# mixed precision is added -- see docs/paper/training.md. Checkpoint
+# mixed precision is added -- see docs/archived-artifacts.md (git history). Checkpoint
 # selection (`selection_metric` below) IS a form of validation-based model
 # selection; it is a separate, non-paper-specified implementation decision,
 # not one of the paper-fact omissions listed above.
@@ -18,14 +18,14 @@ device: cuda
 # IMPLEMENTATION DECISION (not specified by the paper): which metric
 # `ct_iqa.training.trainer.train` uses to pick the "best" checkpoint.
 # PLCC is the primary IQA evaluation metric this project reports (see
-# docs/replication/final-results.md), so it -- not the training loss in
+# docs/archived-artifacts.md (git history)), so it -- not the training loss in
 # normalized [0, 1] space -- is what model selection optimizes for.
 # "srocc" or "val_loss" are also accepted, for ablation/backward
-# compatibility. See docs/replication/deviations.md.
+# compatibility. See docs/archived-artifacts.md (git history).
 selection_metric: plcc
 
 # Experiment-generated checkpoints/config/predictions live under this
 # directory (experiments/<NNN_name>/checkpoint/, .../config.yaml, ...) --
 # NEVER under weights/, which is reserved for externally-sourced pretrained
-# weights only. See docs/internal/decisions/README.md and experiments/001_resnet50_baseline/.
+# weights only. See docs/archived-artifacts.md (git history) and experiments/001_resnet50_baseline/.
 experiment_dir: experiments/001_resnet50_baseline

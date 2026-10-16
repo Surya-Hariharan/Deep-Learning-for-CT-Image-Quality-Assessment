@@ -1,6 +1,6 @@
 """Tests for `ct_iqa.evaluation.correlation` and `ct_iqa.evaluation.calibration`,
 extracted from `ct_iqa.evaluation.metrics` (see
-docs/internal/repository_architecture_audit.md, section 3/7). `test_metrics.py`
+docs/archived-artifacts.md (git history), section 3/7). `test_metrics.py`
 already covers `compute_metrics`/`compute_metrics_with_logistic_mapping`
 end-to-end; these tests exercise the extracted modules directly.
 """
@@ -21,7 +21,7 @@ def test_to_1d_array_flattens():
 
 def test_to_1d_array_flattens_higher_dimensional_input():
     # `to_1d_array` reshapes with -1, which always yields ndim == 1 -- this
-    # is pre-existing, preserved behavior (see docs/replication note in
+    # is pre-existing, preserved behavior (see docs/archived-artifacts.md note in
     # ct_iqa.evaluation.correlation), not something introduced here.
     result = to_1d_array(np.zeros((2, 2, 2)))
     assert result.shape == (8,)

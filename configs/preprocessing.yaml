@@ -8,7 +8,7 @@
 # Pixel values are mapped from the source [0, 1] float range to [-1, 1],
 # matching RadImageNet's own preprocessing convention (confirmed from
 # RadImageNet's official reference code; the paper itself does not state a
-# normalization formula -- see docs/replication/deviations.md). See
+# normalization formula -- see docs/archived-artifacts.md (git history)). See
 # src/ct_iqa/preprocessing/normalize.py.
 
 image_size: 224

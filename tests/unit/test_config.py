@@ -1,7 +1,7 @@
 """Tests for `ct_iqa.config.ExperimentConfig`, in particular the
 `checkpoint_dir` property (experiments/<name>/checkpoint/, never
 weights/checkpoints/) and `from_yaml_files` (the single authoritative
-configuration source -- see docs/internal/repository_architecture_audit.md,
+configuration source -- see docs/archived-artifacts.md (git history),
 "Experiment Checkpoint Decision" / "Configuration").
 """
 
@@ -23,7 +23,7 @@ def test_checkpoint_dir_is_derived_from_experiment_dir():
 def test_default_dataset_paths_use_canonical_locations():
     """Regression test: these previously pointed at data/training/, data/testing/,
     which no longer exist after the data/ directory rename (see
-    docs/internal/repository_architecture_audit.md, "Current Live Bug")."""
+    docs/archived-artifacts.md (git history), "Current Live Bug")."""
     config = ExperimentConfig()
     assert "data/training" not in config.train_image_dir
     assert "data/testing" not in config.test_image_dir
@@ -70,7 +70,7 @@ def test_from_yaml_files_merges_all_four_files(tmp_path):
 def test_from_yaml_files_consumes_dataset_name_and_architecture(tmp_path):
     """dataset.yaml's `name` and model.yaml's `architecture` are no longer
     silently dropped -- they're consumed into `dataset_name`/`architecture`
-    (see docs/internal/repository_architecture_audit.md, "Misleading Configuration
+    (see docs/archived-artifacts.md (git history), "Misleading Configuration
     Keys")."""
     (tmp_path / "dataset.yaml").write_text(yaml.safe_dump({"name": "ldct_iqac"}))
     (tmp_path / "model.yaml").write_text(yaml.safe_dump({"architecture": "ohashi_resnet50"}))

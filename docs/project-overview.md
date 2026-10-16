@@ -6,12 +6,12 @@ uncertainty-aware regression with conformal intervals (C). The earlier work in t
 adapted the Ohashi et al. ResNet50 baseline to LDCT-IQAC; it is preserved unchanged.
 
 **Scope.** ResNet50 family only; image-level analysis; the official test set is a previously examined benchmark and is
-used retrospectively. See [RESEARCH_QUESTIONS](research-questions.md) and [LIMITATIONS_AND_THREATS](limitations-and-threats.md).
+used retrospectively. See [LIMITATIONS_AND_THREATS](limitations-and-threats.md).
 
 **Dataset.** 1000 labeled training images and 300 official test images, radiologist scores in [0, 4]
 ([DATASET_AND_LABELS](dataset-and-labels.md)).
 
-**Main components.** Package `src/ct_iqa/` ([REPOSITORY_ARCHITECTURE](repository-architecture.md)); YAML configs in
+**Main components.** Package `src/ct_iqa/`; YAML configs in
 `configs/`; CLI `python -m ct_iqa.cli`; notebooks in `notebooks/`; frozen protocol in `experiments/study_v2/protocol/`.
 
 ## Experiment summary

@@ -2,7 +2,7 @@
 
 Audited on-disk structure (see repository dataset audit, PART 2 of the task;
 paths below reflect the post-migration layout -- see
-docs/internal/repository_architecture_audit.md):
+docs/archived-artifacts.md (git history)):
 
     data/raw/ldct_iqac/train/image/*.tif    (1000 files, PIL mode 'F', 512x512, float32 in [0, 1])
     data/labels/ldct_iqac/train.json        ({"0000.tif": 2.8, "0001.tif": 1.8, ...}, 1000 entries)
