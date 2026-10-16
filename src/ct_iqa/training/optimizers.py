@@ -21,3 +21,10 @@ def build_optimizer(model: nn.Module, config: ExperimentConfig) -> torch.optim.O
             f"Ohashi replication uses Adam; use a separate config for anything else."
         )
     return torch.optim.Adam(model.parameters(), lr=config.learning_rate)
+
+
+def build_study_optimizer(model: nn.Module, cfg) -> torch.optim.Optimizer:
+    """Optimizer from a `ct_iqa.config.schema.OptimConfig` (study v2). The function above is the historical one."""
+    if cfg.name != "adam":
+        raise ValueError(f"Unsupported optimizer {cfg.name!r}")
+    return torch.optim.Adam(model.parameters(), lr=cfg.learning_rate, weight_decay=cfg.weight_decay)

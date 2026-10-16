@@ -42,3 +42,25 @@ def compute_metrics_with_logistic_mapping(y_true, y_pred) -> dict[str, float]:
     y_true_arr = to_1d_array(y_true)
     y_pred_mapped = five_parameter_logistic_fit(y_pred, y_true_arr)
     return compute_metrics(y_true_arr, y_pred_mapped)
+
+
+# ---------------------------------------------------------------------------
+# Study-v2 additions (the functions above are unchanged and used by the historical tools)
+# ---------------------------------------------------------------------------
+
+
+def mae(y_true, y_pred) -> float:
+    y_true, y_pred = to_1d_array(y_true), to_1d_array(y_pred)
+    return float(np.mean(np.abs(y_true - y_pred)))
+
+
+def rmse(y_true, y_pred) -> float:
+    return float(np.sqrt(mse(y_true, y_pred)))
+
+
+def compute_point_metrics(y_true, y_pred) -> dict[str, float]:
+    """PLCC, SROCC, KROCC (raw, no logistic mapping) plus MSE, MAE, RMSE, all on the scale of the inputs.
+
+    Study v2 always passes scores on the original [0, 4] scale.
+    """
+    return {**compute_metrics(y_true, y_pred), "mae": mae(y_true, y_pred), "rmse": rmse(y_true, y_pred)}

@@ -113,3 +113,43 @@ def load_checkpoint_metadata(
     if not isinstance(checkpoint, dict) or "model_state_dict" not in checkpoint:
         return {}
     return {k: v for k, v in checkpoint.items() if k != "model_state_dict"}
+
+
+# ---------------------------------------------------------------------------
+# Study-v2 run checkpoints (the functions above are unchanged; historical code depends on them)
+# ---------------------------------------------------------------------------
+
+import os  # noqa: E402
+
+
+def save_run_checkpoint(path: str | Path, model: nn.Module, *, epoch_1based: int, metrics: dict,
+                        config: dict, run_id: str, selection_policy: str) -> Path:
+    """Atomically write a run checkpoint (temp file in the same directory, then `os.replace`).
+
+    The parent directory belongs to a single run; this function never touches another run's files.
+    Optimizer state is deliberately not stored (resuming training is not implemented), which keeps
+    checkpoints at model size.
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "model_state_dict": model.state_dict(),
+        "epoch": epoch_1based,
+        "epoch_indexing": "1-based",
+        "metrics": metrics,
+        "selection_policy": selection_policy,
+        "config": config,
+        "run_id": run_id,
+        "bn_eps": getattr(getattr(model, "backbone", None), "bn_eps", None),
+    }
+    tmp = path.with_name(path.name + ".tmp")
+    torch.save(payload, tmp)
+    os.replace(tmp, path)
+    return path
+
+
+def load_run_checkpoint(model: nn.Module, path: str | Path, map_location: str = "cpu") -> dict:
+    """Load model weights from a run checkpoint into `model`; return the rest of the payload."""
+    payload = torch.load(path, map_location=map_location)
+    model.load_state_dict(payload["model_state_dict"], strict=True)
+    return {k: v for k, v in payload.items() if k != "model_state_dict"}
