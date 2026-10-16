@@ -25,6 +25,7 @@ Two-sample KS tests between train/validation/calibration show no evidence of lab
 labeled set vs test: KS = 0.09, p = 0.045 (small difference). Score frequency tables: `reports/eda/score_frequency.csv`.
 
 ## Finding that limits every validation-based conclusion: same-anatomy groups cross the image-level split
+(Follow-up audit with group-size structure and identifier search: [SPLIT_AND_CALIBRATION_AUDIT](../audit/SPLIT_AND_CALIBRATION_AUDIT.md). The groups come from image similarity, not from identifiers; patient-level independence is unknown in both directions.)
 Thumbnail-correlation screening (64x64 Pearson r; `reports/eda/dataset_audit.json`, `anatomy_groups_thr0.999.csv`) shows the labeled images are
 repeated renderings of the same slices at different quality levels (full-resolution correlation about 0.9996-0.9998 between members; labels differ):
 - At r > 0.999 the 1300 images form 124 groups with no singletons (largest groups 40, 20, 20, 20, 10, ...); at r > 0.99, 83 groups.

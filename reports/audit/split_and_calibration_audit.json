@@ -1,0 +1,135 @@
+{
+ "grouping": {
+  "identifiers_available": "none: TIFF headers contain only tifffile shape/resolution tags; file names are shuffled indices; no patient/scan/slice IDs anywhere in the repository",
+  "recovered_groups_method": "connected components of 64x64-thumbnail Pearson r > 0.999 (image-similarity, NOT patient identity)",
+  "group_size_histogram": {
+   "10": 120,
+   "20": 3,
+   "40": 1
+  },
+  "n_groups_labeled": 94,
+  "n_groups_test": 30,
+  "labeled_groups_spanning_more_than_one_partition": 82,
+  "test_groups_sharing_a_group_with_labeled_images": 0,
+  "interpretation": "Groups of exactly 10 images are consistent with one source slice rendered at 10 quality levels (100 sources in the labeled set, 30 in the test set); larger groups (20, 40) are merged similar slices. Whether different sources come from the same patient is unknowable here.",
+  "validation_images_with_group_mate_in_train": 1.0
+ },
+ "experiment_c_calibration": {
+  "target_coverage": 0.9,
+  "formula": "k = ceil((n+1)*0.9); q = k-th smallest |y-mu|/sigma on the 100 calibration images; interval mu +/- q*sigma; sigma = 4*exp(s/2), mu = 4*sigmoid output",
+  "per_seed": [
+   {
+    "run": "C_uncertainty_aware_resnet50_20261016T182535Z_s1_74e936",
+    "n_cal": 100,
+    "k": 91,
+    "q_recomputed": 2.1447131036191043,
+    "q_stored": 2.1447131050001547,
+    "q_matches": true,
+    "cal_files_are_calibration_partition": true,
+    "val_files_are_validation_partition": true,
+    "cal_val_disjoint": true,
+    "mu_equals_4x_normalized": true,
+    "val_covered": "96/100",
+    "val_coverage_recomputed": 0.96,
+    "val_coverage_stored": 0.96,
+    "test_covered": "198/300",
+    "test_coverage_recomputed": 0.66,
+    "test_coverage_stored": 0.66,
+    "coverage_matches_stored": true,
+    "median_normalized_residual": {
+     "calibration": 0.6146615401148225,
+     "validation": 0.8607459681142531,
+     "test": 1.542256809513961
+    },
+    "rmse_original_scale": {
+     "calibration": 0.2707398624740742,
+     "validation": 0.27031329863497955,
+     "test": 0.5483742004592888
+    },
+    "mean_sigma": {
+     "calibration": 0.2395179444548471,
+     "validation": 0.23815216088648147,
+     "test": 0.2463267213603527
+    },
+    "q_that_would_give_90pct_on_test_DIAGNOSTIC_ONLY": 3.5813458628246315
+   },
+   {
+    "run": "C_uncertainty_aware_resnet50_20261016T183013Z_s2_569443",
+    "n_cal": 100,
+    "k": 91,
+    "q_recomputed": 1.722780707607481,
+    "q_stored": 1.7227807086645772,
+    "q_matches": true,
+    "cal_files_are_calibration_partition": true,
+    "val_files_are_validation_partition": true,
+    "cal_val_disjoint": true,
+    "mu_equals_4x_normalized": true,
+    "val_covered": "92/100",
+    "val_coverage_recomputed": 0.92,
+    "val_coverage_stored": 0.92,
+    "test_covered": "188/300",
+    "test_coverage_recomputed": 0.6266666666666667,
+    "test_coverage_stored": 0.6266666666666667,
+    "coverage_matches_stored": true,
+    "median_normalized_residual": {
+     "calibration": 0.6665924467525808,
+     "validation": 0.5811220143433186,
+     "test": 1.3728482873444743
+    },
+    "rmse_original_scale": {
+     "calibration": 0.29820166187031427,
+     "validation": 0.259180143706403,
+     "test": 0.6017840890600796
+    },
+    "mean_sigma": {
+     "calibration": 0.3026079048031697,
+     "validation": 0.30193430854537956,
+     "test": 0.3275628830503949
+    },
+    "q_that_would_give_90pct_on_test_DIAGNOSTIC_ONLY": 3.2317743077178727
+   },
+   {
+    "run": "C_uncertainty_aware_resnet50_20261016T183504Z_s3_778806",
+    "n_cal": 100,
+    "k": 91,
+    "q_recomputed": 2.1618131429416425,
+    "q_stored": 2.161813143301944,
+    "q_matches": true,
+    "cal_files_are_calibration_partition": true,
+    "val_files_are_validation_partition": true,
+    "cal_val_disjoint": true,
+    "mu_equals_4x_normalized": true,
+    "val_covered": "95/100",
+    "val_coverage_recomputed": 0.95,
+    "val_coverage_stored": 0.95,
+    "test_covered": "186/300",
+    "test_coverage_recomputed": 0.62,
+    "test_coverage_stored": 0.62,
+    "coverage_matches_stored": true,
+    "median_normalized_residual": {
+     "calibration": 0.7191393816590352,
+     "validation": 0.7013569358077121,
+     "test": 1.7276618931918832
+    },
+    "rmse_original_scale": {
+     "calibration": 0.2855310401210026,
+     "validation": 0.2569198408675473,
+     "test": 0.6267568696870413
+    },
+    "mean_sigma": {
+     "calibration": 0.24579146732164567,
+     "validation": 0.2501937160759037,
+     "test": 0.2871549589837099
+    },
+    "q_that_would_give_90pct_on_test_DIAGNOSTIC_ONLY": 3.6084748341439354
+   }
+  ],
+  "pooled_test_covered": "572/900 (3 seeds x 300 images; the three seeds evaluate the SAME 300 images, so this is not 900 independent observations)",
+  "all_checks_pass": true
+ },
+ "synthetic_formula_check": {
+  "exchangeable_normal_coverage_over_2000_trials": 0.8965,
+  "expected_at_least": 0.9,
+  "note": "Monte Carlo SE about 0.007, so 0.8965 is consistent with 0.90"
+ }
+}

@@ -27,7 +27,7 @@ here; only label files are tracked (`data/labels/ldct_iqac/`).
 - **Split (frozen, image-level):** 800 train / 100 validation / 100 calibration, seed 2026, canonical hash `be5831c5...0a16` (`experiments/study_v2/protocol/split_manifest.json`, verified by the EDA).
 - **Preprocessing:** 224x224 center crop (not resize), `2x - 1` scaling to [-1, 1], grayscale replicated to three channels; targets divided by 4 (sigmoid output), predictions scaled back to [0, 4].
 - **Known data limitations (measured, see [DATASET_AND_EDA](docs/methodology/DATASET_AND_EDA.md)):** no patient identifiers; the labeled images are repeated renderings of the same anatomy at different quality
-  levels, so **every validation and calibration image has a near-identical-anatomy partner in the training set**, while the test set has none. Validation metrics are therefore optimistic. No exact duplicates were found; all files decode.
+  levels (image-similarity analysis recovers groups of exactly 10 images, consistent with ~100 source slices x 10 quality levels). **Every validation and calibration image has a group mate in the training set; no test image does.** No identifiers exist, so patient-level independence is not established, and the validation-to-test gap is consistent with, but not proof of, leakage ([audit](docs/audit/SPLIT_AND_CALIBRATION_AUDIT.md)). Validation metrics are therefore likely optimistic. No exact duplicates were found; all files decode.
 
 ## Methodology
 - **Model:** ResNet50 (v1 stride placement, BatchNorm epsilon 1.001e-5 from the weight file) with RadImageNet weights (SHA-256 verified), global average pooling, dropout 0.5, one linear unit + sigmoid. C adds a second unit for clamped log-variance.
@@ -50,13 +50,12 @@ Mean +/- SD over three final seeds, raw [0, 4] scale. Validation numbers share a
 | B | official test (300), retrospective | 0.869 +/- 0.009 | 0.869 +/- 0.010 | 0.686 +/- 0.013 | 0.637 +/- 0.031 | 0.521 +/- 0.030 | 0.407 +/- 0.040 |
 | C | official test (300), retrospective | 0.865 +/- 0.012 | 0.867 +/- 0.015 | 0.681 +/- 0.021 | 0.592 +/- 0.040 | 0.488 +/- 0.034 | 0.352 +/- 0.047 |
 
-**Experiment C uncertainty** (conformal, target 0.90, 100 calibration images): validation coverage 0.94 (not independent evidence), **test coverage 0.64** (width 1.14); a constant-width interval from the same residuals reaches 0.54 on test (width 0.96).
+**Experiment C uncertainty** (conformal, target 0.90, 100 calibration images; implementation independently re-verified, [audit](docs/audit/SPLIT_AND_CALIBRATION_AUDIT.md)): validation coverage 0.94 (96/100, 92/100, 95/100; not independent evidence), **test coverage 0.64** (198/300, 188/300, 186/300; width 1.14). Calibration residuals are about half the test residuals because calibration sources were seen in training, so exchangeability fails; a constant-width interval from the same residuals reaches 0.54 on test (width 0.96).
 Spearman(sigma, |error|): 0.13 validation, 0.09 test.
 
-**Paired comparisons with A** (seed-averaged, image-level bootstrap, optimistic): B - A mean-correlation +0.002 (95% CI -0.005 to +0.009, validation) and +0.0003 (test); B test RMSE +0.041 (CI +0.027 to +0.055).
-C - A: mean correlation -0.008 (validation, CI includes 0), test RMSE -0.004 (CI includes 0).
+**Paired comparisons with A** (seed-averaged; image-level bootstrap, which treats the 10 variants of a source as independent, so these intervals are overconfident and **exploratory**, not significance tests): B - A mean correlation +0.002 (validation) and +0.0003 (test), both with intervals spanning 0; B test RMSE point difference +0.041 (nominal 95% interval +0.027 to +0.055, likely too narrow). C - A: mean correlation -0.008 (validation), test RMSE -0.004; intervals include 0.
 
-**Reading the results.** The ranking objective did not improve rank correlation and slightly increased error; the uncertainty head matches the baseline's point accuracy but its intervals are not calibrated on unseen anatomy.
+**Reading the results.** The ranking objective did not improve rank correlation and its point error is higher (exploratory); the uncertainty head matches the baseline's point accuracy but its intervals are not calibrated on unseen anatomy.
 A is the recommended default. Details, per-seed values, claim-to-evidence table: [COMPARATIVE_ANALYSIS](docs/experiments/COMPARATIVE_ANALYSIS.md), [ERROR_ANALYSIS](docs/experiments/ERROR_ANALYSIS.md), tables/figures in [`reports/experiments/`](reports/experiments/), EDA in [`reports/eda/`](reports/eda/).
 
 *Historical experiments 001-003* (earlier protocol: 900/100 split, BatchNorm epsilon mismatch between training and test evaluation) reported test PLCC 0.867 (001) and 0.849 (003). They are preserved unchanged, are not directly comparable with the study above, and are not part of the claims here.

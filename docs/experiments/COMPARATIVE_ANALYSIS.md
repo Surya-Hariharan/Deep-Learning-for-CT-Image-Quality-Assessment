@@ -27,7 +27,8 @@ With 3 seeds the SDs below are rough spreads, not confidence statements.
 
 Validation-to-test PLCC drops from about 0.98 to about 0.87 for all three models; RMSE rises from about 0.24-0.26 to about 0.59-0.64. Per-seed tables: `reports/experiments/final_per_seed_*.csv`.
 
-## 3. Paired comparisons with A (seed-averaged predictions, 2000 image-level bootstrap resamples; intervals optimistic)
+## 3. Paired comparisons with A (seed-averaged predictions, 2000 image-level bootstrap resamples)
+**Exploratory only.** Resampling images treats the 10 quality variants of one source slice as independent (see [SPLIT_AND_CALIBRATION_AUDIT](../audit/SPLIT_AND_CALIBRATION_AUDIT.md)), so these intervals are too narrow and "excludes 0" below must not be read as statistical significance. They also reflect evaluation-image sampling only, not the seed-to-seed variability, which is shown by the SDs in section 2 (3 seeds).
 Primary metric: mean of PLCC, SROCC, KROCC. Two comparisons, so the Bonferroni interval is 97.5%.
 
 | Comparison | Partition | Metric | Difference | 95% CI | 97.5% CI | Excludes 0 at 97.5%? |
@@ -35,9 +36,9 @@ Primary metric: mean of PLCC, SROCC, KROCC. Two comparisons, so the Bonferroni i
 | B - A | validation | mean corr | +0.0019 | [-0.0054, +0.0090] | [-0.0064, +0.0100] | no |
 | B - A | validation | RMSE | +0.0130 | [-0.0124, +0.0403] | [-0.0164, +0.0440] | no |
 | B - A | test | mean corr | +0.0003 | [-0.0037, +0.0044] | [-0.0043, +0.0051] | no |
-| B - A | test | RMSE | +0.0408 | [+0.0265, +0.0546] | [+0.0243, +0.0570] | **yes (B worse)** |
+| B - A | test | RMSE | +0.0408 | [+0.0265, +0.0546] | [+0.0243, +0.0570] | yes, but exploratory (B higher) |
 | C - A | validation | mean corr | -0.0082 | [-0.0175, +0.0006] | [-0.0189, +0.0017] | no |
-| C - A | validation | RMSE | +0.0258 | [+0.0071, +0.0434] | [+0.0055, +0.0461] | **yes (C worse)** |
+| C - A | validation | RMSE | +0.0258 | [+0.0071, +0.0434] | [+0.0055, +0.0461] | yes, but exploratory (C higher) |
 | C - A | test | mean corr | -0.0031 | [-0.0093, +0.0032] | [-0.0103, +0.0039] | no |
 | C - A | test | RMSE | -0.0041 | [-0.0166, +0.0085] | [-0.0188, +0.0105] | no |
 
@@ -55,11 +56,11 @@ No overall winner is declared: A is the recommended default (simplest, best vali
 |---|---|---|---|
 | ResNet50 with a sigmoid regression head predicts the LDCT-IQAC quality score with test PLCC about 0.87 | Supported (retrospective) | A seeds 1-3, `final_per_seed_test_retrospective.csv` | test set previously seen by 001/003; one dataset |
 | Pairwise ranking loss improves rank correlation | Not supported | B vs A, section 3; grid in `b_grid_selection_seed42.csv` | low power; 3 seeds; one grid |
-| Pairwise ranking loss worsens absolute error | Weakly supported (test RMSE +0.04, CI excludes 0); not on validation | section 3 | image-level bootstrap optimistic; selection of epoch noisy |
+| Pairwise ranking loss increases absolute error | Tentative: higher point RMSE on test (+0.04) with an overconfident interval; not on validation | section 3 | image-level bootstrap optimistic; selection of epoch noisy |
 | Gaussian-NLL head matches baseline point accuracy | Supported on test (difference within noise); slightly worse on validation | section 3 | 3 seeds |
 | Predicted sigma tracks error | Weakly supported / seed-dependent | Spearman 0.03-0.24 | aleatoric only; weak |
 | Conformal intervals are calibrated | **Not supported** under anatomy shift (test coverage 0.64 vs 0.90) | `exp_c_uncertainty_per_seed.csv` | validation coverage not independent; n = 100 calibration |
-| Validation metrics estimate generalization | **Contradicted**: anatomy overlap, validation PLCC 0.98 vs test 0.87 | EDA anatomy groups, this table | image-level split frozen by protocol |
+| Validation metrics estimate generalization | **Not supported / likely optimistic**: group overlap (recovered from image similarity) and validation PLCC 0.98 vs test 0.87; consistent with leakage, not proof | EDA anatomy groups, this table | image-level split frozen by protocol |
 | `2x-1` is the right pretraining convention | Unresolved; probe finds `2x-1` and caffe-style indistinguishable | PREPROCESSING.md | probe is task evidence, not provenance |
 
 ## 6. Threats to validity

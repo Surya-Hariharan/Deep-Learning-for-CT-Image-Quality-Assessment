@@ -11,6 +11,7 @@ Start with the root [`README.md`](../README.md).
 | [audit/REPOSITORY_AUDIT.md](audit/REPOSITORY_AUDIT.md) | initial repository audit |
 | [experiments/COMPARATIVE_ANALYSIS.md](experiments/COMPARATIVE_ANALYSIS.md) | A vs B vs C results, paired comparisons, claim-to-evidence table |
 | [experiments/ERROR_ANALYSIS.md](experiments/ERROR_ANALYSIS.md) | error patterns by score bin, worst cases, uncertainty vs error |
+| [audit/SPLIT_AND_CALIBRATION_AUDIT.md](audit/SPLIT_AND_CALIBRATION_AUDIT.md) | grouping evidence, independent re-verification of C's conformal calibration, why test coverage fails |
 | [PROVENANCE.md](PROVENANCE.md) | methodological sources and attribution |
 | [experiments/a-reference.md](experiments/a-reference.md) | Experiment A: reference MSE regression |
 | [experiments/b-ranking-aware.md](experiments/b-ranking-aware.md) | Experiment B: MSE + pairwise ranking loss |
