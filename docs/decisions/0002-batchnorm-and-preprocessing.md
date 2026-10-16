@@ -71,6 +71,12 @@ comparison is unaffected; absolute performance may be. The project owner approve
 basis; no preprocessing comparison has been run and the convention is not claimed to be correct. An optional validation-only sensitivity comparison
 (`2x - 1` vs caffe-style) is proposed in the review report and needs separate approval.
 
+## Addendum (2026-10-16, after the executed probe)
+
+The pre-registered frozen-backbone ridge probe ([PREPROCESSING](../methodology/PREPROCESSING.md)) was run: validation PLCC 0.9724 (`2x-1`), 0.9709 (caffe-style), 0.8781 (ImageNet mean/std);
+`2x-1` vs caffe-style not distinguishable (difference +0.0016, 95% CI [-0.0080, +0.0110]); ImageNet mean/std clearly worse. Decision unchanged: `2x-1` is kept, still labelled an assumption for the `.h5` weights.
+Rejected: caffe-style (no evidence of benefit), ImageNet mean/std (worse, unverified source). The pretraining convention remains unverified.
+
 ## Open items
 
 - Confirm the TensorFlow `.h5` input convention (E4 covers the PyTorch release only).

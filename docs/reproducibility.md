@@ -65,3 +65,28 @@ notebook generators, now archived: [ARCHIVED_ARTIFACTS](archived-artifacts.md)) 
 load, test evaluation eps 1e-5). Their six checkpoints are structurally loadable into the new regression model
 (CHECKPOINT_COMPATIBILITY), but evaluating them at a different epsilon is a different
 numerical function; the effect is unquantified.
+
+## Reproducing the study-v2 results (executed 2026-10-16)
+
+Environment used: conda env `torch-gpu` (Python 3.10.20, torch 2.5.1+cu121, RTX 4060 Laptop GPU 8 GB, Windows 11). The locked CPU environment (`uv.lock`) runs the tests but is too slow for training.
+Run from the repository root with the package importable (`pip install -e .` in that env). Each 30-epoch run takes about 6-8 minutes on that GPU.
+
+```bash
+python tools/run_eda.py                                   # dataset audit -> reports/eda/
+python tools/preprocessing_probe.py                        # frozen-backbone probe -> reports/preprocessing_probe/
+python tools/run_study.py --exp A --seed 42 --purpose selection
+for L in 0.03 0.1 0.3 1.0; do python tools/run_study.py --exp B --seed 42 --purpose selection --lam $L --margin 0.05 --delta 0.25; done
+python tools/select_b.py --stage 1 --a-run <A seed-42 run dir>
+for M in 0.02 0.1; do python tools/run_study.py --exp B --seed 42 --purpose selection --lam 0.3 --margin $M --delta 0.25; done
+python tools/run_study.py --exp B --seed 42 --purpose selection --lam 0.3 --margin 0.05 --delta 0.5
+python tools/select_b.py --stage 2 --a-run <A seed-42 run dir>
+python tools/run_study.py --exp C --seed 42 --purpose selection
+for S in 1 2 3; do for E in A C; do python tools/run_study.py --exp $E --seed $S --purpose final; done; done
+for S in 1 2 3; do python tools/run_study.py --exp B --seed $S --purpose final --lam 0.3 --margin 0.05 --delta 0.5; done
+# create experiments/study_v2/protocol/FROZEN (see EXPERIMENT_PROTOCOL.md section 8), then per final run:
+python -m ct_iqa.cli final-test --run-dir <run_dir> --acknowledge-retrospective
+python tools/build_reports.py                             # all tables/figures -> reports/experiments/
+```
+
+`tools/run_study.py` records the run purpose (smoke / selection / final) in the run manifest and `experiments/study_v2/run_registry.jsonl`.
+Expect small numerical differences on other hardware (CUDA nondeterminism). Run directories and checkpoints are not committed.

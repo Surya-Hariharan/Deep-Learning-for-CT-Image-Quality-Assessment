@@ -1,0 +1,67 @@
+{
+ "run_id": "A_reference_resnet50_20261016T182104Z_s3_f804ee",
+ "experiment_id": "A_reference_resnet50",
+ "status": "completed",
+ "started_utc": "2026-10-16T18:21:04+00:00",
+ "git": {
+  "commit": "6c3e3d6b18e53b6fefc172fb56fec4fe708c0f9b",
+  "branch": "main",
+  "dirty": true
+ },
+ "environment": {
+  "python": "3.10.20",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "torch": "2.5.1+cu121",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "device_requested": "cuda",
+  "cuda_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 4060 Laptop GPU"
+ },
+ "seed": 3,
+ "split_manifest": "experiments/study_v2/protocol/split_manifest.json",
+ "split_manifest_sha256": "be5831c56d097a8fdafa7797cda52329ec2dd3aba9dfc88d6e1c92fc694e0a16",
+ "split_seed": 2026,
+ "model": "resnet50_regression",
+ "loss": "mse",
+ "optimizer": "adam",
+ "bn_eps": 1.001e-05,
+ "selection_rule": "val_plcc",
+ "epoch_indexing": "1-based",
+ "official_test_set_used": false,
+ "overrides": {
+  "train": {
+   "seed": 3,
+   "device": "cuda"
+  },
+  "purpose": "final"
+ },
+ "pretrained_weights": {
+  "path": "weights\\pretrained\\radimagenet\\resnet50\\radimagenet_resnet50_backbone.pt",
+  "sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785",
+  "sha256_verified": true,
+  "matched_keys": 265,
+  "missing_learned_keys": 0
+ },
+ "completed_utc": "2026-10-16T18:25:29+00:00",
+ "best_epoch_1based": 30,
+ "validation_metrics": {
+  "partition": "validation",
+  "n": 100,
+  "scale": "raw [0, 4]",
+  "epoch_1based": 30,
+  "mse": 0.05232356853382557,
+  "plcc": 0.9790146361409516,
+  "srocc": 0.9794484501840888,
+  "krocc": 0.8920021717180683,
+  "mae": 0.17864380814135075,
+  "rmse": 0.2287434557180283
+ },
+ "artifact_sha256": {
+  "config.snapshot.json": "c118aa6d8eded3129ccd7154e8c13a4b3826b22ddbed04de78e5f136cfa5b64c",
+  "history.json": "e405f149217a6bb882516a241968ddd042d1da58e20911567c6d45a2dfb15194",
+  "metrics_validation.json": "3bcd476ce6b498d1ad850f0702bb9701acabb51e6e6c63453c126b7f989652b9",
+  "predictions_validation.csv": "aebf9635174ce93b027365dbdbbbd3eff31dfdb3f867e67e3cb1a81780216cd0",
+  "checkpoints/best.pt": "126eed58479476d0a77901ac3acd8dab10898b8fd0e64c7fc8106b41f656fb62"
+ }
+}

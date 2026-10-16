@@ -1,0 +1,51 @@
+{
+ "partition": "official_test",
+ "evaluation_status": "retrospective evaluation on a previously examined benchmark",
+ "n": 300,
+ "scale": "raw [0, 4]",
+ "mse": 0.30071426372580107,
+ "plcc": 0.8682203884104114,
+ "srocc": 0.8712823585038862,
+ "krocc": 0.6856041467967504,
+ "mae": 0.4533397495187819,
+ "rmse": 0.5483742004560399,
+ "intervals": {
+  "quantile_q_from_calibration_partition": 2.1447131050001547,
+  "unclipped": {
+   "coverage": 0.66,
+   "mean_width": 1.0566002948143622,
+   "median_width": 1.0734193497071758,
+   "n": 300
+  },
+  "clipped_to_0_4": {
+   "coverage": 0.66,
+   "mean_width": 1.0286577591739574,
+   "median_width": 1.0682089608475578,
+   "n": 300,
+   "fraction_intervals_clipped": 0.17333333333333334
+  },
+  "nll_score_scale": 1.2024504084861316,
+  "sigma_error_spearman": 0.14526250291669907,
+  "coverage_by_sigma_tercile": [
+   {
+    "tercile": 1,
+    "n": 100,
+    "mean_sigma": 0.2082015296102696,
+    "coverage": 0.65
+   },
+   {
+    "tercile": 2,
+    "n": 100,
+    "mean_sigma": 0.25112215728270504,
+    "coverage": 0.7
+   },
+   {
+    "tercile": 3,
+    "n": 100,
+    "mean_sigma": 0.27965647717956654,
+    "coverage": 0.63
+   }
+  ],
+  "mean_sigma": 0.24632672135751374
+ }
+}

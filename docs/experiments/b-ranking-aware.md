@@ -1,7 +1,7 @@
 # Experiment B: ranking-aware ResNet50 regression
 
 ID `B_ranking_aware_resnet50` | config [b_ranking_aware.yaml](../../configs/experiments/b_ranking_aware.yaml) | notebook
-`notebooks/04_ranking_aware_experiment.ipynb` | status: **NOT RUN**; config values are untuned placeholders
+`notebooks/04_ranking_aware_experiment.ipynb` | status: **EXECUTED** (grid at seed 42; selected point replicated at seeds 1-3; hypothesis not supported)
 
 ## 1. Objective
 Test whether adding an explicit pairwise ranking term to the MSE objective changes the ordering quality of predictions
@@ -43,7 +43,7 @@ validation RMSE is within 5% of A's, choose the highest mean of validation (PLCC
 more than the paired-bootstrap 95% interval half-width, report "no demonstrated improvement" and keep A as the
 recommended model. The `lambda = 0` ablation is A itself (the equality of the objectives is unit-tested).
 
-Interpretation of "among configurations" (fixed before any B run, which is still NOT RUN): the rule is applied to
+Interpretation of "among configurations" (fixed before any B run): the rule is applied to
 all 7 declared configurations (4 stage-1 points plus the 3 stage-2 points at the stage-1 lambda), at the tuning seed
 42; the stage-1 lambda only decides which stage-2 points exist, and is read from the written stage-1 selection
 record. Ties keep the earlier point. The result is a final selection record (`selection_record_stage2.json`).
@@ -60,10 +60,7 @@ As A, plus `n_valid_pairs` logging. Grid runs are separate run directories; the 
 grid results are all kept.
 
 ## 10. Results
-| Run ID | lambda | margin | delta | Epoch | PLCC | SROCC | KROCC | MSE | MAE | RMSE | Status |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| - | 0 (= A) | - | - | - | - | - | - | - | - | - | **PENDING** |
-| - | 0.03 / 0.1 / 0.3 / 1.0 | 0.05 | 0.25 | - | - | - | - | - | - | - | **PENDING** |
+(Results: see the Results section at the end of this document.)
 
 ## 11. Interpretation rules
 No claim that ranking loss improves rank correlation unless the paired interval excludes zero on validation and the
@@ -79,3 +76,33 @@ correlations; the near-continuous 21-level score has many ties (delta handles th
 - [ ] all grid runs completed and listed in section 10
 - [ ] paired bootstrap against A recorded
 - [ ] `lambda = 0` equality test passing at run time
+
+## Results (executed 2026-10-16; `reports/experiments/b_grid_selection_seed42.csv`, `selection_record_stage1.json`, `selection_record_stage2.json`)
+Selection seed 42, validation (n = 100), all 7 declared configurations plus A:
+
+| Config | PLCC | SROCC | KROCC | MSE | MAE | RMSE | mean corr | RMSE guard |
+|---|---|---|---|---|---|---|---|---|
+| A (lambda = 0) | 0.9790 | 0.9790 | 0.8949 | 0.0616 | 0.1882 | 0.2481 | 0.9510 | - |
+| lambda 0.03, m 0.05, d 0.25 | 0.9786 | 0.9782 | 0.8908 | 0.0537 | 0.1830 | 0.2317 | 0.9492 | pass |
+| lambda 0.1, m 0.05, d 0.25 | 0.9791 | 0.9790 | 0.8953 | 0.0585 | 0.1854 | 0.2420 | 0.9512 | pass |
+| lambda 0.3, m 0.05, d 0.25 | 0.9802 | 0.9800 | 0.8982 | 0.0549 | 0.1791 | 0.2343 | 0.9528 | pass |
+| lambda 1.0, m 0.05, d 0.25 | 0.9794 | 0.9783 | 0.8920 | 0.0518 | 0.1805 | 0.2275 | 0.9499 | pass |
+| lambda 0.3, m 0.02, d 0.25 | 0.9800 | 0.9792 | 0.8965 | 0.0527 | 0.1759 | 0.2295 | 0.9519 | pass |
+| lambda 0.3, m 0.1, d 0.25 | 0.9785 | 0.9786 | 0.8916 | 0.1057 | 0.2611 | 0.3251 | 0.9496 | **fail** |
+| **lambda 0.3, m 0.05, d 0.5** | 0.9803 | 0.9804 | 0.8978 | 0.0517 | 0.1792 | 0.2273 | 0.9528 | pass |
+
+Declared rule outcome (stage 2, all 7 points): best guarded point lambda 0.3 / margin 0.05 / delta 0.5; mean-correlation difference vs A = +0.0018, 95% CI [-0.0036, +0.0080],
+half-width 0.0058 -> **"no demonstrated improvement: A remains the recommended model"**. Stage 1 alone selected lambda 0.3 / margin 0.05 / delta 0.25 with the same conclusion.
+The two top candidates tie to four decimals (0.9528); the choice between them is immaterial to the conclusion.
+Run history: the first lambda = 0.03 run failed (`PermissionError` on a file rename in the OneDrive-synced folder) and is kept as a failed run; it was rerun as a new run with identical settings after a retry helper was added.
+
+Final replicates of the selected point (seeds 1-3; retrained although improvement was not demonstrated, see EXPERIMENT_PROTOCOL.md section 9):
+
+| Partition | PLCC | SROCC | KROCC | MSE | MAE | RMSE |
+|---|---|---|---|---|---|---|
+| validation (100), mean +/- SD | 0.9790 +/- 0.0009 | 0.9790 +/- 0.0010 | 0.8912 +/- 0.0026 | 0.0623 +/- 0.0081 | 0.1917 +/- 0.0107 | 0.2493 +/- 0.0159 |
+| official test (300), retrospective | 0.8692 +/- 0.0090 | 0.8689 +/- 0.0098 | 0.6856 +/- 0.0126 | 0.4067 +/- 0.0397 | 0.5212 +/- 0.0302 | 0.6372 +/- 0.0313 |
+
+Paired bootstrap B - A on seed-averaged predictions (2000 resamples; 95% / Bonferroni 97.5% intervals): validation mean correlation +0.0019 [-0.0054, +0.0090] / [-0.0064, +0.0100];
+validation RMSE +0.013 [-0.012, +0.040]; test mean correlation +0.0003 [-0.0037, +0.0044]; **test RMSE +0.041 [+0.027, +0.055]** (B worse; interval excludes zero).
+Conclusion: the ranking objective did **not** improve rank correlation beyond noise and slightly worsened absolute error (significant on test RMSE under image-level resampling, which is optimistic).

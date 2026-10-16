@@ -1,0 +1,16 @@
+{
+ "frozen_utc": "2026-10-16T18:58:29.473468+00:00",
+ "head": "6c3e3d6b18e53b6fefc172fb56fec4fe708c0f9b",
+ "working_tree_dirty": true,
+ "note": "Created after all selection/calibration runs (seed 42 + pilot C) and all final training runs (seeds 1-3) completed; before any official-test evaluation. Test set was previously examined by historical 001/003: evaluations are retrospective.",
+ "sha256": {
+  "docs/methodology/EXPERIMENT_PROTOCOL.md": "461b427ad1f46818724da0c0d538e94adabb6a817fc4ed2fe14b0850c7011928",
+  "configs/base.yaml": "0c14224ce0ad7f6cb55e154e083986e2e150173cbddda9b44dbce546d6e414cb",
+  "configs/experiments/a_reference.yaml": "e803f52a917fa4cd7737a43559f5f0060d31122d6f34e15368d79673a387f7c9",
+  "configs/experiments/b_ranking_aware.yaml": "479178416f03bb82b78442e71bbe7fc8b48f2a1d3af7f0209dcfc8fcda000de5",
+  "configs/experiments/c_uncertainty_aware.yaml": "08bf009ea2ac336b2ff90c677eb3f3808a52066bd43217736a9758e63e49ef56",
+  "experiments/study_v2/protocol/split_manifest.json": "8b0f1f6dc2c8951c82d7068f486e196c940d20b24edf85383d9cddb4e597bd94",
+  "experiments/study_v2/B_ranking_aware_resnet50/selection_record_stage1.json": "ce6f5e7302f072387b674ed6d3b02f20355af794c48aa2595054e1e120304250",
+  "experiments/study_v2/B_ranking_aware_resnet50/selection_record_stage2.json": "094f91552ffb7d43a9cfe81cba88af279b7687b602e34bae9a054b6f7d4abd4e"
+ }
+}

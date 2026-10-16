@@ -1,0 +1,27 @@
+{
+ "epoch_indexing": "1-based",
+ "selection_policy": "val_plcc",
+ "complete": true,
+ "best_epoch": 1,
+ "best_value": 0.9462934325235103,
+ "epochs": [
+  {
+   "epoch": 1,
+   "train_loss": 0.02246509175747633,
+   "val_loss": 0.00862979244440794,
+   "val_plcc": 0.9462934325235103,
+   "val_srocc": 0.9389260556890444,
+   "val_krocc": 0.7998685523141177,
+   "val_mse": 0.13807667774784202,
+   "val_mae": 0.3106383749842644,
+   "val_rmse": 0.3715867028673685,
+   "train_loss_parts": {
+    "mse": 0.02246509175747633
+   },
+   "val_loss_parts": {
+    "mse": 0.00862979244440794
+   },
+   "selected": true
+  }
+ ]
+}

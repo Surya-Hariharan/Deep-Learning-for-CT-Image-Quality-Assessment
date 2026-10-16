@@ -1,251 +1,106 @@
 # Quality-Aware Lung CT
 
-**No-reference CT image quality assessment**, adapted from Ohashi et al.
-to the LDCT-IQAC dataset.
+**No-reference CT image quality assessment with a RadImageNet-pretrained ResNet50: a controlled comparison of regression, ranking-aware regression, and uncertainty-aware regression.**
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-EE4C2C?logo=pytorch&logoColor=white)
-![Pretraining](https://img.shields.io/badge/Pretraining-RadImageNet-6f42c1)
+![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
 ![Backbone](https://img.shields.io/badge/Backbone-ResNet50-informational)
-![Status](https://img.shields.io/badge/Pipeline-Complete-success)
+![Pretraining](https://img.shields.io/badge/Pretraining-RadImageNet-6f42c1)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
-## Study v2 (in progress): three ResNet50 objectives
+## Overview
+A no-reference model scores the diagnostic quality of a CT image (0 = worst, 4 = best, radiologist consensus) without a clean reference image. This repository trains and evaluates
+three ResNet50 variants on the LDCT-IQAC data under one fixed, pre-declared protocol, and reports honestly what the evidence does and does not support.
+It is a research code base for an intra-college study, not a clinical tool; predicting a quality score is not diagnostic performance.
 
-The repository now also contains a configuration-driven framework for a new study on one shared RadImageNet-initialized
-ResNet50 backbone: **A** reference regression (MSE), **B** ranking-aware regression (MSE + pairwise ranking), **C**
-uncertainty-aware regression (Gaussian NLL + split-conformal intervals). **Status: implemented and tested on synthetic
-data only; no study-v2 model has been trained and the official test set has not been used.** Start at
-[`docs/README.md`](docs/README.md); protocol in [`docs/experiment-protocol.md`](docs/experiment-protocol.md).
+## Research questions
+| Experiment | Question | Outcome (this study) |
+|---|---|---|
+| **A** Reference regression | How accurately can ResNet50 + sigmoid head (MSE) predict the continuous score? | Test PLCC 0.868 (retrospective, 3 seeds) |
+| **B** Ranking-aware regression | Does adding a pairwise ranking loss improve rank correlation without hurting absolute error? | **Not supported**: no improvement beyond noise; test RMSE slightly worse |
+| **C** Uncertainty-aware regression | Does a Gaussian-NLL head with split-conformal intervals give useful, calibrated uncertainty? | Weak uncertainty signal; **coverage not preserved** on unseen anatomy (0.64 vs 0.90 target) |
 
-```bash
-uv sync --extra dev
-uv run python -m ct_iqa.cli validate-config --config configs/experiments/a_reference.yaml
-uv run pytest tests/unit tests/regression tests/integration/test_study_synthetic_end_to_end.py
-```
+Implemented capabilities (config-driven framework, immutable run records, tests) are distinguished below from experimentally demonstrated findings.
 
-Everything below this section describes the **historical experiments 001-003**, which are preserved unchanged. Their
-BatchNorm epsilon differed between training (1e-3) and test evaluation (1e-5); see
-[`docs/decisions/0002-batchnorm-and-preprocessing.md`](docs/decisions/0002-batchnorm-and-preprocessing.md).
+## Dataset
+LDCT-IQAC: 1000 labeled training-set images (512x512 float32 TIFF, scores in [0, 4], 21 distinct values) and a 300-image official test set (25 distinct values). The images are **not** redistributed
+here; only label files are tracked (`data/labels/ldct_iqac/`).
+- **Split (frozen, image-level):** 800 train / 100 validation / 100 calibration, seed 2026, canonical hash `be5831c5...0a16` (`experiments/study_v2/protocol/split_manifest.json`, verified by the EDA).
+- **Preprocessing:** 224x224 center crop (not resize), `2x - 1` scaling to [-1, 1], grayscale replicated to three channels; targets divided by 4 (sigmoid output), predictions scaled back to [0, 4].
+- **Known data limitations (measured, see [DATASET_AND_EDA](docs/methodology/DATASET_AND_EDA.md)):** no patient identifiers; the labeled images are repeated renderings of the same anatomy at different quality
+  levels, so **every validation and calibration image has a near-identical-anatomy partner in the training set**, while the test set has none. Validation metrics are therefore optimistic. No exact duplicates were found; all files decode.
 
-## What this is
-
-This project trains a deep-learning model that scores a CT image's
-quality **without needing a clean reference image to compare against**
-("no-reference" image quality assessment). It adapts the ResNet50
-baseline from Ohashi et al., *"Development of a No-Reference CT Image
-Quality Assessment Method Using RadImageNet Pre-trained Deep Learning
-Models,"* to the **LDCT-IQAC** dataset, which has real
-radiologist-assigned quality labels instead of the paper's synthetic
-degradation setup.
-
-```mermaid
-flowchart LR
-    A["CT image\n512x512 float TIFF"] --> B["Center crop\n224x224"]
-    B --> C["Normalize\n[0,1] -> [-1,1]"]
-    C --> D["RadImageNet-pretrained\nResNet50 backbone"]
-    D --> E["GAP -> Dropout -> Dense(1) -> Sigmoid"]
-    E --> F["Predicted quality score\n[0, 4]"]
-```
-
-This is an adaptation, not an exact reproduction — the dataset and
-regression target both differ from the original paper. See
-[Research context](#research-context) for what that means for the
-numbers below.
+## Methodology
+- **Model:** ResNet50 (v1 stride placement, BatchNorm epsilon 1.001e-5 from the weight file) with RadImageNet weights (SHA-256 verified), global average pooling, dropout 0.5, one linear unit + sigmoid. C adds a second unit for clamped log-variance.
+- **A:** MSE. **B:** MSE + lambda x pairwise margin ranking over in-batch pairs whose label gap is at least delta. **C:** heteroscedastic Gaussian NLL; split-conformal intervals mu +/- q sigma from the 100 calibration images (target coverage 0.90).
+- **Training (identical for all):** Adam, lr 1e-3, batch 64, 30 epochs, no augmentation or scheduler; checkpoint = best validation PLCC.
+- **B selection:** 7-point grid (lambda 0.03/0.1/0.3/1.0; then margin 0.02/0.1 and delta 0.5 at the stage-1 lambda), validation RMSE within 5% of A, highest mean(PLCC, SROCC, KROCC), paired bootstrap against A. Declared before any run.
+- **Seeds:** 42 = selection (exploratory); 1, 2, 3 = independent final replicates for A, B (selected point) and C.
+- **Test boundary:** the official test set is read only after a `FROZEN` marker exists, once per final model, and is reported as **retrospective** (it was examined by earlier historical experiments).
+- Full protocol: [EXPERIMENT_PROTOCOL](docs/methodology/EXPERIMENT_PROTOCOL.md); preprocessing evidence: [PREPROCESSING](docs/methodology/PREPROCESSING.md).
 
 ## Results
+Mean +/- SD over three final seeds, raw [0, 4] scale. Validation numbers share anatomy with training and are optimistic; test numbers are **retrospective**.
 
-Measured once per model on the same untouched 300-image LDCT-IQAC test
-set, from a checkpoint reloaded in a fresh process (raw metrics, no
-calibration):
+| Model | Partition (n) | PLCC | SROCC | KROCC | RMSE | MAE | MSE |
+|---|---|---|---|---|---|---|---|
+| A | validation (100) | 0.978 +/- 0.001 | 0.978 +/- 0.002 | 0.887 +/- 0.004 | 0.236 +/- 0.007 | 0.184 +/- 0.005 | 0.056 +/- 0.003 |
+| B | validation (100) | 0.979 +/- 0.001 | 0.979 +/- 0.001 | 0.891 +/- 0.003 | 0.249 +/- 0.016 | 0.192 +/- 0.011 | 0.062 +/- 0.008 |
+| C | validation (100) | 0.974 +/- 0.000 | 0.972 +/- 0.001 | 0.873 +/- 0.003 | 0.262 +/- 0.007 | 0.214 +/- 0.007 | 0.069 +/- 0.004 |
+| A | official test (300), retrospective | 0.868 +/- 0.009 | 0.870 +/- 0.010 | 0.685 +/- 0.013 | 0.596 +/- 0.054 | 0.491 +/- 0.043 | 0.358 +/- 0.063 |
+| B | official test (300), retrospective | 0.869 +/- 0.009 | 0.869 +/- 0.010 | 0.686 +/- 0.013 | 0.637 +/- 0.031 | 0.521 +/- 0.030 | 0.407 +/- 0.040 |
+| C | official test (300), retrospective | 0.865 +/- 0.012 | 0.867 +/- 0.015 | 0.681 +/- 0.021 | 0.592 +/- 0.040 | 0.488 +/- 0.034 | 0.352 +/- 0.047 |
 
-| Metric | Experiment 001 (baseline) | Experiment 003 (final) |
-|---|---|---|
-| PLCC | **0.8667** | 0.8490 |
-| SROCC | **0.8699** | 0.8525 |
-| KROCC | **0.6816** | 0.6611 |
-| MAE | **0.4815** | 0.5195 |
-| RMSE | **0.5736** | 0.6689 |
+**Experiment C uncertainty** (conformal, target 0.90, 100 calibration images): validation coverage 0.94 (not independent evidence), **test coverage 0.64** (width 1.14); a constant-width interval from the same residuals reaches 0.54 on test (width 0.96).
+Spearman(sigma, |error|): 0.13 validation, 0.09 test.
 
-Experiment 001's checkpoint is selected by the best validation-set PLCC
-seen during training (`checkpoint_type="best_plcc"`), not by validation
-loss — see `docs/archived-artifacts.md`
-for why this matters and `docs/archived-artifacts.md`
-for why it's an implementation decision, not a paper-specified detail.
-Under this selection rule, the validation-selected baseline (001) still
-outperforms the final full-data model (003) on every metric above — a
-genuine finding, investigated in
-`docs/archived-artifacts.md`.
-These numbers are **not** compared against the original paper's reported
-values (different dataset, different label semantics — see
-[Research context](#research-context)).
+**Paired comparisons with A** (seed-averaged, image-level bootstrap, optimistic): B - A mean-correlation +0.002 (95% CI -0.005 to +0.009, validation) and +0.0003 (test); B test RMSE +0.041 (CI +0.027 to +0.055).
+C - A: mean correlation -0.008 (validation, CI includes 0), test RMSE -0.004 (CI includes 0).
 
-## Quickstart
+**Reading the results.** The ranking objective did not improve rank correlation and slightly increased error; the uncertainty head matches the baseline's point accuracy but its intervals are not calibrated on unseen anatomy.
+A is the recommended default. Details, per-seed values, claim-to-evidence table: [COMPARATIVE_ANALYSIS](docs/experiments/COMPARATIVE_ANALYSIS.md), [ERROR_ANALYSIS](docs/experiments/ERROR_ANALYSIS.md), tables/figures in [`reports/experiments/`](reports/experiments/), EDA in [`reports/eda/`](reports/eda/).
 
-### 1. Install
+*Historical experiments 001-003* (earlier protocol: 900/100 split, BatchNorm epsilon mismatch between training and test evaluation) reported test PLCC 0.867 (001) and 0.849 (003). They are preserved unchanged, are not directly comparable with the study above, and are not part of the claims here.
+
+## Limitations and threats to validity
+Image-level split with measured anatomy overlap (optimistic validation and bootstrap intervals); no patient IDs; retrospective test set; three seeds; B selection reused the validation set that also selects checkpoints;
+`2x-1` is a labelled assumption for the weights' pretraining convention (a probe found it indistinguishable from caffe-style scaling); single dataset and scanner mix; C models aleatoric uncertainty only.
+See [limitations-and-threats](docs/limitations-and-threats.md). Nothing here is evidence of clinical utility, and no claim of novelty is made.
+
+## Repository structure
+```
+configs/        base.yaml + experiments/{a,b,c}_*.yaml (study v2); legacy YAMLs for 001-003
+src/ct_iqa/     data, preprocessing, models, losses, training, evaluation (metrics, bootstrap, conformal), experiment (runs, grid, reports), cli
+tools/          run_eda.py, preprocessing_probe.py, run_study.py, select_b.py, build_reports.py, create_split_manifest.py
+tests/          unit / regression / integration
+notebooks/      00-07: audit, EDA, preprocessing, experiments A/B/C, comparison, error analysis (training gated off by default)
+docs/           methodology, experiment specs and analyses, decision records, audit, reproducibility
+reports/        eda/, preprocessing_probe/, experiments/ (generated from raw run records)
+experiments/    historical 001-003 (immutable) and study_v2/ run records (checkpoints are not committed)
+weights/        pretrained weights (not committed)
+```
+
+## Reproducibility
+Environment for the reported runs: Python 3.10, PyTorch 2.5.1 + CUDA 12.1, one RTX 4060 Laptop GPU (8 GB), Windows 11; about 6-8 minutes per 30-epoch run. Obtain the dataset and the RadImageNet weights as described in
+[`docs/reproducibility.md`](docs/reproducibility.md) and [`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md), then:
 
 ```bash
-git clone <this-repository-url>
-cd Deep-Learning-for-CT-Image-Quality-Assessment
-
-# with uv (recommended)
-uv sync --extra dev
-
-# or with plain pip
 pip install -e ".[dev]"
-```
-
-Requires Python >= 3.10 (see `.python-version`). `[dev]` pulls in
-`pytest`, `nbformat`, `ipykernel`, `nbclient`, and `pandas` — everything
-needed to run the test suite and regenerate/execute notebooks.
-
-### 2. Get the data
-
-**The LDCT-IQAC images are not included or redistributed by this repository**
-(the dataset is published by the challenge organizers, see
-[`docs/dataset-and-labels.md`](docs/dataset-and-labels.md)). Only the derived label files
-(`data/labels/ldct_iqac/{train,test}.json` — filename → quality score,
-no pixel data) are tracked in git.
-
-To run anything beyond the synthetic-data unit tests, place the raw
-images at:
-
-```
-data/raw/ldct_iqac/train/image/*.tif     (1000 files)
-data/raw/ldct_iqac/test/images/*.tiff    (300 files)
-```
-
-Paths are configured in `configs/dataset.yaml`.
-
-### 3. Get the pretrained weights
-
-RadImageNet weights are not bundled. Full instructions:
-[`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md).
-Short version:
-
-```bash
-# 1. Obtain RadImageNet-ResNet50_notop.h5 from BMEII-AI/RadImageNet
-#    (https://github.com/BMEII-AI/RadImageNet, access requested via their form)
-#    and place it at:
-#    weights/pretrained/radimagenet/resnet50/RadImageNet-ResNet50_notop.h5
-
-# 2. Convert it to a PyTorch checkpoint
-python -m ct_iqa.models.radimagenet_weights
-
-# 3. configs/model.yaml already points radimagenet_weights_path at the
-#    resulting .pt file
-```
-
-### 4. Run it
-
-All reusable code lives in `src/ct_iqa/`; the notebooks under `notebooks/`
-only configure and run it. The study-v2 workflow (Experiments A, B, C) is:
-
-| Notebook | Purpose |
-|---|---|
-| `notebooks/00_environment_and_data_audit.ipynb` | environment, label and weight-checksum checks |
-| `notebooks/01_dataset_exploration.ipynb` | label distributions per partition of the frozen split |
-| `notebooks/02_preprocessing_validation.ipynb` | crop / `2x-1` / BatchNorm epsilon checks on synthetic data |
-| `notebooks/03_reference_baseline.ipynb` | Experiment A (reference regression) |
-| `notebooks/04_ranking_aware_experiment.ipynb` | Experiment B (ranking-aware) |
-| `notebooks/05_uncertainty_experiment.ipynb` | Experiment C (Gaussian NLL + split conformal) |
-| `notebooks/06_comparative_analysis.ipynb` | paired comparison of A, B, C |
-| `notebooks/07_error_analysis_and_visualization.ipynb` | residual and uncertainty plots |
-
-Training in notebooks 03-05 is gated behind `RUN_TRAINING = False`; nothing
-trains unless you change it. The same runs can be started from the command
-line:
-
-```bash
+python -m pytest -q                                              # 176+ tests (synthetic mechanics; some need real data/weights)
 python -m ct_iqa.cli validate-config --config configs/experiments/a_reference.yaml
-python -m ct_iqa.cli train --config configs/experiments/a_reference.yaml --device cuda
+python tools/run_eda.py && python tools/preprocessing_probe.py
+python tools/run_study.py --exp A --seed 1 --purpose final       # one 30-epoch run (nothing trains on import)
+python tools/build_reports.py                                    # regenerate all tables/figures from run records
 ```
+Full command sequence (grid, selection, final seeds, freeze, retrospective test): [`docs/reproducibility.md`](docs/reproducibility.md). Every run writes an immutable directory with config snapshot, run manifest
+(git state, hashes, versions, seed), history, predictions and artifact checksums.
 
-The historical experiments 001-003 (notebooks, generator scripts, result
-figures/tables) are no longer in the working tree; see
-[`docs/archived-artifacts.md`](docs/archived-artifacts.md) for what was removed
-and how to recover it from git history.
+## Scientific transparency
+Selection rules were written before results; failed and exploratory runs are retained and labelled (one run failed on a file-lock error and was rerun as a new run); the official test set was never used for any choice;
+differences within bootstrap noise are reported as such. Methodological sources are recorded in [`docs/PROVENANCE.md`](docs/PROVENANCE.md).
 
-Run the test suite with:
-
-```bash
-uv run pytest
-```
-
-## Project layout
-
-```
-├── configs/            YAML hyperparameters (dataset/preprocessing/model/training)
-├── data/
-│   ├── raw/ldct_iqac/  raw CT images (gitignored — see Quickstart)
-│   ├── labels/ldct_iqac/  filename -> quality-score JSON (tracked)
-│   └── interim/, processed/  currently unused
-├── docs/
-│   ├── paper/          what the reference paper specifies
-│   ├── replication/    this project's adaptation, deviations, and results
-│   └── internal/       engineering/process history, not needed to use the project
-├── src/ct_iqa/         all reusable implementation (models, data, training, evaluation)
-├── notebooks/          study-v2 notebooks 00-07 (Experiments A, B, C)
-├── tools/              split-manifest creation and checkpoint-structure inspection
-├── weights/pretrained/  externally-sourced pretrained weights (gitignored)
-├── experiments/         per-run checkpoints + config (gitignored binaries)
-├── (results/)           historical 001-003 outputs, removed from the tree; see docs/archived-artifacts.md
-└── tests/unit/, tests/integration/
-```
-
-## Documentation map
-
-- [`docs/README.md`](docs/README.md) — index of the study-v2 documentation: project overview, experiment
-  protocol, specs for Experiments A, B and C, decision records, dataset, preprocessing and metrics.
-- [`docs/archived-artifacts.md`](docs/archived-artifacts.md) — historical papers, replication notes, audits,
-  notebooks and results that were removed from the tree, and how to recover them from git history.
-- [`weights/pretrained/radimagenet/resnet50/README.md`](weights/pretrained/radimagenet/resnet50/README.md)
-  — pretrained weight source, conversion, and verification.
-- `experiments/*/README.md` — per-run training/evaluation record.
-
-## Research context
-
-Only the paper's ResNet50 baseline is replicated (not its
-InceptionResNetV2 variant), and it's trained on a different dataset with
-a different regression target:
-
-| | Paper (Ohashi et al.) | This project |
-|---|---|---|
-| Backbone | ResNet50 or InceptionResNetV2 | ResNet50 only |
-| Pretraining | RadImageNet | RadImageNet (verified loaded) |
-| Regression target | VIF (from synthetic degradation) | LDCT-IQAC radiologist quality score |
-| Degradation pipeline | Synthetic (noise/blur) | None — not needed |
-| Training config | Adam, MSE, batch 64, 30 epochs, lr 1e-3 | Same |
-| Evaluation | PLCC / SROCC / KROCC, 5PL-mapped | Same raw metrics; 5PL calibration deferred |
-
-Full detail: `docs/archived-artifacts.md`
-and `docs/archived-artifacts.md`.
-
-## Limitations
-
-- Only the ResNet50 baseline is implemented — no InceptionResNetV2.
-- Results are not directly comparable to the paper's own reported
-  numbers (different dataset, different label semantics).
-- Dropout probability (0.5) is this project's own choice; the paper
-  doesn't specify one.
-- No data augmentation, LR scheduling, weight decay, or warmup
-  (deliberately, to stay close to the paper's stated training setup) —
-  but checkpoint selection **is** a validation-based model-selection step
-  (see `docs/archived-artifacts.md`), not something the paper's fixed-epoch
-  configuration calls for.
-- No non-test calibration protocol exists yet, so only raw metrics are
-  reported.
-- The final full-data model (003) performs worse than the
-  validation-selected baseline (001) on the test set; the cause isn't
-  fully determined — see
-  `docs/archived-artifacts.md`.
-- No statistical significance testing is implemented; all comparisons
-  are descriptive.
+## Conclusion
+With the available data, a plain ResNet50 regressor is as good as the ranking-aware and uncertainty-aware variants for point prediction; the ranking loss gave no demonstrated benefit, and the uncertainty estimates were weak
+and not calibrated for unseen anatomy. The most important caveat is the anatomy overlap between training and validation/calibration images, which inflates validation results and calls for an anatomy-aware split before any stronger claim.
 
 ## License
-
-This repository's **code** (`src/ct_iqa/`, `tools/`, `notebooks/`,
-`configs/`) is MIT-licensed — see [`LICENSE`](LICENSE). It does **not**
-cover the LDCT-IQAC dataset or RadImageNet pretrained weights, both of
-which remain under their own original terms and are not redistributed
-here.
+Code is MIT-licensed ([`LICENSE`](LICENSE)). The LDCT-IQAC dataset and RadImageNet weights remain under their own terms and are not redistributed.

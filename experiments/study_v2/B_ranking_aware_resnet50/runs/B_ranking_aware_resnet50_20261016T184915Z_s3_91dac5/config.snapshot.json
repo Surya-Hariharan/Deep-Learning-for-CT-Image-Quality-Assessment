@@ -1,0 +1,46 @@
+{
+ "model": {
+  "name": "resnet50_regression",
+  "dropout_p": 0.5,
+  "bn_eps": 1.001e-05,
+  "in_channels": 1,
+  "pretrained_weights": "weights/pretrained/radimagenet/resnet50/radimagenet_resnet50_backbone.pt",
+  "pretrained_sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785"
+ },
+ "loss": {
+  "name": "mse_ranking",
+  "ranking": {
+   "lambda_rank": 0.3,
+   "margin": 0.05,
+   "min_score_diff": 0.5
+  }
+ },
+ "optim": {
+  "name": "adam",
+  "learning_rate": 0.001,
+  "weight_decay": 0.0
+ },
+ "data": {
+  "train_image_dir": "data/raw/ldct_iqac/train/image",
+  "train_json_path": "data/labels/ldct_iqac/train.json",
+  "test_image_dir": "data/raw/ldct_iqac/test/images",
+  "test_json_path": "data/labels/ldct_iqac/test.json",
+  "split_manifest": "experiments/study_v2/protocol/split_manifest.json",
+  "image_size": 224
+ },
+ "train": {
+  "epochs": 30,
+  "batch_size": 64,
+  "seed": 3,
+  "device": "cuda",
+  "selection_metric": "val_plcc"
+ },
+ "run": {
+  "experiment_id": "B_ranking_aware_resnet50",
+  "output_root": "experiments/study_v2"
+ },
+ "calibration": {
+  "method": "split_conformal",
+  "target_coverage": 0.9
+ }
+}

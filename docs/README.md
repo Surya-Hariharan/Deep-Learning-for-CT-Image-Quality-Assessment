@@ -5,7 +5,13 @@ Start with the root [`README.md`](../README.md).
 | Document | Contents |
 |---|---|
 | [project-overview.md](project-overview.md) | purpose, scope, main components, entry points |
-| [experiment-protocol.md](experiment-protocol.md) | frozen split, roles of each partition, comparison and test-set rules |
+| [methodology/EXPERIMENT_PROTOCOL.md](methodology/EXPERIMENT_PROTOCOL.md) | frozen protocol: split, roles, seeds, B grid and selection rule, C calibration, test boundary (`experiment-protocol.md` is a pointer) |
+| [methodology/DATASET_AND_EDA.md](methodology/DATASET_AND_EDA.md) | dataset audit, label distributions, anatomy-overlap finding |
+| [methodology/PREPROCESSING.md](methodology/PREPROCESSING.md) | pre-registered preprocessing probe, results, checkpoint compatibility |
+| [audit/REPOSITORY_AUDIT.md](audit/REPOSITORY_AUDIT.md) | initial repository audit |
+| [experiments/COMPARATIVE_ANALYSIS.md](experiments/COMPARATIVE_ANALYSIS.md) | A vs B vs C results, paired comparisons, claim-to-evidence table |
+| [experiments/ERROR_ANALYSIS.md](experiments/ERROR_ANALYSIS.md) | error patterns by score bin, worst cases, uncertainty vs error |
+| [PROVENANCE.md](PROVENANCE.md) | methodological sources and attribution |
 | [experiments/a-reference.md](experiments/a-reference.md) | Experiment A: reference MSE regression |
 | [experiments/b-ranking-aware.md](experiments/b-ranking-aware.md) | Experiment B: MSE + pairwise ranking loss |
 | [experiments/c-uncertainty-aware.md](experiments/c-uncertainty-aware.md) | Experiment C: Gaussian NLL + split-conformal intervals |

@@ -31,6 +31,7 @@ from ct_iqa.models.registry import ModelOutput
 from ct_iqa.training.checkpointing import save_run_checkpoint
 from ct_iqa.training.optimizers import build_study_optimizer
 from ct_iqa.training.selection import Selector
+from ct_iqa.utils.fs import replace_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -145,5 +146,5 @@ def _write_history(run_dir: Path, cfg, selector: Selector, epochs: list[dict], c
     path = Path(run_dir) / "history.json"
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(json.dumps(history, indent=1), encoding="utf-8")
-    os.replace(tmp, path)
+    replace_with_retry(tmp, path)
     return history

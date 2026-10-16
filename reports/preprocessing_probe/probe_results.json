@@ -1,0 +1,134 @@
+{
+ "generated_utc": "2026-10-16T17:04:50.749127+00:00",
+ "device": "cuda",
+ "torch": "2.5.1+cu121",
+ "weights_sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785",
+ "weights_report": "WeightLoadReport(weights_path='weights\\\\pretrained\\\\radimagenet\\\\resnet50\\\\radimagenet_resnet50_backbone.pt', loaded=True, sha256='45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785', sha256_verified=True, matched_keys=['stage1.0.bn1.bias', 'stage1.0.bn1.running_mean', 'stage1.0.bn1.running_var', 'stage1.0.bn1.weight', 'stage1.0.bn2.bias', 'stage1.0.bn2.running_mean', 'stage1.0.bn2.running_var', 'stage1.0.bn2.weight', 'stage1.0.bn3.bias', 'stage1.0.bn3.running_mean', 'stage1.0.bn3.running_var', 'stage1.0.bn3.weight', 'stage1.0.conv1.weight', 'stage1.0.conv2.weight', 'stage1.0.conv3.weight', 'stage1.0.downsample.0.weight', 'stage1.0.downsample.1.bias', 'stage1.0.downsample.1.running_mean', 'stage1.0.downsample.1.running_var', 'stage1.0.downsample.1.weight', 'stage1.1.bn1.bias', 'stage1.1.bn1.running_mean', 'stage1.1.bn1.running_var', 'stage1.1.bn1.weight', 'stage1.1.bn2.bias', 'stage1.1.bn2.running_mean', 'stage1.1.bn2.running_var', 'stage1.1.bn2.weight', 'stage1.1.bn3.bias', 'stage1.1.bn3.running_mean', 'stage1.1.bn3.running_var', 'stage1.1.bn3.weight', 'stage1.1.conv1.weight', 'stage1.1.conv2.weight', 'stage1.1.conv3.weight', 'stage1.2.bn1.bias', 'stage1.2.bn1.running_mean', 'stage1.2.bn1.running_var', 'stage1.2.bn1.weight', 'stage1.2.bn2.bias', 'stage1.2.bn2.running_mean', 'stage1.2.bn2.running_var', 'stage1.2.bn2.weight', 'stage1.2.bn3.bias', 'stage1.2.bn3.running_mean', 'stage1.2.bn3.running_var', 'stage1.2.bn3.weight', 'stage1.2.conv1.weight', 'stage1.2.conv2.weight', 'stage1.2.conv3.weight', 'stage2.0.bn1.bias', 'stage2.0.bn1.running_mean', 'stage2.0.bn1.running_var', 'stage2.0.bn1.weight', 'stage2.0.bn2.bias', 'stage2.0.bn2.running_mean', 'stage2.0.bn2.running_var', 'stage2.0.bn2.weight', 'stage2.0.bn3.bias', 'stage2.0.bn3.running_mean', 'stage2.0.bn3.running_var', 'stage2.0.bn3.weight', 'stage2.0.conv1.weight', 'stage2.0.conv2.weight', 'stage2.0.conv3.weight', 'stage2.0.downsample.0.weight', 'stage2.0.downsample.1.bias', 'stage2.0.downsample.1.running_mean', 'stage2.0.downsample.1.running_var', 'stage2.0.downsample.1.weight', 'stage2.1.bn1.bias', 'stage2.1.bn1.running_mean', 'stage2.1.bn1.running_var', 'stage2.1.bn1.weight', 'stage2.1.bn2.bias', 'stage2.1.bn2.running_mean', 'stage2.1.bn2.running_var', 'stage2.1.bn2.weight', 'stage2.1.bn3.bias', 'stage2.1.bn3.running_mean', 'stage2.1.bn3.running_var', 'stage2.1.bn3.weight', 'stage2.1.conv1.weight', 'stage2.1.conv2.weight', 'stage2.1.conv3.weight', 'stage2.2.bn1.bias', 'stage2.2.bn1.running_mean', 'stage2.2.bn1.running_var', 'stage2.2.bn1.weight', 'stage2.2.bn2.bias', 'stage2.2.bn2.running_mean', 'stage2.2.bn2.running_var', 'stage2.2.bn2.weight', 'stage2.2.bn3.bias', 'stage2.2.bn3.running_mean', 'stage2.2.bn3.running_var', 'stage2.2.bn3.weight', 'stage2.2.conv1.weight', 'stage2.2.conv2.weight', 'stage2.2.conv3.weight', 'stage2.3.bn1.bias', 'stage2.3.bn1.running_mean', 'stage2.3.bn1.running_var', 'stage2.3.bn1.weight', 'stage2.3.bn2.bias', 'stage2.3.bn2.running_mean', 'stage2.3.bn2.running_var', 'stage2.3.bn2.weight', 'stage2.3.bn3.bias', 'stage2.3.bn3.running_mean', 'stage2.3.bn3.running_var', 'stage2.3.bn3.weight', 'stage2.3.conv1.weight', 'stage2.3.conv2.weight', 'stage2.3.conv3.weight', 'stage3.0.bn1.bias', 'stage3.0.bn1.running_mean', 'stage3.0.bn1.running_var', 'stage3.0.bn1.weight', 'stage3.0.bn2.bias', 'stage3.0.bn2.running_mean', 'stage3.0.bn2.running_var', 'stage3.0.bn2.weight', 'stage3.0.bn3.bias', 'stage3.0.bn3.running_mean', 'stage3.0.bn3.running_var', 'stage3.0.bn3.weight', 'stage3.0.conv1.weight', 'stage3.0.conv2.weight', 'stage3.0.conv3.weight', 'stage3.0.downsample.0.weight', 'stage3.0.downsample.1.bias', 'stage3.0.downsample.1.running_mean', 'stage3.0.downsample.1.running_var', 'stage3.0.downsample.1.weight', 'stage3.1.bn1.bias', 'stage3.1.bn1.running_mean', 'stage3.1.bn1.running_var', 'stage3.1.bn1.weight', 'stage3.1.bn2.bias', 'stage3.1.bn2.running_mean', 'stage3.1.bn2.running_var', 'stage3.1.bn2.weight', 'stage3.1.bn3.bias', 'stage3.1.bn3.running_mean', 'stage3.1.bn3.running_var', 'stage3.1.bn3.weight', 'stage3.1.conv1.weight', 'stage3.1.conv2.weight', 'stage3.1.conv3.weight', 'stage3.2.bn1.bias', 'stage3.2.bn1.running_mean', 'stage3.2.bn1.running_var', 'stage3.2.bn1.weight', 'stage3.2.bn2.bias', 'stage3.2.bn2.running_mean', 'stage3.2.bn2.running_var', 'stage3.2.bn2.weight', 'stage3.2.bn3.bias', 'stage3.2.bn3.running_mean', 'stage3.2.bn3.running_var', 'stage3.2.bn3.weight', 'stage3.2.conv1.weight', 'stage3.2.conv2.weight', 'stage3.2.conv3.weight', 'stage3.3.bn1.bias', 'stage3.3.bn1.running_mean', 'stage3.3.bn1.running_var', 'stage3.3.bn1.weight', 'stage3.3.bn2.bias', 'stage3.3.bn2.running_mean', 'stage3.3.bn2.running_var', 'stage3.3.bn2.weight', 'stage3.3.bn3.bias', 'stage3.3.bn3.running_mean', 'stage3.3.bn3.running_var', 'stage3.3.bn3.weight', 'stage3.3.conv1.weight', 'stage3.3.conv2.weight', 'stage3.3.conv3.weight', 'stage3.4.bn1.bias', 'stage3.4.bn1.running_mean', 'stage3.4.bn1.running_var', 'stage3.4.bn1.weight', 'stage3.4.bn2.bias', 'stage3.4.bn2.running_mean', 'stage3.4.bn2.running_var', 'stage3.4.bn2.weight', 'stage3.4.bn3.bias', 'stage3.4.bn3.running_mean', 'stage3.4.bn3.running_var', 'stage3.4.bn3.weight', 'stage3.4.conv1.weight', 'stage3.4.conv2.weight', 'stage3.4.conv3.weight', 'stage3.5.bn1.bias', 'stage3.5.bn1.running_mean', 'stage3.5.bn1.running_var', 'stage3.5.bn1.weight', 'stage3.5.bn2.bias', 'stage3.5.bn2.running_mean', 'stage3.5.bn2.running_var', 'stage3.5.bn2.weight', 'stage3.5.bn3.bias', 'stage3.5.bn3.running_mean', 'stage3.5.bn3.running_var', 'stage3.5.bn3.weight', 'stage3.5.conv1.weight', 'stage3.5.conv2.weight', 'stage3.5.conv3.weight', 'stage4.0.bn1.bias', 'stage4.0.bn1.running_mean', 'stage4.0.bn1.running_var', 'stage4.0.bn1.weight', 'stage4.0.bn2.bias', 'stage4.0.bn2.running_mean', 'stage4.0.bn2.running_var', 'stage4.0.bn2.weight', 'stage4.0.bn3.bias', 'stage4.0.bn3.running_mean', 'stage4.0.bn3.running_var', 'stage4.0.bn3.weight', 'stage4.0.conv1.weight', 'stage4.0.conv2.weight', 'stage4.0.conv3.weight', 'stage4.0.downsample.0.weight', 'stage4.0.downsample.1.bias', 'stage4.0.downsample.1.running_mean', 'stage4.0.downsample.1.running_var', 'stage4.0.downsample.1.weight', 'stage4.1.bn1.bias', 'stage4.1.bn1.running_mean', 'stage4.1.bn1.running_var', 'stage4.1.bn1.weight', 'stage4.1.bn2.bias', 'stage4.1.bn2.running_mean', 'stage4.1.bn2.running_var', 'stage4.1.bn2.weight', 'stage4.1.bn3.bias', 'stage4.1.bn3.running_mean', 'stage4.1.bn3.running_var', 'stage4.1.bn3.weight', 'stage4.1.conv1.weight', 'stage4.1.conv2.weight', 'stage4.1.conv3.weight', 'stage4.2.bn1.bias', 'stage4.2.bn1.running_mean', 'stage4.2.bn1.running_var', 'stage4.2.bn1.weight', 'stage4.2.bn2.bias', 'stage4.2.bn2.running_mean', 'stage4.2.bn2.running_var', 'stage4.2.bn2.weight', 'stage4.2.bn3.bias', 'stage4.2.bn3.running_mean', 'stage4.2.bn3.running_var', 'stage4.2.bn3.weight', 'stage4.2.conv1.weight', 'stage4.2.conv2.weight', 'stage4.2.conv3.weight', 'stem.0.weight', 'stem.1.bias', 'stem.1.running_mean', 'stem.1.running_var', 'stem.1.weight'], missing_keys=['stage1.0.bn1.num_batches_tracked', 'stage1.0.bn2.num_batches_tracked', 'stage1.0.bn3.num_batches_tracked', 'stage1.0.downsample.1.num_batches_tracked', 'stage1.1.bn1.num_batches_tracked', 'stage1.1.bn2.num_batches_tracked', 'stage1.1.bn3.num_batches_tracked', 'stage1.2.bn1.num_batches_tracked', 'stage1.2.bn2.num_batches_tracked', 'stage1.2.bn3.num_batches_tracked', 'stage2.0.bn1.num_batches_tracked', 'stage2.0.bn2.num_batches_tracked', 'stage2.0.bn3.num_batches_tracked', 'stage2.0.downsample.1.num_batches_tracked', 'stage2.1.bn1.num_batches_tracked', 'stage2.1.bn2.num_batches_tracked', 'stage2.1.bn3.num_batches_tracked', 'stage2.2.bn1.num_batches_tracked', 'stage2.2.bn2.num_batches_tracked', 'stage2.2.bn3.num_batches_tracked', 'stage2.3.bn1.num_batches_tracked', 'stage2.3.bn2.num_batches_tracked', 'stage2.3.bn3.num_batches_tracked', 'stage3.0.bn1.num_batches_tracked', 'stage3.0.bn2.num_batches_tracked', 'stage3.0.bn3.num_batches_tracked', 'stage3.0.downsample.1.num_batches_tracked', 'stage3.1.bn1.num_batches_tracked', 'stage3.1.bn2.num_batches_tracked', 'stage3.1.bn3.num_batches_tracked', 'stage3.2.bn1.num_batches_tracked', 'stage3.2.bn2.num_batches_tracked', 'stage3.2.bn3.num_batches_tracked', 'stage3.3.bn1.num_batches_tracked', 'stage3.3.bn2.num_batches_tracked', 'stage3.3.bn3.num_batches_tracked', 'stage3.4.bn1.num_batches_tracked', 'stage3.4.bn2.num_batches_tracked', 'stage3.4.bn3.num_batches_tracked', 'stage3.5.bn1.num_batches_tracked', 'stage3.5.bn2.num_batches_tracked', 'stage3.5.bn3.num_batches_tracked', 'stage4.0.bn1.num_batches_tracked', 'stage4.0.bn2.num_batches_tracked', 'stage4.0.bn3.num_batches_tracked', 'stage4.0.downsample.1.num_batches_tracked', 'stage4.1.bn1.num_batches_tracked', 'stage4.1.bn2.num_batches_tracked', 'stage4.1.bn3.num_batches_tracked', 'stage4.2.bn1.num_batches_tracked', 'stage4.2.bn2.num_batches_tracked', 'stage4.2.bn3.num_batches_tracked', 'stem.1.num_batches_tracked'], unexpected_keys=[], note='')",
+ "n_train": 800,
+ "n_validation": 100,
+ "n_boot": 2000,
+ "conventions": {
+  "P1_2x-1": {
+   "alpha": 100.0,
+   "cv_rmse_train": 0.31286838493558444,
+   "cv_table": {
+    "0.001": 0.533466456513181,
+    "0.0031622776601683794": 0.5329178353130208,
+    "0.01": 0.5312174758992523,
+    "0.03162277660168379": 0.5261553679012324,
+    "0.1": 0.5125965012376825,
+    "0.31622776601683794": 0.48346386865955804,
+    "1.0": 0.4385507252303472,
+    "3.1622776601683795": 0.38990979632745304,
+    "10.0": 0.3490928516678656,
+    "31.622776601683793": 0.32122636104673474,
+    "100.0": 0.31286838493558444,
+    "316.22776601683796": 0.3247827921917823,
+    "1000.0": 0.35425873435235655,
+    "3162.2776601683795": 0.4117282191141471,
+    "10000.0": 0.516173053086262
+   },
+   "validation": {
+    "mse": 0.06710720545426697,
+    "plcc": 0.9724441886696261,
+    "srocc": 0.9734749576543433,
+    "krocc": 0.8758891172034761,
+    "mae": 0.20561385833735288,
+    "rmse": 0.25905058474025294
+   },
+   "feature_mean": 0.07533263565837442,
+   "feature_std": 0.1583464669501278
+  },
+  "P2_caffe_style": {
+   "alpha": 100.0,
+   "cv_rmse_train": 0.28528270795746197,
+   "cv_table": {
+    "0.001": 0.44666660636406597,
+    "0.0031622776601683794": 0.4465318441142535,
+    "0.01": 0.4461077349354074,
+    "0.03162277660168379": 0.4447865146176508,
+    "0.1": 0.4407927170590089,
+    "0.31622776601683794": 0.4296567798888058,
+    "1.0": 0.40378909769704285,
+    "3.1622776601683795": 0.36103069060249626,
+    "10.0": 0.31814485272787735,
+    "31.622776601683793": 0.29316789411273536,
+    "100.0": 0.28528270795746197,
+    "316.22776601683796": 0.2915182571076311,
+    "1000.0": 0.3152831211640853,
+    "3162.2776601683795": 0.35972861539142736,
+    "10000.0": 0.4296077449088977
+   },
+   "validation": {
+    "mse": 0.07100828396615691,
+    "plcc": 0.9708609638316646,
+    "srocc": 0.9691721199769813,
+    "krocc": 0.8663865465923062,
+    "mae": 0.2084363011271935,
+    "rmse": 0.26647379602159177
+   },
+   "feature_mean": 0.07977799835131635,
+   "feature_std": 0.11937171129397715
+  },
+  "P3_imagenet_meanstd": {
+   "alpha": 3.1622776601683795,
+   "cv_rmse_train": 0.570438645682302,
+   "cv_table": {
+    "0.001": 3.1702541753358386,
+    "0.0031622776601683794": 2.4729403265648533,
+    "0.01": 1.7812385981998615,
+    "0.03162277660168379": 1.143064539644212,
+    "0.1": 0.7350004644129945,
+    "0.31622776601683794": 0.5981746506453056,
+    "1.0": 0.5789286161926319,
+    "3.1622776601683795": 0.570438645682302,
+    "10.0": 0.5967800706559842,
+    "31.622776601683793": 0.6811221230992688,
+    "100.0": 0.7923475430161624,
+    "316.22776601683796": 0.8882971851418869,
+    "1000.0": 0.9531845818315616,
+    "3162.2776601683795": 0.9955340519094096,
+    "10000.0": 1.0232947979370621
+   },
+   "validation": {
+    "mse": 0.29749556403234434,
+    "plcc": 0.8781143083223287,
+    "srocc": 0.9035718740466974,
+    "krocc": 0.7461583705988103,
+    "mae": 0.41201947477313444,
+    "rmse": 0.5454315392717443
+   },
+   "feature_mean": 0.6385782634517039,
+   "feature_std": 2.7465941179280478
+  }
+ },
+ "paired_bootstrap_plcc": {
+  "P1_2x-1-P2_caffe_style": {
+   "plcc_diff": 0.001583224837961028,
+   "ci95": [
+    -0.007983797017577737,
+    0.011026386019698622
+   ],
+   "half_width": 0.00950509151863818
+  },
+  "P1_2x-1-P3_imagenet_meanstd": {
+   "plcc_diff": 0.09432988034729717,
+   "ci95": [
+    0.058484548189801144,
+    0.13565191506835236
+   ],
+   "half_width": 0.03858368343927561
+  },
+  "P2_caffe_style-P3_imagenet_meanstd": {
+   "plcc_diff": 0.09274665550933614,
+   "ci95": [
+    0.055456048890860137,
+    0.13468542242062478
+   ],
+   "half_width": 0.03961468676488232
+  }
+ },
+ "highest_validation_plcc": "P1_2x-1",
+ "distinguishably_better_by_declared_rule": false,
+ "project_convention_unchanged_by_probe": "P1_2x-1 (declared decision rule, PREPROCESSING.md Part 1 item 6)"
+}

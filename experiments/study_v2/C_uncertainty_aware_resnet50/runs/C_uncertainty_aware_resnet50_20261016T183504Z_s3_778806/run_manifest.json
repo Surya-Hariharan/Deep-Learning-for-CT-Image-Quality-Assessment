@@ -1,0 +1,69 @@
+{
+ "run_id": "C_uncertainty_aware_resnet50_20261016T183504Z_s3_778806",
+ "experiment_id": "C_uncertainty_aware_resnet50",
+ "status": "completed",
+ "started_utc": "2026-10-16T18:35:04+00:00",
+ "git": {
+  "commit": "6c3e3d6b18e53b6fefc172fb56fec4fe708c0f9b",
+  "branch": "main",
+  "dirty": true
+ },
+ "environment": {
+  "python": "3.10.20",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "torch": "2.5.1+cu121",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "device_requested": "cuda",
+  "cuda_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 4060 Laptop GPU"
+ },
+ "seed": 3,
+ "split_manifest": "experiments/study_v2/protocol/split_manifest.json",
+ "split_manifest_sha256": "be5831c56d097a8fdafa7797cda52329ec2dd3aba9dfc88d6e1c92fc694e0a16",
+ "split_seed": 2026,
+ "model": "resnet50_gaussian",
+ "loss": "gaussian_nll",
+ "optimizer": "adam",
+ "bn_eps": 1.001e-05,
+ "selection_rule": "val_plcc",
+ "epoch_indexing": "1-based",
+ "official_test_set_used": false,
+ "overrides": {
+  "train": {
+   "seed": 3,
+   "device": "cuda"
+  },
+  "purpose": "final"
+ },
+ "pretrained_weights": {
+  "path": "weights\\pretrained\\radimagenet\\resnet50\\radimagenet_resnet50_backbone.pt",
+  "sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785",
+  "sha256_verified": true,
+  "matched_keys": 265,
+  "missing_learned_keys": 0
+ },
+ "completed_utc": "2026-10-16T18:39:33+00:00",
+ "best_epoch_1based": 16,
+ "validation_metrics": {
+  "partition": "validation",
+  "n": 100,
+  "scale": "raw [0, 4]",
+  "epoch_1based": 16,
+  "mse": 0.0660078046379432,
+  "plcc": 0.9739921955419311,
+  "srocc": 0.971413682063093,
+  "krocc": 0.8688654780560897,
+  "mae": 0.2141815735399723,
+  "rmse": 0.25691984088026987
+ },
+ "artifact_sha256": {
+  "config.snapshot.json": "36c4ebbf3bcc636b383f2505055e06dca2e8d9862150b53ea5fa09f99120a09f",
+  "history.json": "001dd992416becbe938bd5b6845c3f8819a9ab6f07d2317ecaca50ed853491d8",
+  "metrics_validation.json": "02b0c134a8c1b35d8de7cd37a504ed3730db68dfa621cab10296f825276f41ae",
+  "predictions_validation.csv": "df197fbe95b8f36947469c8020c331946b8fbd936a7ac30896409c768e4f475b",
+  "checkpoints/best.pt": "2307aa61a8d79fb872302d9dd8e50e57c565dd6972eafce9aef25ec86daeb030",
+  "predictions_calibration.csv": "bbe2e827b26ebf43029f5c4d8af4e11a1de9085e18cb0a4ec6282c5fb5fc3de0",
+  "calibration.json": "6861f2d04832a9ff226eb259afd308acec6b0ccfd35b0c0a9b2756605ca61e63"
+ }
+}

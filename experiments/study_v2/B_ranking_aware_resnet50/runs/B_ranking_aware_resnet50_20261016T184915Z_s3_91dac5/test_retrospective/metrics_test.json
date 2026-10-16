@@ -1,0 +1,12 @@
+{
+ "partition": "official_test",
+ "evaluation_status": "retrospective evaluation on a previously examined benchmark",
+ "n": 300,
+ "scale": "raw [0, 4]",
+ "mse": 0.4443891732206475,
+ "plcc": 0.8639078412697021,
+ "srocc": 0.8617768014535738,
+ "krocc": 0.6768035348894795,
+ "mae": 0.5491840877135594,
+ "rmse": 0.6666252119599494
+}

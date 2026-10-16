@@ -1,0 +1,75 @@
+{
+ "run_id": "B_ranking_aware_resnet50_20261016T184915Z_s3_91dac5",
+ "experiment_id": "B_ranking_aware_resnet50",
+ "status": "completed",
+ "started_utc": "2026-10-16T18:49:15+00:00",
+ "git": {
+  "commit": "6c3e3d6b18e53b6fefc172fb56fec4fe708c0f9b",
+  "branch": "main",
+  "dirty": true
+ },
+ "environment": {
+  "python": "3.10.20",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "torch": "2.5.1+cu121",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "device_requested": "cuda",
+  "cuda_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 4060 Laptop GPU"
+ },
+ "seed": 3,
+ "split_manifest": "experiments/study_v2/protocol/split_manifest.json",
+ "split_manifest_sha256": "be5831c56d097a8fdafa7797cda52329ec2dd3aba9dfc88d6e1c92fc694e0a16",
+ "split_seed": 2026,
+ "model": "resnet50_regression",
+ "loss": "mse_ranking",
+ "optimizer": "adam",
+ "bn_eps": 1.001e-05,
+ "selection_rule": "val_plcc",
+ "epoch_indexing": "1-based",
+ "official_test_set_used": false,
+ "overrides": {
+  "loss": {
+   "name": "mse_ranking",
+   "ranking": {
+    "lambda_rank": 0.3,
+    "margin": 0.05,
+    "min_score_diff": 0.5
+   }
+  },
+  "train": {
+   "seed": 3,
+   "device": "cuda"
+  },
+  "purpose": "final"
+ },
+ "pretrained_weights": {
+  "path": "weights\\pretrained\\radimagenet\\resnet50\\radimagenet_resnet50_backbone.pt",
+  "sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785",
+  "sha256_verified": true,
+  "matched_keys": 265,
+  "missing_learned_keys": 0
+ },
+ "completed_utc": "2026-10-16T18:53:58+00:00",
+ "best_epoch_1based": 28,
+ "validation_metrics": {
+  "partition": "validation",
+  "n": 100,
+  "scale": "raw [0, 4]",
+  "epoch_1based": 28,
+  "mse": 0.05980366107260318,
+  "plcc": 0.9797313508793808,
+  "srocc": 0.9796828226274088,
+  "krocc": 0.89324163744996,
+  "mae": 0.188174055069685,
+  "rmse": 0.24454787071778641
+ },
+ "artifact_sha256": {
+  "config.snapshot.json": "ec51868c258cb7fa0e3dc1c683cd38fc7ae776b14cdab85d56df69ae1986075c",
+  "history.json": "511bae3e54b5070c3af84754f66e9b47065bb096020fbc476a758a099b76d64f",
+  "metrics_validation.json": "166d45d8c520c35c4a288ee2e9b70abb3e685ed8fd1d65ae4d3e29578d322948",
+  "predictions_validation.csv": "c893c816adc33c01c0e96e9f945dd919e7ff6649c21811501884708ab4ecd1d6",
+  "checkpoints/best.pt": "724ff4395edb08071e7748a49a3ecdf5474361869eb454610b500ead9f8c20f8"
+ }
+}

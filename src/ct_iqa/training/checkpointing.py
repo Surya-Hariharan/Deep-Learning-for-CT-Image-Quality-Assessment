@@ -121,6 +121,8 @@ def load_checkpoint_metadata(
 
 import os  # noqa: E402
 
+from ct_iqa.utils.fs import replace_with_retry  # noqa: E402
+
 
 def save_run_checkpoint(path: str | Path, model: nn.Module, *, epoch_1based: int, metrics: dict,
                         config: dict, run_id: str, selection_policy: str) -> Path:
@@ -144,7 +146,7 @@ def save_run_checkpoint(path: str | Path, model: nn.Module, *, epoch_1based: int
     }
     tmp = path.with_name(path.name + ".tmp")
     torch.save(payload, tmp)
-    os.replace(tmp, path)
+    replace_with_retry(tmp, path)
     return path
 
 

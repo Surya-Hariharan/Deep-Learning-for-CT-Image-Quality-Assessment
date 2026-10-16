@@ -1,0 +1,7 @@
+# Experiment C: heteroscedastic Gaussian regression (mean + log-variance) with split-conformal intervals.
+model:
+  name: resnet50_gaussian
+loss:
+  name: gaussian_nll
+run:
+  experiment_id: C_uncertainty_aware_resnet50

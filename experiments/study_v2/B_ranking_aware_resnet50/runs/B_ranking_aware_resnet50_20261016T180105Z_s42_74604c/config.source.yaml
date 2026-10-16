@@ -1,0 +1,14 @@
+# Experiment B: MSE + lambda * pairwise margin ranking loss.
+# lambda_rank / margin / min_score_diff below are INITIAL, UNTUNED placeholders. They must be chosen from a grid
+# declared in docs/experiments/b-ranking-aware.md, using validation data only.
+# lambda_rank = 0 is exactly Experiment A's objective (use loss.name: mse for that ablation row).
+model:
+  name: resnet50_regression
+loss:
+  name: mse_ranking
+  ranking:
+    lambda_rank: 0.1
+    margin: 0.05          # normalized [0, 1] score space
+    min_score_diff: 0.25  # raw [0, 4] score units
+run:
+  experiment_id: B_ranking_aware_resnet50

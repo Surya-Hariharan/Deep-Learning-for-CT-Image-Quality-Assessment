@@ -1,0 +1,210 @@
+{
+ "generated_utc": "2026-10-16T17:03:16.021216+00:00",
+ "script": "tools/run_eda.py",
+ "manifest": {
+  "file_sha256": "8b0f1f6dc2c8951c82d7068f486e196c940d20b24edf85383d9cddb4e597bd94",
+  "canonical_hash_recomputed": "be5831c56d097a8fdafa7797cda52329ec2dd3aba9dfc88d6e1c92fc694e0a16",
+  "canonical_hash_embedded": "be5831c56d097a8fdafa7797cda52329ec2dd3aba9dfc88d6e1c92fc694e0a16",
+  "matches_expected_prefix_suffix_and_embedded": true,
+  "counts": {
+   "train": 800,
+   "validation": 100,
+   "calibration": 100
+  },
+  "seed": 2026,
+  "pairwise_overlap": {
+   "train&validation": 0,
+   "train&calibration": 0,
+   "validation&calibration": 0
+  },
+  "label_file_sha256": {
+   "train": "9c303d24a7f7887b5b7a49df0f57449c5b457b21a53e488f86e76054f3390893",
+   "test": "d0a15d4c065d1441b6aefed3aa812c19b5e3b969b8b1b626e0aac64a866461d3"
+  }
+ },
+ "files": {
+  "train_images_on_disk": 1000,
+  "train_labels": 1000,
+  "train_missing_image": [],
+  "train_missing_label": [],
+  "test_images_on_disk": 300,
+  "test_labels": 300,
+  "test_missing_image": [],
+  "test_missing_label": [],
+  "train_labels_numeric_finite_in_0_4": true,
+  "test_labels_numeric_finite_in_0_4": true
+ },
+ "partition_ks_tests_descriptive": {
+  "train_vs_validation": {
+   "ks_stat": 0.0775,
+   "p_value": 0.6379628073928252
+  },
+  "train_vs_calibration": {
+   "ks_stat": 0.085,
+   "p_value": 0.5208459152113091
+  },
+  "validation_vs_calibration": {
+   "ks_stat": 0.07,
+   "p_value": 0.9684099261397212
+  },
+  "train1000_vs_official_test": {
+   "ks_stat": 0.09,
+   "p_value": 0.04481244504141909
+  }
+ },
+ "unreadable_files": {
+  "train": {},
+  "test": {}
+ },
+ "image_properties": {
+  "modes": {
+   "F": 1300
+  },
+  "sizes": {
+   "512x512": 1300
+  },
+  "global_min": 0.0,
+  "global_max": 1.0,
+  "all_finite": true,
+  "per_split_mean_pixel": {
+   "calibration": 0.36855001528877757,
+   "official_test": 0.41079948200429434,
+   "train": 0.365828485113474,
+   "validation": 0.3697794921780244
+  },
+  "per_split_std_pixel": {
+   "calibration": 0.3390515866563157,
+   "official_test": 0.34819971008664957,
+   "train": 0.33823936285777106,
+   "validation": 0.33835731634649874
+  }
+ },
+ "duplicates": {
+  "exact_groups": 0,
+  "exact_cross_partition_groups": 0,
+  "dhash8_collision_groups": 248,
+  "dhash8_cross_partition_groups": 93,
+  "note": "dHash(8x8) is reported but uninformative for CT slices (many collisions between different slices); the thumbnail-correlation screen is the near-duplicate evidence.",
+  "thumb_corr_cross_partition": {
+   "max": 0.9999991769091452,
+   "n_pairs_gt_0.995": 2547,
+   "n_pairs_gt_0.98": 5524,
+   "top10": [
+    [
+     "0192.tif",
+     "train",
+     "0501.tif",
+     "calibration",
+     0.9999991769091452
+    ],
+    [
+     "0919.tif",
+     "calibration",
+     "0920.tif",
+     "train",
+     0.999999174635336
+    ],
+    [
+     "0379.tif",
+     "validation",
+     "0772.tif",
+     "train",
+     0.9999985230250508
+    ],
+    [
+     "0426.tif",
+     "calibration",
+     "0876.tif",
+     "train",
+     0.9999984514024909
+    ],
+    [
+     "0146.tif",
+     "validation",
+     "0902.tif",
+     "train",
+     0.9999983909686979
+    ],
+    [
+     "0512.tif",
+     "validation",
+     "0853.tif",
+     "train",
+     0.9999981648917035
+    ],
+    [
+     "0431.tif",
+     "train",
+     "0930.tif",
+     "calibration",
+     0.999998148042461
+    ],
+    [
+     "0102.tif",
+     "train",
+     "0629.tif",
+     "validation",
+     0.9999980222460313
+    ],
+    [
+     "0222.tif",
+     "train",
+     "0502.tif",
+     "calibration",
+     0.9999979093382959
+    ],
+    [
+     "0280.tif",
+     "calibration",
+     "0488.tif",
+     "train",
+     0.9999977804715677
+    ]
+   ]
+  }
+ },
+ "anatomy_groups": {
+  "method": "connected components of 64x64-thumbnail Pearson correlation > threshold",
+  "by_threshold": {
+   "0.999": {
+    "n_groups": 124,
+    "largest_sizes": [
+     40,
+     20,
+     20,
+     20,
+     10,
+     10,
+     10,
+     10,
+     10,
+     10
+    ],
+    "singletons": 0,
+    "validation_frac_with_train_groupmate": 1.0,
+    "calibration_frac_with_train_groupmate": 1.0,
+    "official_test_frac_with_train_groupmate": 0.0
+   },
+   "0.99": {
+    "n_groups": 83,
+    "largest_sizes": [
+     120,
+     70,
+     40,
+     40,
+     40,
+     40,
+     40,
+     30,
+     20,
+     20
+    ],
+    "singletons": 0,
+    "validation_frac_with_train_groupmate": 1.0,
+    "calibration_frac_with_train_groupmate": 1.0,
+    "official_test_frac_with_train_groupmate": 0.0
+   }
+  },
+  "interpretation": "Near-identical slices at different quality levels share a group; an image-level split places group members in different partitions (leakage risk)."
+ }
+}

@@ -1,0 +1,46 @@
+{
+ "method": "split_conformal",
+ "target_coverage": 0.9,
+ "n_calibration": 100,
+ "rank_k": 91,
+ "quantile_q": 2.1447131050001547,
+ "unbounded": false,
+ "unclipped": {
+  "coverage": 0.96,
+  "mean_width": 1.0215361208753881,
+  "median_width": 1.0552705559704743,
+  "n": 100
+ },
+ "clipped_to_0_4": {
+  "coverage": 0.96,
+  "mean_width": 0.9948946527001552,
+  "median_width": 1.0531939814280342,
+  "n": 100,
+  "fraction_intervals_clipped": 0.2
+ },
+ "nll_score_scale": -0.8411828438545079,
+ "sigma_error_spearman": 0.23896789678967895,
+ "coverage_by_sigma_tercile": [
+  {
+   "tercile": 1,
+   "n": 34,
+   "mean_sigma": 0.18831645005607575,
+   "coverage": 0.9411764705882353
+  },
+  {
+   "tercile": 2,
+   "n": 33,
+   "mean_sigma": 0.24597262474169765,
+   "coverage": 0.9696969696969697
+  },
+  {
+   "tercile": 3,
+   "n": 33,
+   "mean_sigma": 0.28167758091763523,
+   "coverage": 0.9696969696969697
+  }
+ ],
+ "mean_sigma": 0.23815216088664568,
+ "fitted_on": "calibration partition",
+ "evaluated_on": "validation partition (independent of the calibration partition)"
+}
