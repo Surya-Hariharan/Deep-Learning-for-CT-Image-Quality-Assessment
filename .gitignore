@@ -128,3 +128,6 @@ env/
 Thumbs.db
 .vscode/
 .idea/
+
+# --- smoke tests (throwaway) ---
+experiments/*_smoke/

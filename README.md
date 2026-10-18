@@ -60,6 +60,17 @@ A is the recommended default. Details, per-seed values, claim-to-evidence table:
 
 *Historical experiments 001-003* (earlier protocol: 900/100 split, BatchNorm epsilon mismatch between training and test evaluation) reported test PLCC 0.867 (001) and 0.849 (003). They are preserved unchanged, are not directly comparable with the study above, and are not part of the claims here.
 
+## Study v3: group-aware evaluation (executed; see [results](docs/experiments/STUDY_V3_RESULTS.md))
+v2's image-level split put near-identical images in train and validation/calibration. v3 re-evaluates A, B and C with 54 image-similarity groups (not patient IDs), grouped 5-fold cross-validation, 3 seeds, group-level bootstrap and grouped conformal calibration, under a frozen protocol ([protocol](docs/methodology/STUDY_V3_PROTOCOL.md)). Held-out groups, pooled, mean +/- SD over seeds:
+
+| Model | PLCC | SROCC | KROCC | RMSE | MAE |
+|---|---|---|---|---|---|
+| A | 0.908 +/- 0.035 | 0.914 +/- 0.028 | 0.759 +/- 0.045 | 0.454 +/- 0.083 | 0.358 +/- 0.061 |
+| B | 0.923 +/- 0.027 | 0.927 +/- 0.023 | 0.779 +/- 0.038 | 0.415 +/- 0.071 | 0.328 +/- 0.058 |
+| C | 0.883 +/- 0.039 | 0.886 +/- 0.041 | 0.722 +/- 0.056 | 0.510 +/- 0.094 | 0.390 +/- 0.070 |
+
+B beats A under the declared group-bootstrap rule (mean correlation +0.016, 97.5% interval [+0.005, +0.024]; RMSE -0.039) but not consistently across training seeds (+0.034, +0.017, -0.002) and by less than the seed-to-seed spread, so only a small, seed-dependent benefit is supported (v2 had found none). C is not demonstrated different from A. Grouped conformal intervals cover near target on held-out groups (0.92 split, 0.89 cross-conformal; target 0.90) but are wide (about 1.8 on the 0-4 scale) and a constant-width interval does equally well, so the learned uncertainty shows no demonstrated advantage; on the official test set (descriptive, retrospective) coverage is 0.76. Groups are not patients, held-out groups are still closer to the training data than the official test set, and nothing here is confirmatory.
+
 ## Limitations and threats to validity
 Image-level split with measured anatomy overlap (optimistic validation and bootstrap intervals); no patient IDs; retrospective test set; three seeds; B selection reused the validation set that also selects checkpoints;
 `2x-1` is a labelled assumption for the weights' pretraining convention (a probe found it indistinguishable from caffe-style scaling); single dataset and scanner mix; C models aleatoric uncertainty only.

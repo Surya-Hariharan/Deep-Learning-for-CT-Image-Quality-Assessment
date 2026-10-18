@@ -1,0 +1,12 @@
+{
+ "partition": "official_test",
+ "evaluation_status": "descriptive, retrospective (set examined before study v3)",
+ "n": 300,
+ "scale": "raw [0, 4]",
+ "mse": 0.626489149099298,
+ "plcc": 0.8544315920415237,
+ "srocc": 0.8541495720241298,
+ "krocc": 0.6620750496767928,
+ "mae": 0.6544088054696718,
+ "rmse": 0.7915106752907999
+}

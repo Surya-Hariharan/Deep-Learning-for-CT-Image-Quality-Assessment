@@ -1,0 +1,39 @@
+{
+ "protocol_version": "study_v3 v3.0",
+ "frozen_utc": "2026-10-16T19:30:22+00:00",
+ "head": "cec8ebd0f634a46ed1bdc1b34db9b9f92548d422",
+ "head_is_c10014f_cec8ebd_descendant": true,
+ "working_tree_dirty": true,
+ "python": "3.14.4",
+ "note": "Created after Phase 2 verification passed and before any selection or final run. Official test set is not part of any fold.",
+ "sha256": {
+  "docs/methodology/STUDY_V3_PROTOCOL.md": "004e116368676935db759377ad9a8367d9371602884f2ae2b8a94615d797b792",
+  "experiments/study_v3/protocol/group_manifest.json": "057775550af464dfbad16e4e82941d8415583c1abcd580e482c4fcbe22e0c822",
+  "experiments/study_v3/protocol/fold_manifest.json": "f8be20e8dd39af9f620df6797eee56eec5f484031b064401be588b4f12f03e6a",
+  "configs/base.yaml": "0c14224ce0ad7f6cb55e154e083986e2e150173cbddda9b44dbce546d6e414cb",
+  "configs/experiments/a_reference.yaml": "e803f52a917fa4cd7737a43559f5f0060d31122d6f34e15368d79673a387f7c9",
+  "configs/experiments/b_ranking_aware.yaml": "479178416f03bb82b78442e71bbe7fc8b48f2a1d3af7f0209dcfc8fcda000de5",
+  "configs/experiments/c_uncertainty_aware.yaml": "08bf009ea2ac336b2ff90c677eb3f3808a52066bd43217736a9758e63e49ef56",
+  "src/ct_iqa/data/grouped.py": "14edee0e51915619bcaea958a97251e6ad97952da2311d0020242cdbd5d62d89",
+  "src/ct_iqa/experiment/run_v3.py": "63c13a4c4ccb2ab2a6b7524b8771c323bbc4abf6fd78e494a6d10952e9c80847",
+  "src/ct_iqa/experiment/run.py": "e163d1a63e3338ccecbd9a1328701219ec1cd981bd61534a40e7bb23e2a3852c",
+  "src/ct_iqa/experiment/grid.py": "6e34e9d59e11e907021235e32d55fee46a98e9ef39c515f61b702ecb5f41e9cd",
+  "src/ct_iqa/training/engine.py": "c85fdcd1a5a3b6dfc5107bbd14813a27ddd944d3d18cfe1123ebe9d21bb693ad",
+  "src/ct_iqa/training/checkpointing.py": "67d9ea9c5901f0c6d96f455fab18b45a3c6835ad4ead287d41bd4bc69ea89811",
+  "src/ct_iqa/models/registry.py": "867b81fe111e5b3819cbfec32b2f788f7fe5bb11803e0fc51b24de442b38d61c",
+  "src/ct_iqa/losses/ranking.py": "6624b1dbcf37ba3cbdc00c580e974145092c72c45583546f08636dbf3fca4ad2",
+  "src/ct_iqa/losses/gaussian_nll.py": "b6c280da5c5d64afacf98856c1207b624f700d6c7adaca317ca2a59561360f7c",
+  "src/ct_iqa/evaluation/intervals.py": "6e0186c967d228feee31a690325425fc2710bec4160e6b1b55547e23d75df95c",
+  "src/ct_iqa/evaluation/metrics.py": "8f97242ee66e034214b083c197ea951a14814af960ed8db8b8e55e7ddb6fb2cb",
+  "tools/run_study_v3.py": "a8023823280736c744aabac4bce358cf6161d83655918f3a62b2ca0f6a42ab93",
+  "tools/select_b_v3.py": "f416b532d869b696d33b86f54ba51703c970b3070f0893141339baa9fe693d3c",
+  "tools/build_reports_v3.py": "36f111c6a9d4a59d922020c8ca1729d90c16ee48685038e6a4e1d7fba693fa4a",
+  "tools/verify_study_v3.py": "1af4dfb8b6b3466116c6d52c3e62cca6f669f6e060264abf5903d0ada5c623f1",
+  "tools/create_study_v3_manifests.py": "43459f429af36019061b3ef4356979fa9d019c6ea682bdee00e2fca25c9c592c",
+  "reports/study_v3/phase2_verification.json": "6b99671f51f686da9239f989e0a634a7ee8bc53836ed79394c772e5843a1c50b"
+ },
+ "planned_runs": {
+  "selection_fold0_seed42": "A + 7 B grid points (8 runs)",
+  "final": "A, B(selected), C x folds 0-4 x seeds 1,2,3 = 45 runs"
+ }
+}

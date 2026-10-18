@@ -1,0 +1,92 @@
+{
+ "run_id": "A_reference_resnet50__fold2_20261016T204105Z_s1_2f7dad",
+ "experiment_id": "A_reference_resnet50__fold2",
+ "study": "v3_grouped",
+ "fold": 2,
+ "status": "completed",
+ "started_utc": "2026-10-16T20:41:05+00:00",
+ "git": {
+  "commit": "cec8ebd0f634a46ed1bdc1b34db9b9f92548d422",
+  "branch": "main",
+  "dirty": true
+ },
+ "environment": {
+  "python": "3.10.20",
+  "platform": "Windows-10-10.0.26300-SP0",
+  "torch": "2.5.1+cu121",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "device_requested": "cuda",
+  "cuda_available": true,
+  "cuda_device_name": "NVIDIA GeForce RTX 4060 Laptop GPU"
+ },
+ "seed": 1,
+ "group_manifest_sha256": "fab04204de9f89ef2a05081091a44273095f69af6117e88d92f32fa77ece5d79",
+ "fold_manifest_sha256": "9c0fe67bb30a4c79b0dfad159a6c1deb1c947b3fcf507fa611c2c0cfaf1333a5",
+ "partition_sizes": {
+  "train": 600,
+  "validation": 100,
+  "calibration": 100,
+  "evaluation": 200
+ },
+ "model": "resnet50_regression",
+ "loss": "mse",
+ "bn_eps": 1.001e-05,
+ "selection_rule": "val_plcc",
+ "epoch_indexing": "1-based",
+ "official_test_set_used": false,
+ "overrides": {
+  "train": {
+   "seed": 1,
+   "device": "cuda"
+  },
+  "run": {
+   "output_root": "experiments/study_v3",
+   "experiment_id": "A_reference_resnet50__fold2"
+  },
+  "data": {
+   "split_manifest": "experiments/study_v3/protocol/fold_manifest.json"
+  },
+  "purpose": "final"
+ },
+ "pretrained_weights": {
+  "path": "weights\\pretrained\\radimagenet\\resnet50\\radimagenet_resnet50_backbone.pt",
+  "sha256": "45cba0d53f1d0ec1e1e2ae569a985b56a21da71c4a7271328b01ed5ea9a0f785",
+  "sha256_verified": true
+ },
+ "completed_utc": "2026-10-16T20:45:51+00:00",
+ "best_epoch_1based": 30,
+ "validation_metrics": {
+  "partition": "validation",
+  "n": 100,
+  "scale": "raw [0, 4]",
+  "epoch_1based": 30,
+  "mse": 0.22698065395477052,
+  "plcc": 0.9607900687329493,
+  "srocc": 0.9636886394770483,
+  "krocc": 0.854624457628972,
+  "mae": 0.37556507397443056,
+  "rmse": 0.4764248670617126
+ },
+ "evaluation_metrics": {
+  "partition": "evaluation",
+  "n": 200,
+  "scale": "raw [0, 4]",
+  "epoch_1based": 30,
+  "mse": 0.25403882011135265,
+  "plcc": 0.9457008583168858,
+  "srocc": 0.9446317897280662,
+  "krocc": 0.8157367138826287,
+  "mae": 0.40239968728274106,
+  "rmse": 0.504022638490924
+ },
+ "artifact_sha256": {
+  "config.snapshot.json": "e58b5617fd94002d6baee7347791691accd2f1a4d5e30981dff5a7de115464ad",
+  "history.json": "72d25df54e61e5c40ab8983a880280343b2f8f636719e3d32762fc8320bc203e",
+  "checkpoints/best.pt": "bae975703230f49facdb9a17a8183f889368b4aa26791527cbb89f8a2e3b7c6f",
+  "predictions_validation.csv": "35a0c5fc1fbc5cb680a20360f86f222b6a153335e3f2dd91e5a71bdf9fe39ec1",
+  "metrics_validation.json": "1e9bed65fbb543a6c4777664bd748031ac79cb0e5548a91ba078a9ccdfaccc64",
+  "predictions_evaluation.csv": "8c86dafedec12e50e4aa54e1627d150beb1afff442fdb4a408c5b9b1bef026da",
+  "metrics_evaluation.json": "91c2240aacab7271b4a731db98e4828e13b4ce8871fac95ed0df66bbdfc2f5a2"
+ }
+}

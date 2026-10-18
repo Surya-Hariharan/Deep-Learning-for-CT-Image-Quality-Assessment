@@ -1,0 +1,8 @@
+{
+ "addendum": 1,
+ "utc": "2026-10-16T19:30:48+00:00",
+ "reason": "Added a '--stage1-only' convenience mode to tools/select_b_v3.py (prints the stage-1 lambda without writing a record) because the stage-2 grid depends on it. Edit made after the FROZEN hashes were taken and before any selection or final run existed. The selection rule, grid, thresholds and bootstrap are unchanged; no result had been observed.",
+ "file": "tools/select_b_v3.py",
+ "sha256_in_FROZEN": "f416b532d869b696d33b86f54ba51703c970b3070f0893141339baa9fe693d3c",
+ "sha256_now": "f268817969a9fc905cfc45b480b631c8c142224c911bcc02f3ccb05e6eb7f8e5"
+}

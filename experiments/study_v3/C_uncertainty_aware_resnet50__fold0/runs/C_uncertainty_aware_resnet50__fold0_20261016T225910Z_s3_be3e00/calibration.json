@@ -1,0 +1,46 @@
+{
+ "method": "split_conformal",
+ "target_coverage": 0.9,
+ "n_calibration": 110,
+ "rank_k": 100,
+ "quantile_q": 1.8991172291141956,
+ "unbounded": false,
+ "unclipped": {
+  "coverage": 0.855,
+  "mean_width": 1.6379127285667192,
+  "median_width": 1.754147650297202,
+  "n": 200
+ },
+ "clipped_to_0_4": {
+  "coverage": 0.855,
+  "mean_width": 1.5721722577744277,
+  "median_width": 1.754147650297202,
+  "n": 200,
+  "fraction_intervals_clipped": 0.29
+ },
+ "nll_score_scale": -0.023281192859670338,
+ "sigma_error_spearman": 0.30641266031650793,
+ "coverage_by_sigma_tercile": [
+  {
+   "tercile": 1,
+   "n": 67,
+   "mean_sigma": 0.2861976149638267,
+   "coverage": 0.8507462686567164
+  },
+  {
+   "tercile": 2,
+   "n": 67,
+   "mean_sigma": 0.459840689015594,
+   "coverage": 0.8656716417910447
+  },
+  {
+   "tercile": 3,
+   "n": 66,
+   "mean_sigma": 0.5494157274463607,
+   "coverage": 0.8484848484848485
+  }
+ ],
+ "mean_sigma": 0.43123002189040494,
+ "fitted_on": "calibration groups of this fold",
+ "evaluated_on": "evaluation groups of this fold (disjoint from train, validation and calibration groups)"
+}

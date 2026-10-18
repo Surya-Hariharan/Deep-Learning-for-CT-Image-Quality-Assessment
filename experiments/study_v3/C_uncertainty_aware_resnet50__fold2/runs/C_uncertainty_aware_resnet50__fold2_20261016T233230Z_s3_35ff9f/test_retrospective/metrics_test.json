@@ -1,0 +1,51 @@
+{
+ "partition": "official_test",
+ "evaluation_status": "descriptive, retrospective (set examined before study v3)",
+ "n": 300,
+ "scale": "raw [0, 4]",
+ "mse": 0.4093024136731185,
+ "plcc": 0.8380614820207465,
+ "srocc": 0.8368450171336518,
+ "krocc": 0.6395035320907869,
+ "mae": 0.516150217205286,
+ "rmse": 0.6397674684392123,
+ "intervals": {
+  "quantile_q_from_fold_calibration_groups": 3.6210932306608874,
+  "unclipped": {
+   "coverage": 0.9466666666666667,
+   "mean_width": 2.423710278075603,
+   "median_width": 2.427239879032797,
+   "n": 300
+  },
+  "clipped_to_0_4": {
+   "coverage": 0.9466666666666667,
+   "mean_width": 2.1613509960193062,
+   "median_width": 2.291561651747369,
+   "n": 300,
+   "fraction_intervals_clipped": 0.53
+  },
+  "nll_score_scale": 0.7955971767085317,
+  "sigma_error_spearman": 0.03391282125356948,
+  "coverage_by_sigma_tercile": [
+   {
+    "tercile": 1,
+    "n": 100,
+    "mean_sigma": 0.28744738324571945,
+    "coverage": 0.91
+   },
+   {
+    "tercile": 2,
+    "n": 100,
+    "mean_sigma": 0.3356784837088241,
+    "coverage": 0.97
+   },
+   {
+    "tercile": 3,
+    "n": 100,
+    "mean_sigma": 0.38087076763359046,
+    "coverage": 0.96
+   }
+  ],
+  "mean_sigma": 0.33466554486271133
+ }
+}

@@ -12,6 +12,9 @@ Start with the root [`README.md`](../README.md).
 | [experiments/COMPARATIVE_ANALYSIS.md](experiments/COMPARATIVE_ANALYSIS.md) | A vs B vs C results, paired comparisons, claim-to-evidence table |
 | [experiments/ERROR_ANALYSIS.md](experiments/ERROR_ANALYSIS.md) | error patterns by score bin, worst cases, uncertainty vs error |
 | [audit/SPLIT_AND_CALIBRATION_AUDIT.md](audit/SPLIT_AND_CALIBRATION_AUDIT.md) | grouping evidence, independent re-verification of C's conformal calibration, why test coverage fails |
+| [methodology/STUDY_V3_PROTOCOL.md](methodology/STUDY_V3_PROTOCOL.md) | study v3 frozen protocol: grouped 5-fold evaluation, group bootstrap, grouped conformal |
+| [methodology/STUDY_V3_PHASE2_REVIEW.md](methodology/STUDY_V3_PHASE2_REVIEW.md) | v3 pre-training verification and review |
+| [experiments/STUDY_V3_RESULTS.md](experiments/STUDY_V3_RESULTS.md) | v3 results, reproducibility report, grouped-split audit, historical comparison |
 | [PROVENANCE.md](PROVENANCE.md) | methodological sources and attribution |
 | [experiments/a-reference.md](experiments/a-reference.md) | Experiment A: reference MSE regression |
 | [experiments/b-ranking-aware.md](experiments/b-ranking-aware.md) | Experiment B: MSE + pairwise ranking loss |
